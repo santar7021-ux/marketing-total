@@ -650,11 +650,23 @@ async function apiFetch(params = {}) {
   }
   banner('데이터 불러오는 중…', 'loading');
   try {
-    const qs = new URLSearchParams(params).toString();
-    const res = await fetch(API_URL + (qs ? '?' + qs : ''), { mode: 'cors' });
-    const json = await res.json();
+    // JSONP 방식으로 CORS 완전 우회
+    const json = await new Promise((resolve, reject) => {
+      const cbName = 'fetchCb_' + Date.now();
+      window[cbName] = (data) => {
+        delete window[cbName];
+        document.head.removeChild(script);
+        resolve(data);
+      };
+      const qs = new URLSearchParams({...params, callback: cbName}).toString();
+      const script = document.createElement('script');
+      script.src = API_URL + '?' + qs;
+      script.onerror = () => { delete window[cbName]; reject(new Error('스크립트 로드 실패')); };
+      document.head.appendChild(script);
+      setTimeout(() => { if(window[cbName]){ delete window[cbName]; reject(new Error('타임아웃')); }}, 15000);
+    });
     bannerClear();
-    if (json.error) { banner(json.error, 'error'); return null; }
+    if (json && json.error) { banner(json.error, 'error'); return null; }
     return json;
   } catch (e) {
     banner('연결 실패: ' + e.message, 'error');
@@ -666,13 +678,24 @@ async function apiPost(body) {
   if (!API_URL) { banner('API URL이 설정되지 않았습니다.', 'error'); return null; }
   banner('저장 중…', 'loading');
   try {
-    // CORS 우회: POST 대신 GET + payload 파라미터로 전송
-    const payload = encodeURIComponent(JSON.stringify(body));
-    const url = API_URL + '?action=' + encodeURIComponent(body.action) + '&payload=' + payload;
-    const res = await fetch(url, { method: 'GET' });
-    const json = await res.json();
+    // JSONP 방식 — CORS 완전 우회
+    const json = await new Promise((resolve, reject) => {
+      const cbName = 'postCb_' + Date.now();
+      window[cbName] = (data) => {
+        delete window[cbName];
+        document.head.removeChild(script);
+        resolve(data);
+      };
+      const payload = encodeURIComponent(JSON.stringify(body));
+      const script = document.createElement('script');
+      script.src = API_URL + '?action=' + encodeURIComponent(body.action) +
+                   '&payload=' + payload + '&callback=' + cbName;
+      script.onerror = () => { delete window[cbName]; reject(new Error('요청 실패')); };
+      document.head.appendChild(script);
+      setTimeout(() => { if(window[cbName]){ delete window[cbName]; reject(new Error('타임아웃')); }}, 30000);
+    });
     bannerClear();
-    if (json.error) { banner(json.error, 'error'); return null; }
+    if (json && json.error) { banner(json.error, 'error'); return null; }
     return json;
   } catch (e) {
     banner('저장 실패: ' + e.message, 'error');
@@ -1137,15 +1160,24 @@ async function uploadFileToDrive(file) {
     barEl.style.width = '55%';
     statusEl.textContent = '드라이브에 업로드 중…';
 
-    const result = await apiPost({
-      action:   'uploadFile',
-      fileName: file.name,
-      mimeType: file.type || 'application/octet-stream',
-      base64:   base64,
+    // 파일 업로드는 JSONP 방식으로 (base64를 payload에 담아 GET 전송)
+    const result = await new Promise((resolve, reject) => {
+      const cbName = 'uploadCb_' + Date.now();
+      window[cbName] = (data) => {
+        delete window[cbName];
+        document.head.removeChild(script);
+        resolve(data);
+      };
+      const body = { action:'uploadFile', fileName: file.name, mimeType: file.type||'application/octet-stream', base64 };
+      const payload = encodeURIComponent(JSON.stringify(body));
+      const script = document.createElement('script');
+      script.src = API_URL + '?action=uploadFile&payload=' + payload + '&callback=' + cbName;
+      script.onerror = () => { delete window[cbName]; reject(new Error('업로드 스크립트 로드 실패')); };
+      document.head.appendChild(script);
+      setTimeout(() => { if(window[cbName]){ delete window[cbName]; reject(new Error('업로드 타임아웃(30s)')); }}, 30000);
     });
 
     barEl.style.width = '100%';
-
     if (!result || result.error) throw new Error(result?.error || '알 수 없는 오류');
 
     const imgIdEl   = document.getElementById('f-imgid')   || document.getElementById('f-fileid');
@@ -1153,7 +1185,7 @@ async function uploadFileToDrive(file) {
     if (imgIdEl)   imgIdEl.value   = result.fileId;
     if (imgNameEl) imgNameEl.value = file.name;
 
-    statusEl.textContent = '✅ 업로드 완료! (' + (file.size / 1024 / 1024).toFixed(1) + 'MB)';
+    statusEl.textContent = '✅ 업로드 완료! (' + (file.size/1024/1024).toFixed(1) + 'MB)';
     statusEl.className   = 'upload-status success';
     setTimeout(() => { progressEl.style.display = 'none'; }, 1500);
     return result;
