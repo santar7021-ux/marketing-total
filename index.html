@@ -571,6 +571,27 @@ body { background: var(--bg); color: var(--text); font-size: 14px; line-height: 
         <p style="font-size:12px;color:var(--muted);margin-top:10px;" id="api-status">현재 저장된 URL 없음</p>
       </div>
       <div class="setup-card">
+        <h2><i class="ti ti-brand-google"></i> Google OAuth 설정 <span style="font-size:11px;color:var(--accent);font-weight:400">(파일 업로드 1GB+ 지원)</span></h2>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:12px;">Google Cloud Console에서 발급한 OAuth 2.0 클라이언트 ID를 입력하세요.</p>
+        <div class="setup-row">
+          <input type="text" id="client-id-input" placeholder="xxxxxxxxxx.apps.googleusercontent.com">
+          <button class="btn primary" onclick="saveClientId()"><i class="ti ti-check"></i> 저장</button>
+        </div>
+        <p style="font-size:12px;color:var(--muted);margin-top:10px;" id="client-id-status">현재 저장된 Client ID 없음</p>
+        <details style="margin-top:12px;">
+          <summary style="font-size:12px;color:var(--muted);cursor:pointer;">발급 방법 보기</summary>
+          <ol style="font-size:12px;line-height:2;color:var(--muted);padding-left:18px;margin-top:8px;">
+            <li><a href="https://console.cloud.google.com/" target="_blank" style="color:var(--accent)">Google Cloud Console</a> 접속</li>
+            <li>새 프로젝트 생성 또는 기존 프로젝트 선택</li>
+            <li>API 및 서비스 → <strong>사용자 인증 정보</strong> → <strong>OAuth 2.0 클라이언트 ID</strong> 만들기</li>
+            <li>유형: <strong>웹 애플리케이션</strong></li>
+            <li>승인된 JavaScript 원본에 <code>https://santar7021-ux.github.io</code> 추가</li>
+            <li>승인된 리디렉션 URI에 <code>https://santar7021-ux.github.io/marketing-total/</code> 추가</li>
+            <li>생성 후 클라이언트 ID 복사 → 위 입력창에 붙여넣기</li>
+          </ol>
+        </details>
+      </div>
+      <div class="setup-card">
         <h2><i class="ti ti-info-circle"></i> 배포 가이드</h2>
         <ol style="font-size:13px;line-height:2;color:var(--muted);padding-left:18px;">
           <li>제공된 <strong>Code.gs</strong> 파일을 구글 시트 → 확장 프로그램 → Apps Script에 붙여넣기</li>
@@ -594,6 +615,15 @@ let API_URL = localStorage.getItem('sh_api_url') || DEFAULT_API_URL;
 let DATA = {};
 let currentModal = null;
 let editRow = null;
+
+// ── Google Drive 직접 업로드 설정 ────────────────────────
+// Google Cloud Console > OAuth 2.0 클라이언트 ID (웹 애플리케이션)
+// 승인된 JavaScript 원본에 https://santar7021-ux.github.io 추가 필요
+const GDRIVE_CLIENT_ID  = localStorage.getItem('sh_client_id') || '';
+const GDRIVE_FOLDER_ID  = '1QxgWVyyRES2V3HjjZoqB7EuE4trPYZad';
+const GDRIVE_SCOPE      = 'https://www.googleapis.com/auth/drive.file';
+let   gAccessToken      = localStorage.getItem('sh_gtoken') || '';
+let   gTokenExpiry      = parseInt(localStorage.getItem('sh_gtoken_exp') || '0');
 
 // ── 페이지 전환 ──────────────────────────────────────────
 function go(pageId, el) {
@@ -1051,57 +1081,138 @@ function dzDrop(e) {
   if (file) fileSelected(file);
 }
 
+// ── Google OAuth 토큰 발급 ───────────────────────────────
+async function ensureGoogleToken() {
+  const clientId = localStorage.getItem('sh_client_id') || '';
+  if (!clientId) {
+    throw new Error('Google Client ID가 설정되지 않았습니다. API 설정 탭에서 입력해주세요.');
+  }
+  const now = Date.now();
+  if (gAccessToken && now < gTokenExpiry - 60000) return gAccessToken;
+
+  return new Promise((resolve, reject) => {
+    const popup = window.open(
+      `https://accounts.google.com/o/oauth2/v2/auth?` +
+      `client_id=${encodeURIComponent(clientId)}` +
+      `&redirect_uri=${encodeURIComponent(window.location.origin + window.location.pathname)}` +
+      `&response_type=token` +
+      `&scope=${encodeURIComponent(GDRIVE_SCOPE)}` +
+      `&prompt=consent`,
+      'google_auth', 'width=500,height=620'
+    );
+    const timer = setInterval(() => {
+      try {
+        if (!popup || popup.closed) { clearInterval(timer); reject(new Error('로그인 창이 닫혔습니다.')); return; }
+        const url = popup.location.href;
+        if (url.includes('access_token=')) {
+          clearInterval(timer);
+          popup.close();
+          const params = new URLSearchParams(url.split('#')[1] || url.split('?')[1]);
+          const token  = params.get('access_token');
+          const expIn  = parseInt(params.get('expires_in') || '3600');
+          gAccessToken = token;
+          gTokenExpiry = Date.now() + expIn * 1000;
+          localStorage.setItem('sh_gtoken',     token);
+          localStorage.setItem('sh_gtoken_exp', gTokenExpiry);
+          resolve(token);
+        }
+      } catch(e) { /* cross-origin 접근 오류 무시 */ }
+    }, 300);
+  });
+}
+
+// ── Google Drive Resumable Upload (1GB+ 지원) ────────────
 async function uploadFileToDrive(file) {
-  if (!API_URL) { banner('API URL이 설정되지 않았습니다.', 'error'); return null; }
-  const statusEl = document.getElementById('upload-status');
-  const barEl    = document.getElementById('upload-bar');
+  const statusEl   = document.getElementById('upload-status');
+  const barEl      = document.getElementById('upload-bar');
   const progressEl = document.getElementById('upload-progress');
 
-  statusEl.textContent = '파일 업로드 중…';
+  statusEl.textContent = 'Google 인증 중…';
   statusEl.className   = 'upload-status';
   progressEl.style.display = 'block';
-  barEl.style.width = '30%';
+  barEl.style.width = '5%';
 
   try {
-    // FileReader로 base64 변환
-    const base64 = await new Promise((res, rej) => {
-      const reader = new FileReader();
-      reader.onload  = e => res(e.target.result.split(',')[1]);
-      reader.onerror = rej;
-      reader.readAsDataURL(file);
-    });
+    const token = await ensureGoogleToken();
 
-    barEl.style.width = '60%';
+    // 1. Resumable Upload URI 발급
+    statusEl.textContent = '업로드 준비 중…';
+    barEl.style.width = '10%';
 
-    const result = await apiPost({
-      action:   'uploadFile',
-      fileName: file.name,
-      mimeType: file.type || 'application/octet-stream',
-      base64:   base64,
-    });
+    const initRes = await fetch(
+      'https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable',
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Bearer ' + token,
+          'Content-Type':  'application/json',
+          'X-Upload-Content-Type': file.type || 'application/octet-stream',
+          'X-Upload-Content-Length': file.size,
+        },
+        body: JSON.stringify({
+          name:    file.name,
+          parents: [GDRIVE_FOLDER_ID],
+        }),
+      }
+    );
+    if (!initRes.ok) throw new Error('업로드 URI 발급 실패: ' + initRes.status);
+    const uploadUrl = initRes.headers.get('Location');
 
-    barEl.style.width = '100%';
+    // 2. 청크 전송 (5MB 단위)
+    const CHUNK = 5 * 1024 * 1024;
+    let   offset = 0;
 
-    if (!result || result.error) {
-      statusEl.textContent = '업로드 실패: ' + (result?.error || '알 수 없는 오류');
-      statusEl.className = 'upload-status error';
-      progressEl.style.display = 'none';
-      return null;
+    while (offset < file.size) {
+      const end   = Math.min(offset + CHUNK, file.size);
+      const slice = file.slice(offset, end);
+
+      const uploadRes = await fetch(uploadUrl, {
+        method:  'PUT',
+        headers: {
+          'Content-Range': `bytes ${offset}-${end - 1}/${file.size}`,
+          'Content-Type':  file.type || 'application/octet-stream',
+        },
+        body: slice,
+      });
+
+      if (uploadRes.status === 308) {
+        // 계속 전송
+        const range = uploadRes.headers.get('Range');
+        offset = range ? parseInt(range.split('-')[1]) + 1 : end;
+      } else if (uploadRes.ok || uploadRes.status === 200 || uploadRes.status === 201) {
+        // 완료
+        const fileData = await uploadRes.json();
+        barEl.style.width = '100%';
+
+        // 공개 링크 설정
+        await fetch(`https://www.googleapis.com/drive/v3/files/${fileData.id}/permissions`, {
+          method:  'POST',
+          headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+          body:    JSON.stringify({ role: 'reader', type: 'anyone' }),
+        });
+
+        // hidden input에 저장
+        const imgIdEl   = document.getElementById('f-imgid')   || document.getElementById('f-fileid');
+        const imgNameEl = document.getElementById('f-imgname') || document.getElementById('f-filename');
+        if (imgIdEl)   imgIdEl.value   = fileData.id;
+        if (imgNameEl) imgNameEl.value = file.name;
+
+        statusEl.textContent = '✅ 업로드 완료! (' + (file.size / 1024 / 1024).toFixed(1) + 'MB)';
+        statusEl.className   = 'upload-status success';
+        setTimeout(() => { progressEl.style.display = 'none'; }, 1500);
+        return { fileId: fileData.id, fileName: file.name, success: true };
+      } else {
+        throw new Error('업로드 오류: ' + uploadRes.status);
+      }
+
+      offset = end;
+      const pct = Math.round((offset / file.size) * 88) + 10;
+      barEl.style.width = pct + '%';
+      statusEl.textContent = `업로드 중… ${(offset/1024/1024).toFixed(1)}MB / ${(file.size/1024/1024).toFixed(1)}MB`;
     }
 
-    // hidden input에 파일 ID, 파일명 저장
-    const imgIdEl   = document.getElementById('f-imgid')   || document.getElementById('f-fileid');
-    const imgNameEl = document.getElementById('f-imgname') || document.getElementById('f-filename');
-    if (imgIdEl)   imgIdEl.value   = result.fileId;
-    if (imgNameEl) imgNameEl.value = file.name;
-
-    statusEl.textContent = '✅ 업로드 완료!';
-    statusEl.className   = 'upload-status success';
-    setTimeout(() => { progressEl.style.display = 'none'; }, 1000);
-    return result;
-
   } catch (err) {
-    statusEl.textContent = '업로드 오류: ' + err.message;
+    statusEl.textContent = '업로드 실패: ' + err.message;
     statusEl.className   = 'upload-status error';
     progressEl.style.display = 'none';
     return null;
@@ -1119,6 +1230,16 @@ function saveApiUrl() {
   refreshAll();
 }
 
+// ── Client ID 저장 ──────────────────────────────────────
+function saveClientId() {
+  const id = document.getElementById('client-id-input').value.trim();
+  if (!id) { banner('Client ID를 입력해주세요.', 'error'); return; }
+  localStorage.setItem('sh_client_id', id);
+  document.getElementById('client-id-status').textContent = '✅ 저장됨';
+  banner('Google Client ID가 저장되었습니다.', 'loading');
+  setTimeout(() => bannerClear(), 2000);
+}
+
 // ── 초기화 ───────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', () => {
   const stored = localStorage.getItem('sh_api_url') || DEFAULT_API_URL;
@@ -1126,6 +1247,12 @@ window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('api-url-input').value = stored;
   document.getElementById('api-status').textContent = '✅ 연결됨: ' + stored;
   refreshAll();
+
+  const storedCid = localStorage.getItem('sh_client_id');
+  if (storedCid) {
+    document.getElementById('client-id-input').value = storedCid;
+    document.getElementById('client-id-status').textContent = '✅ 저장됨';
+  }
 
   // ESC 모달 닫기
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
