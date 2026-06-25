@@ -71,7 +71,7 @@ body { background: var(--bg); color: var(--text); font-size: 14px; line-height: 
 .content { flex: 1; overflow-y: auto; padding: 24px; background: var(--bg); }
 .page { display: none; }
 .page.active { display: block; }
-.page.active[style*="flex-direction"] { display: flex; }
+
 
 .page-hd { margin-bottom: 20px; }
 .page-hd h1 { font-size: 20px; font-weight: 600; }
@@ -164,26 +164,45 @@ body { background: var(--bg); color: var(--text); font-size: 14px; line-height: 
 .chip-on  { background: var(--accent-lt); color: #0F6E56; }
 .chip-off { background: #F1EFE8; color: #5F5E5A; }
 
-/* ── 이미지+정보 게시판 ── */
-.board-list { display: flex; flex-direction: column; gap: 10px; }
-.board-row {
-  display: grid; grid-template-columns: 64px 1fr;
-  gap: 14px; align-items: start;
-  padding: 14px; border-radius: var(--r-md);
-  background: var(--bg); transition: background .12s;
+/* ── 게시글 카드 ── */
+.post-list { display: flex; flex-direction: column; gap: 12px; }
+.post-card {
+  display: grid; grid-template-columns: 160px 1fr;
+  gap: 0; background: var(--surface);
+  border: 1px solid var(--border); border-radius: var(--r-lg);
+  overflow: hidden; transition: border-color .15s;
 }
-.board-row:hover { background: #EAECF0; }
-.board-thumb {
-  width: 64px; height: 64px; border-radius: var(--r-md);
-  background: var(--surface); border: 1px solid var(--border);
-  display: flex; align-items: center; justify-content: center;
-  overflow: hidden;
+.post-card:hover { border-color: var(--accent); }
+.post-preview {
+  width: 160px; min-height: 140px;
+  background: var(--bg);
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  overflow: hidden; position: relative; flex-shrink: 0;
 }
-.board-thumb img { width: 100%; height: 100%; object-fit: cover; }
-.board-thumb i { font-size: 28px; color: var(--accent); }
-.board-info .title { font-size: 13px; font-weight: 500; }
-.board-info .meta  { font-size: 12px; color: var(--muted); margin-top: 3px; }
-.board-info .note  { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.post-preview img { width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0; }
+.post-preview .preview-icon { font-size: 40px; color: var(--accent); opacity: 0.5; }
+.post-preview .preview-label {
+  font-size: 10px; color: var(--muted); margin-top: 6px;
+  background: var(--surface); padding: 2px 8px; border-radius: 100px;
+  border: 1px solid var(--border); position: relative; z-index: 1;
+}
+.post-preview.has-img .preview-label { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); }
+.post-body { padding: 16px 18px; display: flex; flex-direction: column; gap: 6px; }
+.post-date { font-size: 11px; color: var(--muted); }
+.post-title { font-size: 14px; font-weight: 600; color: var(--text); }
+.post-content { font-size: 13px; color: var(--muted); line-height: 1.6; white-space: pre-wrap; }
+.post-note { font-size: 12px; color: var(--accent); }
+.post-note span { font-weight: 500; }
+.post-actions { display: flex; gap: 6px; margin-top: 8px; }
+.post-file-btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 12px; padding: 4px 10px; border-radius: var(--r-md);
+  border: 1px solid var(--border-md); background: var(--bg);
+  color: var(--text); cursor: pointer; text-decoration: none;
+}
+.post-file-btn:hover { background: var(--accent-lt); border-color: var(--accent); color: var(--accent); }
 
 /* ── 빠른 이동 ── */
 .quick-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px,1fr)); gap: 10px; }
@@ -209,7 +228,33 @@ body { background: var(--bg); color: var(--text); font-size: 14px; line-height: 
 }
 .iframe-bar span { font-size: 11px; color: var(--muted); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .iframe-wrap { display: flex; flex-direction: column; }
-.iframe-wrap iframe { width: 100%; flex: 1; border: none; display: block; height: calc(100vh - 88px); }
+.iframe-wrap iframe { width: 100%; border: none; display: block; height: calc(100vh - 112px); }
+
+.launch-card {
+  display: flex; align-items: center; gap: 20px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r-lg); padding: 28px 28px;
+  cursor: pointer; transition: box-shadow .15s, border-color .15s;
+  margin-bottom: 16px;
+}
+.launch-card:hover { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(29,158,117,0.08); }
+.launch-icon {
+  width: 72px; height: 72px; border-radius: var(--r-lg);
+  background: var(--accent-lt); display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.launch-icon i { font-size: 36px; color: var(--accent); }
+.launch-info { flex: 1; }
+.launch-title { font-size: 17px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+.launch-url   { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+.launch-desc  { font-size: 13px; color: var(--muted); line-height: 1.6; }
+.launch-btn {
+  display: flex; align-items: center; gap: 6px;
+  padding: 10px 20px; border-radius: var(--r-md);
+  background: var(--accent); color: #fff; font-size: 13px; font-weight: 500;
+  white-space: nowrap; flex-shrink: 0;
+}
+.launch-card:hover .launch-btn { background: #178a64; }
 
 /* ── 모달 ── */
 .modal-bg {
@@ -356,9 +401,6 @@ body { background: var(--bg); color: var(--text); font-size: 14px; line-height: 
         <div class="metric"><div class="metric-label">수상</div><div class="metric-val" id="m-award">—</div><span class="metric-badge badge-amber">건</span></div>
         <div class="metric"><div class="metric-label">특허</div><div class="metric-val" id="m-patent">—</div><span class="metric-badge badge-blue">건</span></div>
         <div class="metric"><div class="metric-label">상표</div><div class="metric-val" id="m-brand">—</div><span class="metric-badge badge-green">건</span></div>
-        <div class="metric"><div class="metric-label">활성 연혁</div><div class="metric-val" id="m-history">—</div><span class="metric-badge badge-green">건</span></div>
-        <div class="metric"><div class="metric-label">예산 집행률</div><div class="metric-val" id="m-budget">—</div><span class="metric-badge badge-amber">%</span></div>
-        <div class="metric"><div class="metric-label">월 유입</div><div class="metric-val" id="m-traffic">—</div><span class="metric-badge badge-green">명</span></div>
       </div>
 
       <div class="card">
@@ -371,26 +413,43 @@ body { background: var(--bg); color: var(--text); font-size: 14px; line-height: 
         </div>
       </div>
 
-      <div class="card">
-        <div class="card-hd"><h2><i class="ti ti-grid-dots"></i> 빠른 이동</h2></div>
-        <div class="quick-grid">
-          <a class="quick-card" href="https://santar7021-ux.github.io/budget/" target="_blank"><i class="ti ti-wallet"></i><span>마케팅 예산 현황</span></a>
-          <a class="quick-card" href="https://santar7021-ux.github.io/homepage/" target="_blank"><i class="ti ti-chart-line"></i><span>홈페이지 유입 분석</span></a>
-          <a class="quick-card" href="https://santar7021-ux.github.io/sns-creator/" target="_blank"><i class="ti ti-brand-instagram"></i><span>SNS 콘텐츠 생성기</span></a>
-          <div class="quick-card" onclick="goSub('res-main', null, 'ni-res')"><i class="ti ti-folder"></i><span>자원 관리 메인</span></div>
-        </div>
-      </div>
+
     </div>
 
     <!-- ══ iframe 탭 공용 ══ -->
-    <div id="pg-budget" class="page" style="height:calc(100vh - 24px);display:none;flex-direction:column;padding:0;">
-      <div class="iframe-wrap" style="flex:1;margin:0;border-radius:0;border:none;"><div class="iframe-bar"><i class="ti ti-world" style="font-size:14px;color:var(--muted)"></i><span>https://santar7021-ux.github.io/budget/</span><a href="https://santar7021-ux.github.io/budget/" target="_blank" class="btn sm"><i class="ti ti-external-link"></i> 새 탭</a></div><iframe src="https://santar7021-ux.github.io/budget/" title="마케팅 예산 현황"></iframe></div>
+    <div id="pg-budget" class="page">
+      <div class="page-hd"><h1>마케팅 예산 현황</h1><p>아래 버튼을 클릭하면 새 탭에서 열립니다.</p></div>
+      <div class="launch-card" onclick="window.open('https://santar7021-ux.github.io/budget/','_blank')">
+        <div class="launch-icon"><i class="ti ti-wallet"></i></div>
+        <div class="launch-info">
+          <div class="launch-title">마케팅 워크오더 (예산 관리)</div>
+          <div class="launch-url">https://santar7021-ux.github.io/budget/</div>
+          <div class="launch-desc">마케팅 운영 비용 정리 테이블 — 로그인 후 전체 기능 이용 가능합니다.</div>
+        </div>
+        <div class="launch-btn"><i class="ti ti-external-link"></i> 새 탭에서 열기</div>
+      </div>
     </div>
-    <div id="pg-ad-homepage" class="page" style="height:calc(100vh - 24px);display:none;flex-direction:column;padding:0;">
-      <div class="iframe-wrap" style="flex:1;margin:0;border-radius:0;border:none;"><div class="iframe-bar"><i class="ti ti-world" style="font-size:14px;color:var(--muted)"></i><span>https://santar7021-ux.github.io/homepage/</span><a href="https://santar7021-ux.github.io/homepage/" target="_blank" class="btn sm"><i class="ti ti-external-link"></i> 새 탭</a></div><iframe src="https://santar7021-ux.github.io/homepage/" title="홈페이지 유입 분석"></iframe></div>
+    <div id="pg-ad-homepage" class="page">
+      <div class="page-hd"><h1>홈페이지 유입 분석</h1><p>광고홍보 — 채널별 유입 현황</p></div>
+      <div class="iframe-wrap">
+        <div class="iframe-bar">
+          <i class="ti ti-world" style="font-size:14px;color:var(--muted)"></i>
+          <span>https://santar7021-ux.github.io/homepage/</span>
+          <a href="https://santar7021-ux.github.io/homepage/" target="_blank" class="btn sm"><i class="ti ti-external-link"></i> 새 탭</a>
+        </div>
+        <iframe src="https://santar7021-ux.github.io/homepage/" title="홈페이지 유입 분석"></iframe>
+      </div>
     </div>
-    <div id="pg-ad-sns" class="page" style="height:calc(100vh - 24px);display:none;flex-direction:column;padding:0;">
-      <div class="iframe-wrap" style="flex:1;margin:0;border-radius:0;border:none;"><div class="iframe-bar"><i class="ti ti-world" style="font-size:14px;color:var(--muted)"></i><span>https://santar7021-ux.github.io/sns-creator/</span><a href="https://santar7021-ux.github.io/sns-creator/" target="_blank" class="btn sm"><i class="ti ti-external-link"></i> 새 탭</a></div><iframe src="https://santar7021-ux.github.io/sns-creator/" title="SNS 콘텐츠 생성기"></iframe></div>
+    <div id="pg-ad-sns" class="page">
+      <div class="page-hd"><h1>SNS 콘텐츠 생성기</h1><p>광고홍보 — AI 기반 콘텐츠 생성 도구</p></div>
+      <div class="iframe-wrap">
+        <div class="iframe-bar">
+          <i class="ti ti-world" style="font-size:14px;color:var(--muted)"></i>
+          <span>https://santar7021-ux.github.io/sns-creator/</span>
+          <a href="https://santar7021-ux.github.io/sns-creator/" target="_blank" class="btn sm"><i class="ti ti-external-link"></i> 새 탭</a>
+        </div>
+        <iframe src="https://santar7021-ux.github.io/sns-creator/" title="SNS 콘텐츠 생성기"></iframe>
+      </div>
     </div>
     <div id="pg-ad-media" class="page">
       <div class="page-hd"><h1>미디어 매체 관리</h1><p>광고홍보 — 추후 구성 예정</p></div>
@@ -420,10 +479,7 @@ body { background: var(--bg); color: var(--text); font-size: 14px; line-height: 
           <h2><i class="ti ti-files"></i> 파일 목록</h2>
           <button class="btn sm primary" onclick="openModal('intro')"><i class="ti ti-plus"></i> 항목 추가</button>
         </div>
-        <table class="tbl">
-          <thead><tr><th>형식</th><th>분류</th><th>제목</th><th>게시일</th><th>파일</th><th></th></tr></thead>
-          <tbody id="intro-list"></tbody>
-        </table>
+        <div class="post-list" id="intro-list"></div>
       </div>
     </div>
 
@@ -459,8 +515,8 @@ body { background: var(--bg); color: var(--text); font-size: 14px; line-height: 
 
     <!-- ══ 인증·수상·특허·상표 (공통 구조) ══ -->
     <div id="pg-res-cert" class="page">
-      <div class="page-hd"><h1>인증 관리</h1><p>인증서 게시판 (왼쪽 이미지 / 오른쪽 정보)</p></div>
-      <div class="card"><div class="card-hd"><h2><i class="ti ti-certificate"></i> 인증 목록</h2><button class="btn sm primary" onclick="openModal('cert')"><i class="ti ti-plus"></i> 항목 추가</button></div><div class="board-list" id="cert-list"></div></div>
+      <div class="page-hd"><h1>인증 관리</h1><p>왼쪽 파일·이미지 미리보기 / 오른쪽 제목·내용·비고</p></div>
+      <div class="card"><div class="card-hd"><h2><i class="ti ti-certificate"></i> 인증 목록</h2><button class="btn sm primary" onclick="openModal('cert')"><i class="ti ti-plus"></i> 항목 추가</button></div><div class="post-list" id="cert-list"></div></div>
     </div>
     <div id="pg-res-award" class="page">
       <div class="page-hd"><h1>수상 관리</h1><p>수상 이력 게시판</p></div>
@@ -689,26 +745,32 @@ function renderHistory(rows) {
     </tr>`).join('');
 }
 
-// ── 소개 자료 렌더 ───────────────────────────────────────
-const MIME_ICON = { 'ppt':'ti-presentation', 'pdf':'ti-file-type-pdf', 'pptx':'ti-presentation', 'xlsx':'ti-file-spreadsheet', 'docx':'ti-file-text' };
+// ── 소개 자료 렌더 (post-list 방식) ─────────────────────
 function renderIntro(rows) {
   const el = document.getElementById('intro-list');
-  if (!rows || !rows.length) { el.innerHTML = '<tr><td colspan="6"><div class="empty"><i class="ti ti-files"></i><p>소개 자료가 없습니다.</p></div></td></tr>'; return; }
+  if (!rows || !rows.length) {
+    el.innerHTML = '<div class="empty"><i class="ti ti-files"></i><p>소개 자료가 없습니다.</p></div>';
+    return;
+  }
   el.innerHTML = rows.map(r => {
-    const ext = (r['형식'] || '').toLowerCase();
-    const icon = MIME_ICON[ext] || 'ti-file';
-    const colorClass = ext === 'pdf' ? 'color:#A32D2D' : 'color:#854F0B';
-    return `<tr>
-      <td><i class="ti ${icon}" style="font-size:20px;${colorClass}"></i></td>
-      <td><span style="font-size:11px;padding:2px 8px;border-radius:100px;background:var(--accent-lt);color:#0F6E56">${r['분류']||''}</span></td>
-      <td>${r['제목']}</td>
-      <td style="color:var(--muted);white-space:nowrap">${r['게시일']}</td>
-      <td>${r['파일ID'] ? `<a href="https://drive.google.com/file/d/${r['파일ID']}/view" target="_blank" class="btn sm"><i class="ti ti-download"></i> 열기</a>` : '—'}</td>
-      <td style="text-align:right">
-        <button class="btn sm" onclick="openModal('intro',${JSON.stringify(r).replace(/"/g,'&quot;')})"><i class="ti ti-edit"></i></button>
-        <button class="btn sm danger" onclick="deleteItem('intro',${r._row})"><i class="ti ti-trash"></i></button>
-      </td>
-    </tr>`;
+    const fmt = (r['형식'] || '').toLowerCase();
+    const fileId = r['파일ID'] || '';
+    const driveUrl = fileId ? `https://drive.google.com/file/d/${fileId}/view` : '';
+    return `
+    <div class="post-card">
+      ${previewBlock(fileId, '', fmt)}
+      <div class="post-body">
+        <div class="post-date">${r['게시일'] || ''} ${r['분류'] ? `<span style="margin-left:6px;background:var(--accent-lt);color:#0F6E56;padding:1px 8px;border-radius:100px;font-size:11px">${r['분류']}</span>` : ''}</div>
+        <div class="post-title">${r['제목'] || '(제목 없음)'}</div>
+        ${r['내용'] ? `<div class="post-content">${r['내용']}</div>` : ''}
+        ${r['비고'] ? `<div class="post-note"><span>비고</span> ${r['비고']}</div>` : ''}
+        <div class="post-actions">
+          ${driveUrl ? `<a href="${driveUrl}" target="_blank" class="post-file-btn"><i class="ti ti-download"></i> ${r['파일명'] || '파일 열기'}</a>` : ''}
+          <button class="btn sm" onclick="openModal('intro',${JSON.stringify(r).replace(/"/g,'&quot;')})"><i class="ti ti-edit"></i> 수정</button>
+          <button class="btn sm danger" onclick="deleteItem('intro',${r._row})"><i class="ti ti-trash"></i> 삭제</button>
+        </div>
+      </div>
+    </div>`;
   }).join('');
 }
 
@@ -728,32 +790,70 @@ function renderYoutube(rows) {
   </tr>`).join('');
 }
 
-// ── 게시판 (인증/수상/특허/상표) 렌더 ───────────────────
-const BOARD_ICON = { cert:'ti-certificate', award:'ti-trophy', patent:'ti-shield-check', brand:'ti-registered' };
-const BOARD_COLORS = { cert:'#E6F1FB', award:'#FAEEDA', patent:'#EEEDFE', brand:'#E1F5EE' };
+// ── 게시판 공통 렌더 (소개자료·인증·수상·특허·상표) ────
+const BOARD_ICON = { cert:'ti-certificate', award:'ti-trophy', patent:'ti-shield-check', brand:'ti-registered', intro:'ti-files' };
+
+function previewBlock(fileId, imgId, format) {
+  const isImg = imgId || (format && ['jpg','jpeg','png','gif'].includes((format||'').toLowerCase()));
+  const isPdf = (format||'').toLowerCase() === 'pdf';
+  const isPpt = ['ppt','pptx'].includes((format||'').toLowerCase());
+  if (imgId) {
+    return `<div class="post-preview has-img">
+      <img src="https://drive.google.com/thumbnail?id=${imgId}&sz=w320" alt="">
+      <span class="preview-label">이미지</span>
+    </div>`;
+  } else if (fileId && isPdf) {
+    return `<div class="post-preview">
+      <i class="ti ti-file-type-pdf preview-icon" style="color:#A32D2D;opacity:1"></i>
+      <span class="preview-label">PDF</span>
+    </div>`;
+  } else if (fileId && isPpt) {
+    return `<div class="post-preview">
+      <i class="ti ti-presentation preview-icon" style="color:#854F0B;opacity:1"></i>
+      <span class="preview-label">PPT</span>
+    </div>`;
+  } else if (fileId) {
+    return `<div class="post-preview">
+      <i class="ti ti-file preview-icon"></i>
+      <span class="preview-label">파일</span>
+    </div>`;
+  } else {
+    return `<div class="post-preview">
+      <i class="ti ti-photo preview-icon"></i>
+      <span class="preview-label">미리보기 없음</span>
+    </div>`;
+  }
+}
+
 function renderBoard(key, rows) {
   const el = document.getElementById(key + '-list');
-  if (!rows || !rows.length) { el.innerHTML = '<div class="empty"><i class="ti ' + BOARD_ICON[key] + '"></i><p>등록된 항목이 없습니다.</p></div>'; return; }
-  const ico = BOARD_ICON[key];
-  const bgc = BOARD_COLORS[key];
-  el.innerHTML = rows.map(r => `
-    <div class="board-row">
-      <div class="board-thumb" style="background:${bgc}">
-        ${r['이미지ID'] ? `<img src="https://drive.google.com/thumbnail?id=${r['이미지ID']}&sz=w128" alt="">` : `<i class="ti ${ico}"></i>`}
-      </div>
-      <div>
-        <div class="board-info">
-          <div class="title">${r['제목']}</div>
-          <div class="meta">${r['날짜']}</div>
-          <div class="note">${r['내용']||''}</div>
-          ${r['비고'] ? `<div class="note" style="color:var(--accent)">비고: ${r['비고']}</div>` : ''}
-        </div>
-        <div style="margin-top:8px;display:flex;gap:6px">
+  const ico = BOARD_ICON[key] || 'ti-file';
+  if (!rows || !rows.length) {
+    el.innerHTML = `<div class="empty"><i class="ti ${ico}"></i><p>등록된 항목이 없습니다.</p></div>`;
+    return;
+  }
+  el.innerHTML = rows.map(r => {
+    const fileId = r['이미지ID'] || r['파일ID'] || '';
+    const imgId  = r['이미지ID'] || '';
+    const fmt    = r['이미지명'] ? r['이미지명'].split('.').pop() : (r['형식'] || '');
+    const driveUrl = fileId ? `https://drive.google.com/file/d/${fileId}/view` : '';
+    const fileName = r['이미지명'] || r['파일명'] || '';
+    return `
+    <div class="post-card">
+      ${previewBlock(fileId, imgId, fmt)}
+      <div class="post-body">
+        <div class="post-date">${r['날짜'] || r['게시일'] || ''} ${r['분류'] ? `<span style="margin-left:6px;background:var(--accent-lt);color:#0F6E56;padding:1px 8px;border-radius:100px;font-size:11px">${r['분류']}</span>` : ''}</div>
+        <div class="post-title">${r['제목'] || '(제목 없음)'}</div>
+        ${r['내용'] ? `<div class="post-content">${r['내용']}</div>` : ''}
+        ${r['비고'] ? `<div class="post-note"><span>비고</span> ${r['비고']}</div>` : ''}
+        <div class="post-actions">
+          ${driveUrl ? `<a href="${driveUrl}" target="_blank" class="post-file-btn"><i class="ti ti-download"></i> ${fileName || '파일 열기'}</a>` : ''}
           <button class="btn sm" onclick="openModal('${key}',${JSON.stringify(r).replace(/"/g,'&quot;')})"><i class="ti ti-edit"></i> 수정</button>
           <button class="btn sm danger" onclick="deleteItem('${key}',${r._row})"><i class="ti ti-trash"></i> 삭제</button>
         </div>
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
 // ── 상태 토글 (연혁) ─────────────────────────────────────
@@ -791,9 +891,12 @@ const MODAL_FORMS = {
     <div class="form-row"><label>게시일</label><input type="text" id="f-date" placeholder="2025.06.15" value="${d['게시일']||''}"></div>
     <div class="form-row"><label>분류</label><select id="f-category"><option ${d['분류']==='회사소개서'?'selected':''}>회사소개서</option><option ${d['분류']==='제품별 소개서'?'selected':''}>제품별 소개서</option><option ${d['분류']==='공용 PPT 템플릿'?'selected':''}>공용 PPT 템플릿</option></select></div>
     <div class="form-row"><label>제목</label><input type="text" id="f-title" value="${d['제목']||''}"></div>
+    <div class="form-row"><label>내용</label><textarea id="f-content">${d['내용']||''}</textarea></div>
+    <div class="form-row"><label>비고</label><input type="text" id="f-note" value="${d['비고']||''}"></div>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:8px;">📎 구글 드라이브에 파일 업로드 후 ID를 입력하세요.</p>
     <div class="form-row"><label>구글 드라이브 파일 ID</label><input type="text" id="f-fileid" placeholder="구글 드라이브 파일 ID" value="${d['파일ID']||''}"></div>
     <div class="form-row"><label>파일명</label><input type="text" id="f-filename" value="${d['파일명']||''}"></div>
-    <div class="form-row"><label>형식</label><select id="f-format"><option>pptx</option><option>pdf</option><option>xlsx</option><option>docx</option></select></div>`,
+    <div class="form-row"><label>형식</label><select id="f-format"><option ${d['형식']==='pptx'?'selected':''}>pptx</option><option ${d['형식']==='pdf'?'selected':''}>pdf</option><option ${d['형식']==='xlsx'?'selected':''}>xlsx</option><option ${d['형식']==='docx'?'selected':''}>docx</option></select></div>`,
 
   youtube: (d) => `
     <div class="form-row"><label>게시일</label><input type="text" id="f-date" placeholder="2025.06.15" value="${d['게시일']||''}"></div>
@@ -808,8 +911,9 @@ function boardForm(d) {
     <div class="form-row"><label>제목</label><input type="text" id="f-title" value="${d['제목']||''}"></div>
     <div class="form-row"><label>내용</label><textarea id="f-content">${d['내용']||''}</textarea></div>
     <div class="form-row"><label>비고</label><input type="text" id="f-note" value="${d['비고']||''}"></div>
-    <div class="form-row"><label>이미지 구글 드라이브 ID</label><input type="text" id="f-imgid" placeholder="구글 드라이브 이미지 파일 ID" value="${d['이미지ID']||''}"></div>
-    <div class="form-row"><label>이미지 파일명</label><input type="text" id="f-imgname" value="${d['이미지명']||''}"></div>`;
+    <p style="font-size:12px;color:var(--muted);margin-bottom:8px;">📎 파일(PDF) 또는 이미지를 첨부하려면 구글 드라이브에 업로드 후 파일 ID를 입력하세요.</p>
+    <div class="form-row"><label>파일 구글 드라이브 ID <span style="font-size:11px;color:var(--muted)">(PDF·이미지 공용)</span></label><input type="text" id="f-imgid" placeholder="구글 드라이브 파일 ID" value="${d['이미지ID']||''}"></div>
+    <div class="form-row"><label>파일명 <span style="font-size:11px;color:var(--muted)">(예: 인증서.pdf, 수상사진.jpg)</span></label><input type="text" id="f-imgname" placeholder="파일명.확장자" value="${d['이미지명']||''}"></div>`;
 }
 
 function openModal(type, data = {}) {
@@ -836,7 +940,7 @@ async function submitModal() {
   } else if (['cert','award','patent','brand'].includes(t)) {
     data = { '날짜': v('f-date'), '제목': v('f-title'), '내용': v('f-content'), '비고': v('f-note'), '이미지ID': v('f-imgid'), '이미지명': v('f-imgname') };
   } else if (t === 'intro') {
-    data = { '게시일': v('f-date'), '분류': v('f-category'), '제목': v('f-title'), '파일ID': v('f-fileid'), '파일명': v('f-filename'), '형식': v('f-format') };
+    data = { '게시일': v('f-date'), '분류': v('f-category'), '제목': v('f-title'), '내용': v('f-content'), '비고': v('f-note'), '파일ID': v('f-fileid'), '파일명': v('f-filename'), '형식': v('f-format') };
   } else if (t === 'youtube') {
     data = { '게시일': v('f-date'), '솔루션명': v('f-solution'), '제목': v('f-title'), '유튜브URL': v('f-url') };
   }
