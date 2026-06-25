@@ -71,6 +71,7 @@ body { background: var(--bg); color: var(--text); font-size: 14px; line-height: 
 .content { flex: 1; overflow-y: auto; padding: 24px; background: var(--bg); }
 .page { display: none; }
 .page.active { display: block; }
+.page.active[style*="flex-direction"] { display: flex; }
 
 .page-hd { margin-bottom: 20px; }
 .page-hd h1 { font-size: 20px; font-weight: 600; }
@@ -207,7 +208,8 @@ body { background: var(--bg); color: var(--text); font-size: 14px; line-height: 
   border-bottom: 1px solid var(--border);
 }
 .iframe-bar span { font-size: 11px; color: var(--muted); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.iframe-wrap iframe { width: 100%; height: 500px; border: none; display: block; }
+.iframe-wrap { display: flex; flex-direction: column; }
+.iframe-wrap iframe { width: 100%; flex: 1; border: none; display: block; height: calc(100vh - 88px); }
 
 /* ── 모달 ── */
 .modal-bg {
@@ -381,17 +383,14 @@ body { background: var(--bg); color: var(--text); font-size: 14px; line-height: 
     </div>
 
     <!-- ══ iframe 탭 공용 ══ -->
-    <div id="pg-budget" class="page">
-      <div class="page-hd"><h1>마케팅 예산 현황</h1><p>예산 관리 외부 페이지 연동</p></div>
-      <div class="iframe-wrap"><div class="iframe-bar"><i class="ti ti-world" style="font-size:14px;color:var(--muted)"></i><span>https://santar7021-ux.github.io/budget/</span><a href="https://santar7021-ux.github.io/budget/" target="_blank" class="btn sm"><i class="ti ti-external-link"></i> 새 탭</a></div><iframe src="https://santar7021-ux.github.io/budget/" title="마케팅 예산 현황"></iframe></div>
+    <div id="pg-budget" class="page" style="height:calc(100vh - 24px);display:none;flex-direction:column;padding:0;">
+      <div class="iframe-wrap" style="flex:1;margin:0;border-radius:0;border:none;"><div class="iframe-bar"><i class="ti ti-world" style="font-size:14px;color:var(--muted)"></i><span>https://santar7021-ux.github.io/budget/</span><a href="https://santar7021-ux.github.io/budget/" target="_blank" class="btn sm"><i class="ti ti-external-link"></i> 새 탭</a></div><iframe src="https://santar7021-ux.github.io/budget/" title="마케팅 예산 현황"></iframe></div>
     </div>
-    <div id="pg-ad-homepage" class="page">
-      <div class="page-hd"><h1>홈페이지 유입 분석</h1><p>광고홍보 — 외부 분석 페이지</p></div>
-      <div class="iframe-wrap"><div class="iframe-bar"><i class="ti ti-world" style="font-size:14px;color:var(--muted)"></i><span>https://santar7021-ux.github.io/homepage/</span><a href="https://santar7021-ux.github.io/homepage/" target="_blank" class="btn sm"><i class="ti ti-external-link"></i> 새 탭</a></div><iframe src="https://santar7021-ux.github.io/homepage/" title="홈페이지 유입 분석"></iframe></div>
+    <div id="pg-ad-homepage" class="page" style="height:calc(100vh - 24px);display:none;flex-direction:column;padding:0;">
+      <div class="iframe-wrap" style="flex:1;margin:0;border-radius:0;border:none;"><div class="iframe-bar"><i class="ti ti-world" style="font-size:14px;color:var(--muted)"></i><span>https://santar7021-ux.github.io/homepage/</span><a href="https://santar7021-ux.github.io/homepage/" target="_blank" class="btn sm"><i class="ti ti-external-link"></i> 새 탭</a></div><iframe src="https://santar7021-ux.github.io/homepage/" title="홈페이지 유입 분석"></iframe></div>
     </div>
-    <div id="pg-ad-sns" class="page">
-      <div class="page-hd"><h1>SNS 콘텐츠 생성기</h1><p>광고홍보 — 외부 도구 연동</p></div>
-      <div class="iframe-wrap"><div class="iframe-bar"><i class="ti ti-world" style="font-size:14px;color:var(--muted)"></i><span>https://santar7021-ux.github.io/sns-creator/</span><a href="https://santar7021-ux.github.io/sns-creator/" target="_blank" class="btn sm"><i class="ti ti-external-link"></i> 새 탭</a></div><iframe src="https://santar7021-ux.github.io/sns-creator/" title="SNS 콘텐츠 생성기"></iframe></div>
+    <div id="pg-ad-sns" class="page" style="height:calc(100vh - 24px);display:none;flex-direction:column;padding:0;">
+      <div class="iframe-wrap" style="flex:1;margin:0;border-radius:0;border:none;"><div class="iframe-bar"><i class="ti ti-world" style="font-size:14px;color:var(--muted)"></i><span>https://santar7021-ux.github.io/sns-creator/</span><a href="https://santar7021-ux.github.io/sns-creator/" target="_blank" class="btn sm"><i class="ti ti-external-link"></i> 새 탭</a></div><iframe src="https://santar7021-ux.github.io/sns-creator/" title="SNS 콘텐츠 생성기"></iframe></div>
     </div>
     <div id="pg-ad-media" class="page">
       <div class="page-hd"><h1>미디어 매체 관리</h1><p>광고홍보 — 추후 구성 예정</p></div>
