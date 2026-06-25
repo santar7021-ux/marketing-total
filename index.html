@@ -534,7 +534,7 @@ body { background: var(--bg); color: var(--text); font-size: 14px; line-height: 
           <button class="btn sm primary" onclick="openModal('history')"><i class="ti ti-plus"></i> 항목 추가</button>
         </div>
         <table class="tbl">
-          <thead><tr><th>날짜</th><th>내용</th><th>첨부</th><th>상태</th><th></th></tr></thead>
+          <thead><tr><th>일자</th><th>내용</th><th>첨부</th><th>상태</th><th></th></tr></thead>
           <tbody id="history-list"></tbody>
         </table>
       </div>
@@ -752,9 +752,10 @@ function renderAlerts(rows) {
 // ── 자원 관리 메인 렌더 ──────────────────────────────────
 function renderResMain(history) {
   const el = document.getElementById('rm-history-list');
-  const active = (history || []).filter(r => r['상태'] === '활성');
+  const active = (history || []).filter(r => r['상태'] === '활성')
+    .sort((a,b) => parseDateNum(b['날짜']) - parseDateNum(a['날짜']));
   if (!active.length) { el.innerHTML = '<div class="empty"><i class="ti ti-timeline"></i><p>활성화된 연혁이 없습니다.</p></div>'; return; }
-  el.innerHTML = `<table class="tbl"><thead><tr><th>날짜</th><th>내용</th><th>첨부</th></tr></thead><tbody>
+  el.innerHTML = `<table class="tbl"><thead><tr><th>일자</th><th>내용</th><th>첨부</th></tr></thead><tbody>
     ${active.map(r => `<tr><td style="color:var(--muted);white-space:nowrap">${r['날짜']}</td><td>${r['내용']}</td><td style="color:var(--muted)">${r['첨부파일명'] || '—'}</td></tr>`).join('')}
   </tbody></table>`;
 }
@@ -763,7 +764,8 @@ function renderResMain(history) {
 function renderHistory(rows) {
   const el = document.getElementById('history-list');
   if (!rows || !rows.length) { el.innerHTML = '<tr><td colspan="5"><div class="empty"><i class="ti ti-timeline"></i><p>연혁이 없습니다.</p></div></td></tr>'; return; }
-  el.innerHTML = rows.map(r => `
+  const sorted = [...rows].sort((a,b) => parseDateNum(b['날짜']) - parseDateNum(a['날짜']));
+  el.innerHTML = sorted.map(r => `
     <tr>
       <td style="white-space:nowrap;color:var(--muted)">${r['날짜']}</td>
       <td>${r['내용']}</td>
@@ -783,7 +785,8 @@ function renderIntro(rows) {
     el.innerHTML = '<div class="empty"><i class="ti ti-files"></i><p>소개 자료가 없습니다.</p></div>';
     return;
   }
-  el.innerHTML = rows.map(r => {
+  const sorted = [...rows].sort((a,b) => parseDateNum(b['게시일']) - parseDateNum(a['게시일']));
+  el.innerHTML = sorted.map(r => {
     const fmt = (r['형식'] || '').toLowerCase();
     const fileId = r['파일ID'] || '';
     const driveUrl = fileId ? `https://drive.google.com/file/d/${fileId}/view` : '';
@@ -863,7 +866,8 @@ function renderBoard(key, rows) {
     el.innerHTML = `<div class="empty"><i class="ti ${ico}"></i><p>등록된 항목이 없습니다.</p></div>`;
     return;
   }
-  el.innerHTML = rows.map(r => {
+  const sorted = [...rows].sort((a,b) => parseDateNum(b['날짜']) - parseDateNum(a['날짜']));
+  el.innerHTML = sorted.map(r => {
     const fileId = r['이미지ID'] || r['파일ID'] || '';
     const imgId  = r['이미지ID'] || '';
     const fmt    = r['이미지명'] ? r['이미지명'].split('.').pop() : (r['형식'] || '');
@@ -905,9 +909,57 @@ async function deleteItem(key, rowNum) {
 }
 
 // ── 모달 ─────────────────────────────────────────────────
+// ── 연/월 선택 공통 함수 ────────────────────────────────
+function yearMonthSelect(dateVal) {
+  // dateVal: "2025.06" or "2025" or ""
+  const parts = (dateVal || '').split('.');
+  const selYear  = parts[0] || '';
+  const selMonth = parts[1] || '';
+
+  const years = [];
+  for (let y = 2040; y >= 2013; y--) years.push(y);
+
+  const yearOpts = `<option value="">연도 선택</option>` +
+    years.map(y => `<option value="${y}" ${selYear == y ? 'selected' : ''}>${y}년</option>`).join('');
+
+  const monthOpts = `<option value="">월 미선택</option>` +
+    Array.from({length:12}, (_,i) => i+1)
+      .map(m => `<option value="${String(m).padStart(2,'0')}" ${selMonth == String(m).padStart(2,'0') ? 'selected' : ''}>${m}월</option>`).join('');
+
+  return `
+    <div class="form-row">
+      <label>일자</label>
+      <div style="display:flex;gap:8px;">
+        <select id="f-year" style="flex:1" onchange="syncDateField()">
+          ${yearOpts}
+        </select>
+        <select id="f-month" style="flex:1" onchange="syncDateField()">
+          ${monthOpts}
+        </select>
+      </div>
+      <input type="hidden" id="f-date" value="${dateVal||''}">
+    </div>`;
+}
+
+function syncDateField() {
+  const y = document.getElementById('f-year')?.value  || '';
+  const m = document.getElementById('f-month')?.value || '';
+  const el = document.getElementById('f-date');
+  if (el) el.value = y ? (m ? y + '.' + m : y) : '';
+}
+
+// ── 날짜 파싱: "2025.06" → 정렬용 숫자 202506 ──────────
+function parseDateNum(str) {
+  if (!str) return 0;
+  const p = String(str).split('.');
+  const y = parseInt(p[0]) || 0;
+  const m = parseInt(p[1]) || 0;
+  return y * 100 + m;
+}
+
 const MODAL_FORMS = {
   history: (d) => `
-    <div class="form-row"><label>날짜</label><input type="text" id="f-date" placeholder="2025.06" value="${d['날짜']||''}"></div>
+    ${yearMonthSelect(d['날짜']||'')}
     <div class="form-row"><label>내용</label><input type="text" id="f-content" placeholder="연혁 내용" value="${d['내용']||''}"></div>
     <div class="form-row"><label>첨부파일 구글 드라이브 ID</label><input type="text" id="f-fileid" placeholder="구글 드라이브 파일 ID" value="${d['첨부파일ID']||''}"></div>
     <div class="form-row"><label>첨부파일명</label><input type="text" id="f-filename" placeholder="예) 수상내역.pdf" value="${d['첨부파일명']||''}"></div>
@@ -921,7 +973,7 @@ const MODAL_FORMS = {
   intro: (d) => {
     const hasFile = d['파일ID'] || d['파일명'];
     return `
-    <div class="form-row"><label>게시일</label><input type="text" id="f-date" placeholder="2025.06.15" value="${d['게시일']||''}"></div>
+    ${yearMonthSelect(d['게시일']||'')}
     <div class="form-row"><label>분류</label><select id="f-category"><option ${d['분류']==='회사소개서'?'selected':''}>회사소개서</option><option ${d['분류']==='제품별 소개서'?'selected':''}>제품별 소개서</option><option ${d['분류']==='공용 PPT 템플릿'?'selected':''}>공용 PPT 템플릿</option></select></div>
     <div class="form-row"><label>제목</label><input type="text" id="f-title" value="${d['제목']||''}"></div>
     <div class="form-row"><label>내용</label><textarea id="f-content">${d['내용']||''}</textarea></div>
@@ -948,7 +1000,7 @@ const MODAL_FORMS = {
   },
 
   youtube: (d) => `
-    <div class="form-row"><label>게시일</label><input type="text" id="f-date" placeholder="2025.06.15" value="${d['게시일']||''}"></div>
+    ${yearMonthSelect(d['게시일']||'')}
     <div class="form-row"><label>솔루션명</label><input type="text" id="f-solution" value="${d['솔루션명']||''}"></div>
     <div class="form-row"><label>제목</label><input type="text" id="f-title" value="${d['제목']||''}"></div>
     <div class="form-row"><label>유튜브 URL</label><input type="url" id="f-url" placeholder="https://youtu.be/..." value="${d['유튜브URL']||''}"></div>`,
@@ -957,7 +1009,7 @@ const MODAL_FORMS = {
 function boardForm(d) {
   const hasFile = d['이미지ID'] || d['이미지명'];
   return `
-    <div class="form-row"><label>날짜</label><input type="text" id="f-date" placeholder="2025.06.15" value="${d['날짜']||''}"></div>
+    ${yearMonthSelect(d['날짜']||'')}
     <div class="form-row"><label>제목</label><input type="text" id="f-title" value="${d['제목']||''}"></div>
     <div class="form-row"><label>내용</label><textarea id="f-content">${d['내용']||''}</textarea></div>
     <div class="form-row"><label>기타 참고사항</label><input type="text" id="f-note" placeholder="기타 참고사항" value="${d['비고']||''}"></div>
@@ -987,6 +1039,8 @@ function openModal(type, data = {}) {
   document.getElementById('modal-title').textContent = (editRow ? '항목 수정' : '항목 추가') + ' — ' + ({ cert:'인증', award:'수상', patent:'특허', brand:'상표', history:'연혁', intro:'소개자료', youtube:'유튜브' }[type] || type);
   document.getElementById('modal-body').innerHTML = MODAL_FORMS[type](data);
   document.getElementById('modal-bg').classList.add('open');
+  // 연/월 드롭다운 초기 동기화
+  setTimeout(() => syncDateField(), 0);
 }
 
 function closeModal() {
