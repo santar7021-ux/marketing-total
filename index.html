@@ -666,11 +666,10 @@ async function apiPost(body) {
   if (!API_URL) { banner('API URL이 설정되지 않았습니다.', 'error'); return null; }
   banner('저장 중…', 'loading');
   try {
-    const res = await fetch(API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    });
+    // CORS 우회: POST 대신 GET + payload 파라미터로 전송
+    const payload = encodeURIComponent(JSON.stringify(body));
+    const url = API_URL + '?action=' + encodeURIComponent(body.action) + '&payload=' + payload;
+    const res = await fetch(url, { method: 'GET' });
     const json = await res.json();
     bannerClear();
     if (json.error) { banner(json.error, 'error'); return null; }
