@@ -1361,16 +1361,30 @@ function clearUpload() {
 function jsonpCall(url, timeout) {
   return new Promise((resolve, reject) => {
     const cbName = 'jcb_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+    const tm = timeout || 30000;
     window[cbName] = (data) => {
       delete window[cbName];
       if (sc.parentNode) sc.parentNode.removeChild(sc);
+      clearTimeout(timer);
       resolve(data);
     };
     const sc = document.createElement('script');
     sc.src = url + (url.includes('?') ? '&' : '?') + 'callback=' + cbName;
-    sc.onerror = () => { delete window[cbName]; if (sc.parentNode) sc.parentNode.removeChild(sc); reject(new Error('네트워크 오류')); };
+    sc.onerror = (e) => {
+      console.error('JSONP 스크립트 오류:', sc.src.slice(0, 100));
+      delete window[cbName];
+      if (sc.parentNode) sc.parentNode.removeChild(sc);
+      clearTimeout(timer);
+      reject(new Error('스크립트 로드 실패 (URL 길이: ' + sc.src.length + ')'));
+    };
     document.head.appendChild(sc);
-    setTimeout(() => { if (window[cbName]) { delete window[cbName]; if (sc.parentNode) sc.parentNode.removeChild(sc); reject(new Error('타임아웃')); } }, timeout || 30000);
+    const timer = setTimeout(() => {
+      if (window[cbName]) {
+        delete window[cbName];
+        if (sc.parentNode) sc.parentNode.removeChild(sc);
+        reject(new Error('타임아웃 (' + tm/1000 + 's)'));
+      }
+    }, tm);
   });
 }
 
@@ -1384,6 +1398,8 @@ async function uploadFileViaForm(file) {
     throw new Error('파일이 너무 큽니다');
   }
 
+  console.log('📤 업로드 시작:', file.name, (file.size/1024).toFixed(0)+'KB');
+
   if (msg)  { msg.textContent = '파일 변환 중…'; msg.className = 'upload-msg'; }
   if (prog) prog.classList.add('show');
   if (bar)  bar.style.width = '5%';
@@ -1396,10 +1412,13 @@ async function uploadFileViaForm(file) {
     reader.readAsDataURL(file);
   });
 
+  console.log('✅ base64 변환 완료:', base64Full.length, 'chars');
   if (bar) bar.style.width = '15%';
 
   // 1단계: 세션 시작
   const sessionId = 'sess_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+  console.log('📍 세션 ID:', sessionId);
+
   const initUrl = API_URL
     + '?action=uploadInit'
     + '&payload=' + encodeURIComponent(JSON.stringify({
@@ -1410,19 +1429,22 @@ async function uploadFileViaForm(file) {
         totalSize: file.size,
       }));
 
+  if (msg)  { msg.textContent = '세션 시작 중…'; }
   const initRes = await jsonpCall(initUrl, 15000);
+  console.log('✅ 세션 시작 응답:', initRes);
   if (!initRes || initRes.error) throw new Error(initRes?.error || '세션 시작 실패');
 
-  // 2단계: 청크 전송 (각 청크 약 100KB base64 → URL 길이 안전 범위)
-  const CHUNK = 100000;
+  // 2단계: 청크 전송
+  const CHUNK = 80000; // 80KB (안전 범위로 축소)
   const chunks = [];
   for (let i = 0; i < base64Full.length; i += CHUNK) {
     chunks.push(base64Full.slice(i, i + CHUNK));
   }
+  console.log('📦 청크 개수:', chunks.length);
 
   for (let i = 0; i < chunks.length; i++) {
     if (bar)  bar.style.width = Math.round(15 + ((i + 1) / chunks.length) * 70) + '%';
-    if (msg)  { msg.textContent = `업로드 중… ${i+1}/${chunks.length} (${Math.round((i+1)/chunks.length*100)}%)`; msg.className = 'upload-msg'; }
+    if (msg)  { msg.textContent = `청크 전송 ${i+1}/${chunks.length}`; msg.className = 'upload-msg'; }
 
     const chunkUrl = API_URL
       + '?action=uploadChunk'
@@ -1434,12 +1456,14 @@ async function uploadFileViaForm(file) {
           data: chunks[i],
         }));
     const chunkRes = await jsonpCall(chunkUrl, 20000);
+    console.log(`✅ 청크 ${i+1}/${chunks.length} 응답:`, chunkRes);
     if (!chunkRes || chunkRes.error) throw new Error(chunkRes?.error || `청크 ${i+1} 실패`);
   }
 
   // 3단계: 완료
+  console.log('🔄 finish 호출 시작...');
   if (bar)  bar.style.width = '90%';
-  if (msg)  { msg.textContent = '드라이브 저장 중…'; msg.className = 'upload-msg'; }
+  if (msg)  { msg.textContent = '드라이브 저장 중… (시간이 걸릴 수 있습니다)'; msg.className = 'upload-msg'; }
 
   const finishUrl = API_URL
     + '?action=uploadFinish'
@@ -1449,7 +1473,10 @@ async function uploadFileViaForm(file) {
         fileName: file.name,
         mimeType: file.type || 'application/octet-stream',
       }));
-  const result = await jsonpCall(finishUrl, 30000);
+
+  console.log('🔄 finish URL 길이:', finishUrl.length);
+  const result = await jsonpCall(finishUrl, 60000); // 60초로 연장
+  console.log('✅ finish 응답:', result);
   if (!result || result.error) throw new Error(result?.error || '저장 실패');
 
   if (bar) bar.style.width = '100%';
