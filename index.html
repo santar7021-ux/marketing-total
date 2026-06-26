@@ -289,34 +289,31 @@ body { background: var(--bg); color: var(--text); font-size: 14px; line-height: 
 .empty i { font-size: 40px; display: block; margin-bottom: 10px; }
 .empty p { font-size: 13px; }
 
-/* ── 파일 업로드 드롭존 ── */
-.upload-section { margin-bottom: 4px; }
-.upload-section label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 8px; font-weight: 500; letter-spacing: 0.03em; }
-.dropzone {
-  border: 1.5px dashed var(--border-md); border-radius: var(--r-lg);
-  padding: 28px 16px; text-align: center; cursor: pointer;
-  background: var(--bg); transition: border-color .15s, background .15s;
-  position: relative;
+/* ── 드라이브 링크 첨부 ── */
+.drive-attach { margin-bottom: 4px; }
+.drive-attach label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 8px; font-weight: 500; }
+.drive-guide {
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: var(--r-lg); padding: 14px 16px; margin-bottom: 10px;
 }
-.dropzone:hover, .dropzone.drag-over { border-color: var(--accent); background: var(--accent-lt); }
-.dropzone input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
-.dropzone-icon { font-size: 32px; color: var(--muted); margin-bottom: 8px; }
-.dropzone:hover .dropzone-icon, .dropzone.drag-over .dropzone-icon { color: var(--accent); }
-.dropzone-text { font-size: 13px; font-weight: 500; color: var(--text); }
-.dropzone-sub  { font-size: 12px; color: var(--muted); margin-top: 4px; }
-.upload-preview {
-  display: flex; align-items: center; gap: 10px; margin-top: 10px;
+.drive-guide ol { font-size: 12px; color: var(--muted); padding-left: 16px; line-height: 2; }
+.drive-guide ol li strong { color: var(--text); }
+.drive-link-row { display: flex; gap: 8px; align-items: center; }
+.drive-link-row input {
+  flex: 1; padding: 8px 12px; border: 1px solid var(--border-md);
+  border-radius: var(--r-md); font-size: 13px;
+  background: var(--bg); color: var(--text); outline: none;
+}
+.drive-link-row input:focus { border-color: var(--accent); }
+.drive-preview-box {
+  display: none; align-items: center; gap: 10px; margin-top: 10px;
   padding: 10px 12px; border-radius: var(--r-md);
-  background: var(--surface); border: 1px solid var(--border);
+  background: var(--accent-lt); border: 1px solid var(--accent);
 }
-.upload-preview i { font-size: 20px; }
-.upload-preview .up-name { font-size: 13px; font-weight: 500; flex: 1; }
-.upload-preview .up-size { font-size: 11px; color: var(--muted); }
-.upload-progress { height: 3px; background: var(--border); border-radius: 99px; margin-top: 8px; overflow: hidden; }
-.upload-progress-bar { height: 100%; background: var(--accent); border-radius: 99px; width: 0%; transition: width .3s; }
-.upload-status { font-size: 12px; margin-top: 6px; color: var(--muted); }
-.upload-status.success { color: #0F6E56; }
-.upload-status.error   { color: #A32D2D; }
+.drive-preview-box i { font-size: 20px; color: var(--accent); }
+.drive-preview-box .dp-name { font-size: 13px; font-weight: 500; flex: 1; color: var(--text); }
+.drive-preview-box .dp-link { font-size: 12px; color: var(--accent); text-decoration: none; }
+.drive-preview-box .dp-link:hover { text-decoration: underline; }
 
 /* ── 스크롤바 ── */
 ::-webkit-scrollbar { width: 5px; }
@@ -731,7 +728,10 @@ async function refreshAll() {
 }
 
 function renderPage(pageId) {
-  if (!Object.keys(DATA).length) { refreshAll(); return; }
+  if (!Object.keys(DATA).length) {
+    refreshAll().then(() => renderPage(pageId));
+    return;
+  }
   const m = DATA.metrics || {};
   switch(pageId) {
     case 'main':        renderMetrics(m); renderAlerts(DATA.alerts); break;
@@ -797,7 +797,11 @@ function renderHistory(rows) {
   const el = document.getElementById('history-list');
   if (!rows || !rows.length) { el.innerHTML = '<tr><td colspan="5"><div class="empty"><i class="ti ti-timeline"></i><p>연혁이 없습니다.</p></div></td></tr>'; return; }
   const sorted = [...rows].sort((a,b) => parseDateNum(b['날짜']) - parseDateNum(a['날짜']));
-  sorted.forEach(r => { rowCache['history_' + r._row] = r; });
+  sorted.forEach((r, idx) => {
+    const cKey = 'history_' + (r._row !== undefined && r._row !== null ? String(r._row) : 'i' + idx);
+    r._cacheKey = cKey;
+    rowCache[cKey] = r;
+  });
   el.innerHTML = sorted.map(r => `
     <tr>
       <td style="white-space:nowrap;color:var(--muted)">${r['날짜']}</td>
@@ -805,7 +809,7 @@ function renderHistory(rows) {
       <td>${r['첨부파일명'] ? `<a href="https://drive.google.com/file/d/${r['첨부파일ID']}/view" target="_blank" class="btn sm"><i class="ti ti-paperclip"></i> ${r['첨부파일명']}</a>` : '—'}</td>
       <td><span class="chip ${r['상태'] === '활성' ? 'chip-on' : 'chip-off'}" onclick="toggleStatus(${r._row})">${r['상태'] || '비활성'}</span></td>
       <td style="text-align:right">
-        <button class="btn sm" onclick="openModalCached('history','history_${r._row}')"><i class="ti ti-edit"></i></button>
+        <button class="btn sm" onclick="openModalCached('history','${r._cacheKey}')"><i class="ti ti-edit"></i></button>
         <button class="btn sm danger" onclick="deleteItem('history',${r._row})"><i class="ti ti-trash"></i></button>
       </td>
     </tr>`).join('');
@@ -819,7 +823,11 @@ function renderIntro(rows) {
     return;
   }
   const sorted = [...rows].sort((a,b) => parseDateNum(b['게시일']) - parseDateNum(a['게시일']));
-  sorted.forEach(r => { rowCache['intro_' + r._row] = r; });
+  sorted.forEach((r, idx) => {
+    const cKey = 'intro_' + (r._row !== undefined && r._row !== null ? String(r._row) : 'i' + idx);
+    r._cacheKey = cKey;
+    rowCache[cKey] = r;
+  });
   el.innerHTML = sorted.map(r => {
     const fmt = (r['형식'] || '').toLowerCase();
     const fileId = r['파일ID'] || '';
@@ -834,7 +842,7 @@ function renderIntro(rows) {
         ${r['비고'] ? `<div class="post-note"><span>비고</span> ${r['비고']}</div>` : ''}
         <div class="post-actions">
           ${driveUrl ? `<a href="${driveUrl}" target="_blank" class="post-file-btn"><i class="ti ti-download"></i> ${r['파일명'] || '파일 열기'}</a>` : ''}
-          <button class="btn sm" onclick="openModalCached('intro','intro_${r._row}')"><i class="ti ti-edit"></i> 수정</button>
+          <button class="btn sm" onclick="openModalCached('intro','${r._cacheKey}')"><i class="ti ti-edit"></i> 수정</button>
           <button class="btn sm danger" onclick="deleteItem('intro',${r._row})"><i class="ti ti-trash"></i> 삭제</button>
         </div>
       </div>
@@ -846,14 +854,18 @@ function renderIntro(rows) {
 function renderYoutube(rows) {
   const el = document.getElementById('youtube-list');
   if (!rows || !rows.length) { el.innerHTML = '<tr><td colspan="5"><div class="empty"><i class="ti ti-brand-youtube"></i><p>영상이 없습니다.</p></div></td></tr>'; return; }
-  rows.forEach(r => { rowCache['youtube_' + r._row] = r; });
+  rows.forEach((r, idx) => {
+    const cKey = 'youtube_' + (r._row !== undefined && r._row !== null ? String(r._row) : 'i' + idx);
+    r._cacheKey = cKey;
+    rowCache[cKey] = r;
+  });
   el.innerHTML = rows.map(r => `<tr>
     <td style="color:var(--muted);white-space:nowrap">${r['게시일']}</td>
     <td>${r['솔루션명']||''}</td>
     <td>${r['제목']}</td>
     <td>${r['유튜브URL'] ? `<a href="${r['유튜브URL']}" target="_blank" class="btn sm" style="color:#C4302B"><i class="ti ti-brand-youtube"></i> 시청하기</a>` : '—'}</td>
     <td style="text-align:right">
-      <button class="btn sm" onclick="openModalCached('youtube','youtube_${r._row}')"><i class="ti ti-edit"></i></button>
+      <button class="btn sm" onclick="openModalCached('youtube','${r._cacheKey}')"><i class="ti ti-edit"></i></button>
       <button class="btn sm danger" onclick="deleteItem('youtube',${r._row})"><i class="ti ti-trash"></i></button>
     </td>
   </tr>`).join('');
@@ -902,7 +914,11 @@ function renderBoard(key, rows) {
     return;
   }
   const sorted = [...rows].sort((a,b) => parseDateNum(b['날짜']) - parseDateNum(a['날짜']));
-  sorted.forEach(r => { rowCache[r._row ? `${key}_${r._row}` : `${key}_${Math.random()}`] = r; });
+  sorted.forEach((r, idx) => {
+    const cKey = key + '_' + (r._row !== undefined && r._row !== null ? String(r._row) : 'i' + idx);
+    r._cacheKey = cKey;
+    rowCache[cKey] = r;
+  });
   el.innerHTML = sorted.map(r => {
     const fileId = r['이미지ID'] || r['파일ID'] || '';
     const imgId  = r['이미지ID'] || '';
@@ -919,7 +935,7 @@ function renderBoard(key, rows) {
         ${r['비고'] ? `<div class="post-note"><span>비고</span> ${r['비고']}</div>` : ''}
         <div class="post-actions">
           ${driveUrl ? `<a href="${driveUrl}" target="_blank" class="post-file-btn"><i class="ti ti-download"></i> ${fileName || '파일 열기'}</a>` : ''}
-          <button class="btn sm" onclick="openModalCached('${key}','${key}_${r._row}')"><i class="ti ti-edit"></i> 수정</button>
+          <button class="btn sm" onclick="openModalCached('${key}','${r._cacheKey}')"><i class="ti ti-edit"></i> 수정</button>
           <button class="btn sm danger" onclick="deleteItem('${key}',${r._row})"><i class="ti ti-trash"></i> 삭제</button>
         </div>
       </div>
@@ -1007,32 +1023,34 @@ const MODAL_FORMS = {
   brand: (d) => boardForm(d),
 
   intro: (d) => {
-    const hasFile = d['파일ID'] || d['파일명'];
+    const existId   = d['파일ID']  || '';
+    const existName = d['파일명']  || '';
+    const existUrl  = existId ? `https://drive.google.com/file/d/${existId}/view` : '';
     return `
     ${yearMonthSelect(d['게시일']||'')}
     <div class="form-row"><label>분류</label><select id="f-category"><option ${d['분류']==='회사소개서'?'selected':''}>회사소개서</option><option ${d['분류']==='제품별 소개서'?'selected':''}>제품별 소개서</option><option ${d['분류']==='공용 PPT 템플릿'?'selected':''}>공용 PPT 템플릿</option></select></div>
     <div class="form-row"><label>제목</label><input type="text" id="f-title" value="${d['제목']||''}"></div>
     <div class="form-row"><label>내용</label><textarea id="f-content">${d['내용']||''}</textarea></div>
     <div class="form-row"><label>기타 참고사항</label><input type="text" id="f-note" placeholder="기타 참고사항" value="${d['비고']||''}"></div>
-    <div class="upload-section">
-      <label>첨부 파일 / 이미지</label>
-      <div class="dropzone" id="dropzone" onclick="document.getElementById('f-file').click()" ondragover="dzOver(event)" ondragleave="dzLeave(event)" ondrop="dzDrop(event)">
-        <input type="file" id="f-file" accept=".pdf,.jpg,.jpeg,.png,.gif,.ppt,.pptx,.doc,.docx,.xlsx" style="display:none" onchange="fileSelected(this.files[0])">
-        <div class="dropzone-icon"><i class="ti ti-paperclip"></i></div>
-        <div class="dropzone-text">클릭하거나 파일을 드래그하여 첨부</div>
-        <div class="dropzone-sub">이미지, PDF, PPT, 문서 파일 등 지원 (최대 50MB)</div>
+    <div class="drive-attach">
+      <label>첨부 파일 (구글 드라이브 링크)</label>
+      <div class="drive-guide"><ol>
+        <li><a href="https://drive.google.com/drive/folders/1QxgWVyyRES2V3HjjZoqB7EuE4trPYZad" target="_blank" style="color:var(--accent)">마케팅 인프라 폴더</a>에 파일 업로드</li>
+        <li>파일 우클릭 → <strong>링크 복사</strong></li>
+        <li>아래에 붙여넣기</li>
+      </ol></div>
+      <div class="drive-link-row">
+        <input type="text" id="f-drivelink" placeholder="https://drive.google.com/file/d/.../view" oninput="parseDriveLink(this.value,'f-fileid','f-filename','f-preview-box')" value="${existUrl}">
       </div>
-      ${hasFile ? `<div class="upload-preview" id="upload-preview">
-        <i class="ti ti-file-check" style="color:var(--accent)"></i>
-        <span class="up-name">${d['파일명']||'기존 첨부파일'}</span>
-        <span class="up-size">등록됨</span>
-      </div>` : `<div id="upload-preview" style="display:none"></div>`}
-      <div class="upload-progress" id="upload-progress" style="display:none"><div class="upload-progress-bar" id="upload-bar"></div></div>
-      <div class="upload-status" id="upload-status"></div>
+      <div class="drive-preview-box" id="f-preview-box" style="${existId ? 'display:flex' : 'display:none'}">
+        <i class="ti ti-file-check"></i>
+        <span class="dp-name">${existName || '첨부파일'}</span>
+        ${existId ? `<a href="${existUrl}" target="_blank" class="dp-link">열기 →</a>` : ''}
+      </div>
     </div>
-    <input type="hidden" id="f-fileid" value="${d['파일ID']||''}">
-    <input type="hidden" id="f-filename" value="${d['파일명']||''}">
-    <input type="hidden" id="f-format" value="${d['형식']||''}">`;
+    <div class="form-row" style="margin-top:8px"><label>파일명 <span style="font-size:11px;color:var(--muted)">(예: 회사소개서.pdf)</span></label><input type="text" id="f-filename" placeholder="파일명.확장자" value="${existName}"></div>
+    <input type="hidden" id="f-fileid"  value="${existId}">
+    <input type="hidden" id="f-format"  value="${d['형식']||''}">`;
   },
 
   youtube: (d) => `
@@ -1043,30 +1061,32 @@ const MODAL_FORMS = {
 };
 
 function boardForm(d) {
-  const hasFile = d['이미지ID'] || d['이미지명'];
+  const existId   = d['이미지ID'] || '';
+  const existName = d['이미지명'] || '';
+  const existUrl  = existId ? `https://drive.google.com/file/d/${existId}/view` : '';
   return `
     ${yearMonthSelect(d['날짜']||'')}
     <div class="form-row"><label>제목</label><input type="text" id="f-title" value="${d['제목']||''}"></div>
     <div class="form-row"><label>내용</label><textarea id="f-content">${d['내용']||''}</textarea></div>
     <div class="form-row"><label>기타 참고사항</label><input type="text" id="f-note" placeholder="기타 참고사항" value="${d['비고']||''}"></div>
-    <div class="upload-section">
-      <label>첨부 파일 / 이미지</label>
-      <div class="dropzone" id="dropzone" onclick="document.getElementById('f-file').click()" ondragover="dzOver(event)" ondragleave="dzLeave(event)" ondrop="dzDrop(event)">
-        <input type="file" id="f-file" accept=".pdf,.jpg,.jpeg,.png,.gif,.ppt,.pptx,.doc,.docx" style="display:none" onchange="fileSelected(this.files[0])">
-        <div class="dropzone-icon"><i class="ti ti-paperclip"></i></div>
-        <div class="dropzone-text">클릭하거나 파일을 드래그하여 첨부</div>
-        <div class="dropzone-sub">이미지, PDF, PPT, 문서 파일 등 지원 (최대 50MB)</div>
+    <div class="drive-attach">
+      <label>첨부 파일 / 이미지 (구글 드라이브 링크)</label>
+      <div class="drive-guide"><ol>
+        <li><a href="https://drive.google.com/drive/folders/1QxgWVyyRES2V3HjjZoqB7EuE4trPYZad" target="_blank" style="color:var(--accent)">마케팅 인프라 폴더</a>에 파일 업로드</li>
+        <li>파일 우클릭 → <strong>링크 복사</strong></li>
+        <li>아래에 붙여넣기</li>
+      </ol></div>
+      <div class="drive-link-row">
+        <input type="text" id="f-drivelink" placeholder="https://drive.google.com/file/d/.../view" oninput="parseDriveLink(this.value,'f-imgid','f-imgname','f-preview-box')" value="${existUrl}">
       </div>
-      ${hasFile ? `<div class="upload-preview" id="upload-preview">
-        <i class="ti ti-file-check" style="color:var(--accent)"></i>
-        <span class="up-name">${d['이미지명']||'기존 첨부파일'}</span>
-        <span class="up-size">등록됨</span>
-      </div>` : `<div id="upload-preview" style="display:none"></div>`}
-      <div class="upload-progress" id="upload-progress" style="display:none"><div class="upload-progress-bar" id="upload-bar"></div></div>
-      <div class="upload-status" id="upload-status"></div>
+      <div class="drive-preview-box" id="f-preview-box" style="${existId ? 'display:flex' : 'display:none'}">
+        <i class="ti ti-file-check"></i>
+        <span class="dp-name">${existName || '첨부파일'}</span>
+        ${existId ? `<a href="${existUrl}" target="_blank" class="dp-link">열기 →</a>` : ''}
+      </div>
     </div>
-    <input type="hidden" id="f-imgid" value="${d['이미지ID']||''}">
-    <input type="hidden" id="f-imgname" value="${d['이미지명']||''}">`;
+    <div class="form-row" style="margin-top:8px"><label>파일명 <span style="font-size:11px;color:var(--muted)">(예: 인증서.pdf, 수상사진.jpg)</span></label><input type="text" id="f-imgname" placeholder="파일명.확장자" value="${existName}"></div>
+    <input type="hidden" id="f-imgid" value="${existId}">`;
 }
 
 // ── 엑셀 다운로드 ────────────────────────────────────────
@@ -1085,10 +1105,7 @@ const EXCEL_LABELS = {
 };
 
 function downloadExcel(key) {
-  const rows = DATA[key === 'history' ? 'history'
-              : key === 'intro'   ? 'intro'
-              : key === 'youtube' ? 'youtube'
-              : key] || [];
+  const rows = DATA[key] || [];
 
   if (!rows.length) { banner('다운로드할 데이터가 없습니다.', 'error'); return; }
 
@@ -1123,7 +1140,13 @@ function downloadExcel(key) {
 }
 
 function openModalCached(type, cacheKey) {
-  const data = rowCache[cacheKey] || {};
+  const data = rowCache[cacheKey];
+  if (!data) {
+    // 캐시 미스 시 rowCache 전체에서 타입 매칭으로 fallback
+    console.warn('캐시 미스:', cacheKey, '보유 키:', Object.keys(rowCache).filter(k => k.startsWith(type)));
+    alert('수정 데이터를 찾을 수 없습니다. 페이지를 새로고침 후 다시 시도해주세요.');
+    return;
+  }
   openModal(type, data);
 }
 
@@ -1148,13 +1171,6 @@ async function submitModal() {
   const t = currentModal;
   let data = {};
 
-  // 파일이 선택된 경우 먼저 업로드
-  const fileInput = document.getElementById('f-file');
-  if (fileInput && fileInput.files[0]) {
-    const uploaded = await uploadFileToDrive(fileInput.files[0]);
-    if (!uploaded) return; // 업로드 실패 시 중단
-  }
-
   if (t === 'history') {
     data = { '날짜': v('f-date'), '내용': v('f-content'), '첨부파일ID': v('f-fileid'), '첨부파일명': v('f-filename'), '상태': v('f-status') };
   } else if (['cert','award','patent','brand'].includes(t)) {
@@ -1177,149 +1193,34 @@ async function submitModal() {
 }
 
 // ── 파일 → Base64 → GS 업로드 ────────────────────────────
-let pendingFile = null;
 
-function fileSelected(file) {
-  if (!file) return;
-  pendingFile = file;
-  const preview = document.getElementById('upload-preview');
-  const ext = file.name.split('.').pop().toLowerCase();
-  const isImg = ['jpg','jpeg','png','gif'].includes(ext);
-  const icon = isImg ? 'ti-photo' : ext === 'pdf' ? 'ti-file-type-pdf' : 'ti-file';
-  const iconColor = ext === 'pdf' ? '#A32D2D' : isImg ? '#185FA5' : '#854F0B';
-  const size = file.size > 1024*1024 ? (file.size/1024/1024).toFixed(1)+' MB' : Math.round(file.size/1024)+' KB';
-  preview.style.display = 'flex';
-  preview.innerHTML = `<i class="ti ${icon}" style="color:${iconColor}"></i><span class="up-name">${file.name}</span><span class="up-size">${size}</span>`;
-  document.getElementById('upload-status').textContent = '';
-  document.getElementById('upload-status').className = 'upload-status';
-}
-
-function dzOver(e) { e.preventDefault(); document.getElementById('dropzone').classList.add('drag-over'); }
-function dzLeave(e) { document.getElementById('dropzone').classList.remove('drag-over'); }
-function dzDrop(e) {
-  e.preventDefault();
-  document.getElementById('dropzone').classList.remove('drag-over');
-  const file = e.dataTransfer.files[0];
-  if (file) fileSelected(file);
-}
 
 // ── 파일 업로드 — GS 스크립트 multipart (최대 50MB) ─────
-// ── JSONP 단일 호출 헬퍼 ────────────────────────────────
-function jsonpCall(url, timeout) {
-  return new Promise((resolve, reject) => {
-    const cbName = 'jcb_' + Date.now() + '_' + Math.random().toString(36).slice(2);
-    window[cbName] = (data) => {
-      delete window[cbName];
-      if (sc.parentNode) sc.parentNode.removeChild(sc);
-      resolve(data);
-    };
-    const sc = document.createElement('script');
-    sc.src = url + (url.includes('?') ? '&' : '?') + 'callback=' + cbName;
-    sc.onerror = () => { delete window[cbName]; if (sc.parentNode) sc.parentNode.removeChild(sc); reject(new Error('네트워크 오류')); };
-    document.head.appendChild(sc);
-    setTimeout(() => { if (window[cbName]) { delete window[cbName]; if (sc.parentNode) sc.parentNode.removeChild(sc); reject(new Error('타임아웃')); } }, timeout || 30000);
-  });
-}
-
-async function uploadFileToDrive(file) {
-  if (!API_URL) { banner('API URL이 설정되지 않았습니다.', 'error'); return null; }
-  const statusEl   = document.getElementById('upload-status');
-  const barEl      = document.getElementById('upload-bar');
-  const progressEl = document.getElementById('upload-progress');
-
-  if (file.size > 50 * 1024 * 1024) {
-    statusEl.textContent = '⚠️ 최대 50MB까지 업로드 가능합니다.';
-    statusEl.className = 'upload-status error';
-    return null;
-  }
-
-  statusEl.textContent = '파일 변환 중…';
-  statusEl.className   = 'upload-status';
-  progressEl.style.display = 'block';
-  barEl.style.width = '10%';
-
-  try {
-    // base64 변환
-    const base64Full = await new Promise((res, rej) => {
-      const reader = new FileReader();
-      reader.onload  = e => res(e.target.result.split(',')[1]);
-      reader.onerror = rej;
-      reader.readAsDataURL(file);
-    });
-
-    barEl.style.width = '20%';
-
-    // ── 세션 시작 ──
-    statusEl.textContent = '업로드 세션 시작…';
-    const sessionId = 'sess_' + Date.now();
-    const initUrl = API_URL
-      + '?action=uploadInit'
-      + '&payload=' + encodeURIComponent(JSON.stringify({
-          action: 'uploadInit',
-          sessionId,
-          fileName: file.name,
-          mimeType: file.type || 'application/octet-stream',
-          totalSize: file.size,
-        }));
-    const initRes = await jsonpCall(initUrl, 15000);
-    if (!initRes || initRes.error) throw new Error(initRes?.error || '세션 시작 실패');
-
-    // ── 청크 전송 (각 청크 200KB base64 ≈ 150KB 원본) ──
-    const CHUNK = 200000; // base64 문자 수
-    const chunks = [];
-    for (let i = 0; i < base64Full.length; i += CHUNK) {
-      chunks.push(base64Full.slice(i, i + CHUNK));
+// ── 구글 드라이브 링크 파싱 ─────────────────────────────
+// 링크에서 파일 ID 추출 후 hidden input에 저장
+function parseDriveLink(url, idField, nameField, previewBox) {
+  const match = url.match(/\/d\/([a-zA-Z0-9_-]{10,})/);
+  const idEl   = document.getElementById(idField);
+  const nameEl = document.getElementById(nameField);
+  const boxEl  = document.getElementById(previewBox);
+  if (match) {
+    const fileId = match[1];
+    if (idEl)   idEl.value   = fileId;
+    // 파일명은 URL 마지막 세그먼트로 추정 (입력 시 직접 수정 가능)
+    const nameGuess = url.split('/').filter(Boolean).pop().split('?')[0];
+    if (nameEl && !nameEl.value) nameEl.value = nameGuess !== 'view' ? nameGuess : '';
+    if (boxEl) {
+      boxEl.style.display = 'flex';
+      const nameSpan = document.getElementById(nameField.replace('id','') + '-preview-name') || boxEl.querySelector('.dp-name');
+      if (nameSpan) nameSpan.textContent = nameEl?.value || fileId;
+      // 열기 링크 업데이트
+      let link = boxEl.querySelector('.dp-link');
+      if (!link) { link = document.createElement('a'); link.className = 'dp-link'; link.target = '_blank'; link.textContent = '열기 →'; boxEl.appendChild(link); }
+      link.href = 'https://drive.google.com/file/d/' + fileId + '/view';
     }
-
-    for (let i = 0; i < chunks.length; i++) {
-      barEl.style.width = Math.round(20 + ((i + 1) / chunks.length) * 65) + '%';
-      statusEl.textContent = `청크 전송 중… ${i+1}/${chunks.length}`;
-
-      const chunkUrl = API_URL
-        + '?action=uploadChunk'
-        + '&payload=' + encodeURIComponent(JSON.stringify({
-            action: 'uploadChunk',
-            sessionId,
-            chunkIndex: i,
-            totalChunks: chunks.length,
-            data: chunks[i],
-          }));
-      const chunkRes = await jsonpCall(chunkUrl, 20000);
-      if (!chunkRes || chunkRes.error) throw new Error(chunkRes?.error || `청크 ${i+1} 실패`);
-    }
-
-    // ── 완료 ──
-    barEl.style.width = '90%';
-    statusEl.textContent = '드라이브 저장 중…';
-
-    const finishUrl = API_URL
-      + '?action=uploadFinish'
-      + '&payload=' + encodeURIComponent(JSON.stringify({
-          action: 'uploadFinish',
-          sessionId,
-          fileName: file.name,
-          mimeType: file.type || 'application/octet-stream',
-        }));
-    const result = await jsonpCall(finishUrl, 30000);
-    if (!result || result.error) throw new Error(result?.error || '저장 실패');
-
-    barEl.style.width = '100%';
-
-    const imgIdEl   = document.getElementById('f-imgid')   || document.getElementById('f-fileid');
-    const imgNameEl = document.getElementById('f-imgname') || document.getElementById('f-filename');
-    if (imgIdEl)   imgIdEl.value   = result.fileId;
-    if (imgNameEl) imgNameEl.value = file.name;
-
-    statusEl.textContent = '✅ 업로드 완료! (' + (file.size/1024/1024).toFixed(1) + 'MB)';
-    statusEl.className   = 'upload-status success';
-    setTimeout(() => { progressEl.style.display = 'none'; }, 1500);
-    return result;
-
-  } catch (err) {
-    statusEl.textContent = '업로드 실패: ' + err.message;
-    statusEl.className   = 'upload-status error';
-    progressEl.style.display = 'none';
-    return null;
+  } else {
+    if (idEl)   idEl.value = '';
+    if (boxEl)  boxEl.style.display = 'none';
   }
 }
 
