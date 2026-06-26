@@ -1468,54 +1468,57 @@ window.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
   document.getElementById('modal-bg').addEventListener('click', e => { if (e.target === document.getElementById('modal-bg')) closeModal(); });
 
-  // ── 이벤트 위임: 수정/삭제/미리보기 버튼 ──
-  document.querySelector('.content').addEventListener('click', e => {
-    const editBtn    = e.target.closest('.edit-btn');
-    const delBtn     = e.target.closest('.del-btn');
-    const previewBtn = e.target.closest('.preview-btn');
+});
 
-    if (editBtn) {
-      e.preventDefault();
-      e.stopPropagation();
-      const type = editBtn.dataset.type;
-      const key  = editBtn.dataset.key;
-      let data = rowCache[key];
-      if (!data) {
-        // 캐시에 없으면 DATA에서 직접 찾기 (fallback)
-        const sheetKey = type;
-        const list = DATA[sheetKey] || [];
-        const rowNum = parseInt(key.split('_').pop());
-        data = list.find(r => r._row == rowNum);
-      }
-      if (!data) {
-        alert('수정할 데이터를 찾을 수 없습니다. 페이지를 새로고침 후 다시 시도해주세요.');
-        return;
-      }
-      openModal(type, data);
+// ── 전역 이벤트 위임: 수정/삭제/미리보기 버튼 ──
+// (DOMContentLoaded 밖에 두어 어떤 상황에서도 작동)
+document.addEventListener('click', function(e) {
+  const editBtn = e.target.closest('.edit-btn');
+  if (editBtn) {
+    e.preventDefault();
+    e.stopPropagation();
+    const type = editBtn.dataset.type;
+    const key  = editBtn.dataset.key;
+    console.log('수정 버튼 클릭:', type, key, '캐시:', Object.keys(rowCache).length);
+
+    let data = rowCache[key];
+    if (!data) {
+      // 캐시 fallback - DATA에서 직접 찾기
+      const list = DATA[type] || [];
+      const rowNum = parseInt(key.split('_').pop());
+      data = list.find(r => r._row == rowNum);
+      console.log('Fallback 결과:', data ? '찾음' : '없음');
+    }
+    if (!data) {
+      alert('수정할 데이터를 찾을 수 없습니다. 페이지를 새로고침 후 다시 시도해주세요.');
       return;
     }
+    openModal(type, data);
+    return;
+  }
 
-    if (delBtn) {
-      e.preventDefault();
-      e.stopPropagation();
-      const type = delBtn.dataset.type;
-      const row  = delBtn.dataset.row;
-      if (confirm('이 항목을 삭제하시겠습니까?')) {
-        apiPost({ action: 'delete', sheet: SHEET_MAP[type], row: parseInt(row) })
-          .then(res => { if (res) refreshAll(); });
-      }
-      return;
+  const delBtn = e.target.closest('.del-btn');
+  if (delBtn) {
+    e.preventDefault();
+    e.stopPropagation();
+    const type = delBtn.dataset.type;
+    const row  = delBtn.dataset.row;
+    if (confirm('이 항목을 삭제하시겠습니까?')) {
+      apiPost({ action: 'delete', sheet: SHEET_MAP[type], row: parseInt(row) })
+        .then(res => { if (res) refreshAll(); });
     }
+    return;
+  }
 
-    if (previewBtn) {
-      e.preventDefault();
-      e.stopPropagation();
-      const fileId   = previewBtn.dataset.fileid;
-      const fileName = previewBtn.dataset.filename || '미리보기';
-      if (fileId) openImagePreview(fileId, fileName);
-      return;
-    }
-  });
+  const previewBtn = e.target.closest('.preview-btn');
+  if (previewBtn) {
+    e.preventDefault();
+    e.stopPropagation();
+    const fileId   = previewBtn.dataset.fileid;
+    const fileName = previewBtn.dataset.filename || '미리보기';
+    if (fileId) openImagePreview(fileId, fileName);
+    return;
+  }
 });
 
 // CSS 애니메이션
