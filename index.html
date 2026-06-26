@@ -1362,6 +1362,13 @@ function jsonpCall(url, timeout) {
   return new Promise((resolve, reject) => {
     const cbName = 'jcb_' + Date.now() + '_' + Math.random().toString(36).slice(2);
     const tm = timeout || 30000;
+    const finalUrl = url + (url.includes('?') ? '&' : '?') + 'callback=' + cbName;
+
+    // URL 길이 사전 체크
+    if (finalUrl.length > 8000) {
+      console.warn('⚠️ URL이 깁니다:', finalUrl.length, 'chars');
+    }
+
     window[cbName] = (data) => {
       delete window[cbName];
       if (sc.parentNode) sc.parentNode.removeChild(sc);
@@ -1369,13 +1376,13 @@ function jsonpCall(url, timeout) {
       resolve(data);
     };
     const sc = document.createElement('script');
-    sc.src = url + (url.includes('?') ? '&' : '?') + 'callback=' + cbName;
+    sc.src = finalUrl;
     sc.onerror = (e) => {
-      console.error('JSONP 스크립트 오류:', sc.src.slice(0, 100));
+      console.error('JSONP 스크립트 오류 (URL 길이:', finalUrl.length, '):', finalUrl.slice(0, 200));
       delete window[cbName];
       if (sc.parentNode) sc.parentNode.removeChild(sc);
       clearTimeout(timer);
-      reject(new Error('스크립트 로드 실패 (URL 길이: ' + sc.src.length + ')'));
+      reject(new Error('스크립트 로드 실패 (URL 길이: ' + finalUrl.length + ')'));
     };
     document.head.appendChild(sc);
     const timer = setTimeout(() => {
@@ -1435,7 +1442,7 @@ async function uploadFileViaForm(file) {
   if (!initRes || initRes.error) throw new Error(initRes?.error || '세션 시작 실패');
 
   // 2단계: 청크 전송
-  const CHUNK = 80000; // 80KB (안전 범위로 축소)
+  const CHUNK = 30000; // 30KB (GAS URL 길이 한계 안전 범위)
   const chunks = [];
   for (let i = 0; i < base64Full.length; i += CHUNK) {
     chunks.push(base64Full.slice(i, i + CHUNK));
