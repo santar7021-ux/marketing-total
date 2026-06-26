@@ -1021,8 +1021,17 @@ async function deleteItem(key, rowNum) {
 // ── 모달 ─────────────────────────────────────────────────
 // ── 연/월 선택 공통 함수 ────────────────────────────────
 function yearMonthSelect(dateVal) {
-  // dateVal: "2025.06" or "2025" or ""
-  const parts = (dateVal || '').split('.');
+  // dateVal: "2025.06" or "2025" or "" or Date object → 모두 문자열로 처리
+  let dateStr = '';
+  if (dateVal instanceof Date) {
+    dateStr = dateVal.getFullYear() + '.' + String(dateVal.getMonth() + 1).padStart(2, '0');
+  } else if (dateVal) {
+    dateStr = String(dateVal);
+    // ISO 형식 처리 (예: "2025-06-15T...")
+    const isoMatch = dateStr.match(/^(\d{4})[-./](\d{1,2})/);
+    if (isoMatch) dateStr = isoMatch[1] + '.' + String(isoMatch[2]).padStart(2, '0');
+  }
+  const parts = dateStr.split('.');
   const selYear  = parts[0] || '';
   const selMonth = parts[1] || '';
 
@@ -1061,7 +1070,13 @@ function syncDateField() {
 // ── 날짜 파싱: "2025.06" → 정렬용 숫자 202506 ──────────
 function parseDateNum(str) {
   if (!str) return 0;
-  const p = String(str).split('.');
+  let s = String(str);
+  // ISO 날짜 처리 ("2025-06-15T..." 또는 "2025-06-15")
+  const isoMatch = s.match(/^(\d{4})[-./](\d{1,2})/);
+  if (isoMatch) {
+    return parseInt(isoMatch[1]) * 100 + parseInt(isoMatch[2]);
+  }
+  const p = s.split('.');
   const y = parseInt(p[0]) || 0;
   const m = parseInt(p[1]) || 0;
   return y * 100 + m;
