@@ -1212,10 +1212,151 @@ async function submitModal() {
   if (res) { closeModal(); await refreshAll(); }
 }
 
-// ── 파일 → Base64 → GS 업로드 ────────────────────────────
+// ── 드롭존 + 파일 업로드 ─────────────────────────────────
+let currentUploadFile = null;
 
+function initDropzone() {
+  const dz = document.getElementById('f-dropzone');
+  if (!dz) return;
 
+  // 중복 이벤트 방지를 위해 cloneNode로 리스너 초기화
+  const newDz = dz.cloneNode(true);
+  dz.parentNode.replaceChild(newDz, dz);
 
+  // 클릭 → 파일 선택
+  newDz.addEventListener('click', () => {
+    const inp = document.createElement('input');
+    inp.type = 'file';
+    inp.accept = '.pdf,.jpg,.jpeg,.png,.gif,.ppt,.pptx,.doc,.docx,.xlsx';
+    inp.onchange = e => { if (e.target.files[0]) setUploadFile(e.target.files[0]); };
+    inp.click();
+  });
+
+  // 드래그앤드롭
+  newDz.addEventListener('dragover',  e => { e.preventDefault(); newDz.classList.add('drag-over'); });
+  newDz.addEventListener('dragleave', () => newDz.classList.remove('drag-over'));
+  newDz.addEventListener('drop', e => {
+    e.preventDefault();
+    newDz.classList.remove('drag-over');
+    if (e.dataTransfer.files[0]) setUploadFile(e.dataTransfer.files[0]);
+  });
+}
+
+function setUploadFile(file) {
+  currentUploadFile = file;
+  const ext  = file.name.split('.').pop().toLowerCase();
+  const size = file.size > 1048576 ? (file.size/1048576).toFixed(1)+' MB' : Math.round(file.size/1024)+' KB';
+
+  const state  = document.getElementById('f-upload-state');
+  const nameEl = document.getElementById('f-us-name');
+  const sizeEl = document.getElementById('f-us-size');
+  if (state)  state.classList.add('show');
+  if (nameEl) nameEl.textContent = file.name;
+  if (sizeEl) sizeEl.textContent = size;
+
+  const msg = document.getElementById('f-msg');
+  if (msg) { msg.textContent = '저장 버튼을 누르면 업로드됩니다.'; msg.className = 'upload-msg'; }
+}
+
+function clearUpload() {
+  currentUploadFile = null;
+  const state = document.getElementById('f-upload-state');
+  if (state) state.classList.remove('show');
+  const msg = document.getElementById('f-msg');
+  if (msg) { msg.textContent = ''; msg.className = 'upload-msg'; }
+  const idEl   = document.getElementById('f-imgid')   || document.getElementById('f-fileid');
+  const nameEl = document.getElementById('f-imgname') || document.getElementById('f-filename');
+  if (idEl)   idEl.value   = '';
+  if (nameEl) nameEl.value = '';
+}
+
+// iframe form submit 방식: CORS 우회 파일 업로드
+async function uploadFileViaForm(file) {
+  return new Promise((resolve, reject) => {
+    const msg  = document.getElementById('f-msg');
+    const bar  = document.getElementById('f-bar');
+    const prog = document.getElementById('f-progress');
+
+    if (msg)  { msg.textContent = '업로드 중…'; msg.className = 'upload-msg'; }
+    if (prog) prog.classList.add('show');
+    if (bar)  bar.style.width = '30%';
+
+    const iframeName = 'upload_iframe_' + Date.now();
+    const iframe = document.createElement('iframe');
+    iframe.name = iframeName;
+    iframe.style.display = 'none';
+    document.body.appendChild(iframe);
+
+    const form = document.createElement('form');
+    form.method  = 'POST';
+    form.action  = API_URL;
+    form.target  = iframeName;
+    form.enctype = 'multipart/form-data';
+
+    const addField = (name, val) => {
+      const inp = document.createElement('input');
+      inp.type = 'hidden'; inp.name = name; inp.value = val;
+      form.appendChild(inp);
+    };
+    addField('action', 'uploadFormFile');
+
+    const fileInp = document.createElement('input');
+    fileInp.type = 'file'; fileInp.name = 'file'; fileInp.style.display = 'none';
+    form.appendChild(fileInp);
+    document.body.appendChild(form);
+
+    // DataTransfer로 파일 세팅
+    const dt = new DataTransfer();
+    dt.items.add(file);
+    fileInp.files = dt.files;
+
+    if (bar) bar.style.width = '60%';
+
+    let done = false;
+    iframe.onload = () => {
+      if (done) return;
+      done = true;
+      try {
+        const text = iframe.contentDocument?.body?.innerText
+                  || iframe.contentWindow?.document?.body?.innerText || '';
+        // HTML로 감싼 JSON 추출
+        const jsonMatch = text.match(/\{.*\}/s);
+        const result = jsonMatch ? JSON.parse(jsonMatch[0]) : { error: '응답 비어있음' };
+        try { document.body.removeChild(form); } catch(e){}
+        try { document.body.removeChild(iframe); } catch(e){}
+        if (bar) bar.style.width = '100%';
+        if (result.error) {
+          if (msg)  { msg.textContent = '업로드 실패: ' + result.error; msg.className = 'upload-msg err'; }
+          if (prog) prog.classList.remove('show');
+          reject(new Error(result.error));
+        } else {
+          if (msg)  { msg.textContent = '✅ 업로드 완료! (' + (file.size/1048576).toFixed(1) + 'MB)'; msg.className = 'upload-msg ok'; }
+          setTimeout(() => { if (prog) prog.classList.remove('show'); }, 1500);
+          resolve(result);
+        }
+      } catch(e) {
+        try { document.body.removeChild(form); } catch(_){}
+        try { document.body.removeChild(iframe); } catch(_){}
+        if (msg)  { msg.textContent = '응답 파싱 오류: ' + e.message; msg.className = 'upload-msg err'; }
+        if (prog) prog.classList.remove('show');
+        reject(e);
+      }
+    };
+
+    setTimeout(() => {
+      if (!done) {
+        done = true;
+        try { document.body.removeChild(form); } catch(e){}
+        try { document.body.removeChild(iframe); } catch(e){}
+        if (msg)  { msg.textContent = '업로드 타임아웃'; msg.className = 'upload-msg err'; }
+        if (prog) prog.classList.remove('show');
+        reject(new Error('타임아웃'));
+      }
+    }, 60000);
+
+    form.submit();
+  });
+}
 
 // ── API URL 저장 ─────────────────────────────────────────
 function saveApiUrl() {
