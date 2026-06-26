@@ -1270,92 +1270,106 @@ function clearUpload() {
   if (nameEl) nameEl.value = '';
 }
 
-// iframe form submit 방식: CORS 우회 파일 업로드
-async function uploadFileViaForm(file) {
+// 청크 업로드 — JSONP 방식 (CORS 완전 우회)
+function jsonpCall(url, timeout) {
   return new Promise((resolve, reject) => {
-    const msg  = document.getElementById('f-msg');
-    const bar  = document.getElementById('f-bar');
-    const prog = document.getElementById('f-progress');
-
-    if (msg)  { msg.textContent = '업로드 중…'; msg.className = 'upload-msg'; }
-    if (prog) prog.classList.add('show');
-    if (bar)  bar.style.width = '30%';
-
-    const iframeName = 'upload_iframe_' + Date.now();
-    const iframe = document.createElement('iframe');
-    iframe.name = iframeName;
-    iframe.style.display = 'none';
-    document.body.appendChild(iframe);
-
-    const form = document.createElement('form');
-    form.method  = 'POST';
-    form.action  = API_URL;
-    form.target  = iframeName;
-    form.enctype = 'multipart/form-data';
-
-    const addField = (name, val) => {
-      const inp = document.createElement('input');
-      inp.type = 'hidden'; inp.name = name; inp.value = val;
-      form.appendChild(inp);
+    const cbName = 'jcb_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+    window[cbName] = (data) => {
+      delete window[cbName];
+      if (sc.parentNode) sc.parentNode.removeChild(sc);
+      resolve(data);
     };
-    addField('action', 'uploadFormFile');
-
-    const fileInp = document.createElement('input');
-    fileInp.type = 'file'; fileInp.name = 'file'; fileInp.style.display = 'none';
-    form.appendChild(fileInp);
-    document.body.appendChild(form);
-
-    // DataTransfer로 파일 세팅
-    const dt = new DataTransfer();
-    dt.items.add(file);
-    fileInp.files = dt.files;
-
-    if (bar) bar.style.width = '60%';
-
-    let done = false;
-    iframe.onload = () => {
-      if (done) return;
-      done = true;
-      try {
-        const text = iframe.contentDocument?.body?.innerText
-                  || iframe.contentWindow?.document?.body?.innerText || '';
-        // HTML로 감싼 JSON 추출
-        const jsonMatch = text.match(/\{.*\}/s);
-        const result = jsonMatch ? JSON.parse(jsonMatch[0]) : { error: '응답 비어있음' };
-        try { document.body.removeChild(form); } catch(e){}
-        try { document.body.removeChild(iframe); } catch(e){}
-        if (bar) bar.style.width = '100%';
-        if (result.error) {
-          if (msg)  { msg.textContent = '업로드 실패: ' + result.error; msg.className = 'upload-msg err'; }
-          if (prog) prog.classList.remove('show');
-          reject(new Error(result.error));
-        } else {
-          if (msg)  { msg.textContent = '✅ 업로드 완료! (' + (file.size/1048576).toFixed(1) + 'MB)'; msg.className = 'upload-msg ok'; }
-          setTimeout(() => { if (prog) prog.classList.remove('show'); }, 1500);
-          resolve(result);
-        }
-      } catch(e) {
-        try { document.body.removeChild(form); } catch(_){}
-        try { document.body.removeChild(iframe); } catch(_){}
-        if (msg)  { msg.textContent = '응답 파싱 오류: ' + e.message; msg.className = 'upload-msg err'; }
-        if (prog) prog.classList.remove('show');
-        reject(e);
-      }
-    };
-
-    setTimeout(() => {
-      if (!done) {
-        done = true;
-        try { document.body.removeChild(form); } catch(e){}
-        try { document.body.removeChild(iframe); } catch(e){}
-        if (msg)  { msg.textContent = '업로드 타임아웃'; msg.className = 'upload-msg err'; }
-        if (prog) prog.classList.remove('show');
-        reject(new Error('타임아웃'));
-      }
-    }, 60000);
-
-    form.submit();
+    const sc = document.createElement('script');
+    sc.src = url + (url.includes('?') ? '&' : '?') + 'callback=' + cbName;
+    sc.onerror = () => { delete window[cbName]; if (sc.parentNode) sc.parentNode.removeChild(sc); reject(new Error('네트워크 오류')); };
+    document.head.appendChild(sc);
+    setTimeout(() => { if (window[cbName]) { delete window[cbName]; if (sc.parentNode) sc.parentNode.removeChild(sc); reject(new Error('타임아웃')); } }, timeout || 30000);
   });
+}
+
+async function uploadFileViaForm(file) {
+  const msg  = document.getElementById('f-msg');
+  const bar  = document.getElementById('f-bar');
+  const prog = document.getElementById('f-progress');
+
+  if (file.size > 50 * 1024 * 1024) {
+    if (msg) { msg.textContent = '⚠️ 최대 50MB까지 업로드 가능합니다.'; msg.className = 'upload-msg err'; }
+    throw new Error('파일이 너무 큽니다');
+  }
+
+  if (msg)  { msg.textContent = '파일 변환 중…'; msg.className = 'upload-msg'; }
+  if (prog) prog.classList.add('show');
+  if (bar)  bar.style.width = '5%';
+
+  // base64 변환
+  const base64Full = await new Promise((res, rej) => {
+    const reader = new FileReader();
+    reader.onload  = e => res(e.target.result.split(',')[1]);
+    reader.onerror = rej;
+    reader.readAsDataURL(file);
+  });
+
+  if (bar) bar.style.width = '15%';
+
+  // 1단계: 세션 시작
+  const sessionId = 'sess_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+  const initUrl = API_URL
+    + '?action=uploadInit'
+    + '&payload=' + encodeURIComponent(JSON.stringify({
+        action: 'uploadInit',
+        sessionId,
+        fileName: file.name,
+        mimeType: file.type || 'application/octet-stream',
+        totalSize: file.size,
+      }));
+
+  const initRes = await jsonpCall(initUrl, 15000);
+  if (!initRes || initRes.error) throw new Error(initRes?.error || '세션 시작 실패');
+
+  // 2단계: 청크 전송 (각 청크 약 100KB base64 → URL 길이 안전 범위)
+  const CHUNK = 100000;
+  const chunks = [];
+  for (let i = 0; i < base64Full.length; i += CHUNK) {
+    chunks.push(base64Full.slice(i, i + CHUNK));
+  }
+
+  for (let i = 0; i < chunks.length; i++) {
+    if (bar)  bar.style.width = Math.round(15 + ((i + 1) / chunks.length) * 70) + '%';
+    if (msg)  { msg.textContent = `업로드 중… ${i+1}/${chunks.length} (${Math.round((i+1)/chunks.length*100)}%)`; msg.className = 'upload-msg'; }
+
+    const chunkUrl = API_URL
+      + '?action=uploadChunk'
+      + '&payload=' + encodeURIComponent(JSON.stringify({
+          action: 'uploadChunk',
+          sessionId,
+          chunkIndex: i,
+          totalChunks: chunks.length,
+          data: chunks[i],
+        }));
+    const chunkRes = await jsonpCall(chunkUrl, 20000);
+    if (!chunkRes || chunkRes.error) throw new Error(chunkRes?.error || `청크 ${i+1} 실패`);
+  }
+
+  // 3단계: 완료
+  if (bar)  bar.style.width = '90%';
+  if (msg)  { msg.textContent = '드라이브 저장 중…'; msg.className = 'upload-msg'; }
+
+  const finishUrl = API_URL
+    + '?action=uploadFinish'
+    + '&payload=' + encodeURIComponent(JSON.stringify({
+        action: 'uploadFinish',
+        sessionId,
+        fileName: file.name,
+        mimeType: file.type || 'application/octet-stream',
+      }));
+  const result = await jsonpCall(finishUrl, 30000);
+  if (!result || result.error) throw new Error(result?.error || '저장 실패');
+
+  if (bar) bar.style.width = '100%';
+  if (msg) { msg.textContent = '✅ 업로드 완료! (' + (file.size/1048576).toFixed(1) + 'MB)'; msg.className = 'upload-msg ok'; }
+  setTimeout(() => { if (prog) prog.classList.remove('show'); }, 1500);
+
+  return result;
 }
 
 // ── API URL 저장 ─────────────────────────────────────────
