@@ -1442,7 +1442,7 @@ async function uploadFileViaForm(file) {
   if (!initRes || initRes.error) throw new Error(initRes?.error || '세션 시작 실패');
 
   // 2단계: 청크 전송
-  const CHUNK = 30000; // 30KB (GAS URL 길이 한계 안전 범위)
+  const CHUNK = 5000; // 5KB base64 → URL 약 6KB (GAS 안전 범위)
   const chunks = [];
   for (let i = 0; i < base64Full.length; i += CHUNK) {
     chunks.push(base64Full.slice(i, i + CHUNK));
