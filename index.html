@@ -171,6 +171,7 @@ body { background: var(--bg); color: var(--text); font-size: 14px; line-height: 
   border: 1px solid var(--border); border-radius: var(--r-lg);
   overflow: hidden; transition: border-color .15s;
 }
+.post-card.post-card-simple { display: block; }
 .post-card:hover { border-color: var(--accent); }
 .post-preview {
   width: 160px; min-height: 140px;
@@ -256,6 +257,35 @@ body { background: var(--bg); color: var(--text); font-size: 14px; line-height: 
 .launch-card:hover .launch-btn { background: #178a64; }
 
 /* ── 모달 ── */
+/* ── 이미지 미리보기 모달 ── */
+.img-preview-bg {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+  display: none; align-items: center; justify-content: center;
+  z-index: 200; padding: 20px;
+}
+.img-preview-bg.open { display: flex; }
+.img-preview-box {
+  background: var(--surface); border-radius: var(--r-lg);
+  max-width: 90vw; max-height: 90vh;
+  display: flex; flex-direction: column; overflow: hidden;
+}
+.img-preview-header {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 14px 18px; border-bottom: 1px solid var(--border);
+}
+.img-preview-name { font-size: 14px; font-weight: 500; }
+.img-preview-close { font-size: 24px; cursor: pointer; color: var(--muted); line-height: 1; padding: 0 4px; }
+.img-preview-close:hover { color: var(--text); }
+.img-preview-content {
+  max-width: 85vw; max-height: 70vh;
+  object-fit: contain; background: var(--bg);
+}
+.img-preview-footer { padding: 12px 18px; border-top: 1px solid var(--border); text-align: right; }
+
+.post-preview.clickable { cursor: pointer; }
+.post-preview.clickable:hover { background: var(--accent-lt); }
+.post-preview.clickable:hover .preview-label { background: var(--accent); color: #fff; }
+
 .modal-bg {
   position: fixed; inset: 0; background: rgba(0,0,0,0.35);
   display: flex; align-items: center; justify-content: center;
@@ -332,6 +362,22 @@ body { background: var(--bg); color: var(--text); font-size: 14px; line-height: 
 </style>
 </head>
 <body>
+
+<!-- ── 이미지 미리보기 모달 ── -->
+<div class="img-preview-bg" id="img-preview-bg" onclick="closeImagePreview(event)">
+  <div class="img-preview-box">
+    <div class="img-preview-header">
+      <span class="img-preview-name" id="img-preview-name"></span>
+      <span class="img-preview-close" onclick="closeImagePreview()">×</span>
+    </div>
+    <img class="img-preview-content" id="img-preview-img" alt="">
+    <div class="img-preview-footer">
+      <a id="img-preview-link" href="#" target="_blank" class="btn sm">
+        <i class="ti ti-external-link"></i> 원본 열기
+      </a>
+    </div>
+  </div>
+</div>
 
 <!-- ── 모달 ── -->
 <div class="modal-bg" id="modal-bg">
@@ -782,7 +828,11 @@ function renderAlerts(rows) {
   if (!rows || !rows.length) { el.innerHTML = '<div class="empty"><i class="ti ti-bell-off"></i><p>알림이 없습니다.</p></div>'; return; }
   el.innerHTML = rows.slice(-10).reverse().map(r => {
     const cls = ALERT_COLORS[r['유형']] || 'a-gray';
-    return `<div class="alert-item ${cls}"><div class="alert-dot"></div><div><strong>${r['날짜']}</strong> [${r['유형']}] ${r['내용']}</div></div>`;
+    // 날짜를 yyyy-MM-dd 형식으로 정규화
+    let dateStr = String(r['날짜'] || '');
+    const m = dateStr.match(/(\d{4})[-./]?(\d{2})[-./]?(\d{2})/);
+    if (m) dateStr = `${m[1]}-${m[2]}-${m[3]}`;
+    return `<div class="alert-item ${cls}"><div class="alert-dot"></div><div><strong>${dateStr}</strong> [${r['유형']}] ${r['내용']}</div></div>`;
   }).join('');
 }
 
@@ -834,12 +884,10 @@ function renderIntro(rows) {
     rowCache[cKey] = r;
   });
   el.innerHTML = sorted.map(r => {
-    const fmt = (r['형식'] || '').toLowerCase();
     const fileId = r['파일ID'] || '';
     const driveUrl = fileId ? `https://drive.google.com/file/d/${fileId}/view` : '';
     return `
-    <div class="post-card">
-      ${previewBlock(fileId, '', fmt)}
+    <div class="post-card post-card-simple">
       <div class="post-body">
         <div class="post-date">${r['게시일'] || ''} ${r['분류'] ? `<span style="margin-left:6px;background:var(--accent-lt);color:#0F6E56;padding:1px 8px;border-radius:100px;font-size:11px">${r['분류']}</span>` : ''}</div>
         <div class="post-title">${r['제목'] || '(제목 없음)'}</div>
@@ -926,20 +974,25 @@ function renderBoard(key, rows) {
   });
   el.innerHTML = sorted.map(r => {
     const fileId = r['이미지ID'] || r['파일ID'] || '';
-    const imgId  = r['이미지ID'] || '';
-    const fmt    = r['이미지명'] ? r['이미지명'].split('.').pop() : (r['형식'] || '');
-    const driveUrl = fileId ? `https://drive.google.com/file/d/${fileId}/view` : '';
+    const fmt    = r['이미지명'] ? r['이미지명'].split('.').pop().toLowerCase() : '';
+    const isImg  = ['jpg','jpeg','png','gif','webp'].includes(fmt);
     const fileName = r['이미지명'] || r['파일명'] || '';
     return `
     <div class="post-card">
-      ${previewBlock(fileId, imgId, fmt)}
+      <div class="post-preview ${isImg ? 'clickable preview-btn' : ''}" ${isImg ? `data-fileid="${fileId}" data-filename="${fileName}"` : ''}>
+        ${fileId && isImg
+          ? `<img src="https://drive.google.com/thumbnail?id=${fileId}&sz=w320" alt="">
+             <span class="preview-label">클릭하여 확대</span>`
+          : `<i class="ti ti-${fmt === 'pdf' ? 'file-type-pdf' : fmt === 'pptx' || fmt === 'ppt' ? 'presentation' : 'file'} preview-icon"></i>
+             <span class="preview-label">${fmt ? fmt.toUpperCase() : '미리보기 없음'}</span>`}
+      </div>
       <div class="post-body">
-        <div class="post-date">${r['날짜'] || r['게시일'] || ''} ${r['분류'] ? `<span style="margin-left:6px;background:var(--accent-lt);color:#0F6E56;padding:1px 8px;border-radius:100px;font-size:11px">${r['분류']}</span>` : ''}</div>
+        <div class="post-date">${r['날짜'] || r['게시일'] || ''}</div>
         <div class="post-title">${r['제목'] || '(제목 없음)'}</div>
         ${r['내용'] ? `<div class="post-content">${r['내용']}</div>` : ''}
         ${r['비고'] ? `<div class="post-note"><span>비고</span> ${r['비고']}</div>` : ''}
         <div class="post-actions">
-          ${driveUrl ? `<a href="${driveUrl}" target="_blank" class="post-file-btn"><i class="ti ti-download"></i> ${fileName || '파일 열기'}</a>` : ''}
+          ${fileId ? `<a href="https://drive.google.com/file/d/${fileId}/view" target="_blank" class="post-file-btn"><i class="ti ti-download"></i> ${fileName || '파일 열기'}</a>` : ''}
           <button class="btn sm edit-btn" data-type="${key}" data-key="${r._cacheKey}"><i class="ti ti-edit"></i> 수정</button>
           <button class="btn sm danger del-btn" data-type="${key}" data-row="${r._row}"><i class="ti ti-trash"></i> 삭제</button>
         </div>
@@ -1038,11 +1091,11 @@ const MODAL_FORMS = {
     <div class="form-row"><label>내용</label><textarea id="f-content">${d['내용']||''}</textarea></div>
     <div class="form-row"><label>기타 참고사항</label><input type="text" id="f-note" placeholder="기타 참고사항" value="${d['비고']||''}"></div>
     <div class="upload-section">
-      <label>첨부 파일 / 이미지</label>
+      <label>첨부 파일</label>
       <div class="dropzone" id="f-dropzone">
         <i class="ti ti-paperclip dropzone-icon"></i>
         <div class="dropzone-text">클릭하거나 파일을 드래그하여 첨부</div>
-        <div class="dropzone-sub">이미지, PDF, PPT, 문서 파일 등 지원</div>
+        <div class="dropzone-sub">PDF, PPT, 문서 파일 등 지원</div>
       </div>
       <div class="upload-state ${existId ? 'show' : ''}" id="f-upload-state">
         <i class="ti ti-file-check" style="color:var(--accent)"></i>
@@ -1210,6 +1263,25 @@ async function submitModal() {
     res = await apiPost({ action: 'append', sheet: sheetName, data });
   }
   if (res) { closeModal(); await refreshAll(); }
+}
+
+// ── 이미지 미리보기 모달 ─────────────────────────────────
+function openImagePreview(fileId, fileName) {
+  const bg = document.getElementById('img-preview-bg');
+  const img = document.getElementById('img-preview-img');
+  const name = document.getElementById('img-preview-name');
+  const link = document.getElementById('img-preview-link');
+  // 큰 사이즈로 가져오기
+  img.src = `https://drive.google.com/thumbnail?id=${fileId}&sz=w1600`;
+  name.textContent = fileName || '미리보기';
+  link.href = `https://drive.google.com/file/d/${fileId}/view`;
+  bg.classList.add('open');
+}
+
+function closeImagePreview(e) {
+  // 배경 클릭 시에만 닫기 (이미지 클릭 시는 무시)
+  if (e && e.target && !e.target.matches('.img-preview-bg, .img-preview-close')) return;
+  document.getElementById('img-preview-bg').classList.remove('open');
 }
 
 // ── 드롭존 + 파일 업로드 ─────────────────────────────────
@@ -1396,33 +1468,52 @@ window.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
   document.getElementById('modal-bg').addEventListener('click', e => { if (e.target === document.getElementById('modal-bg')) closeModal(); });
 
-  // ── 이벤트 위임: 수정/삭제 버튼 ──
+  // ── 이벤트 위임: 수정/삭제/미리보기 버튼 ──
   document.querySelector('.content').addEventListener('click', e => {
-    const editBtn = e.target.closest('.edit-btn');
-    const delBtn  = e.target.closest('.del-btn');
+    const editBtn    = e.target.closest('.edit-btn');
+    const delBtn     = e.target.closest('.del-btn');
+    const previewBtn = e.target.closest('.preview-btn');
+
     if (editBtn) {
+      e.preventDefault();
+      e.stopPropagation();
       const type = editBtn.dataset.type;
       const key  = editBtn.dataset.key;
-      const data = rowCache[key];
+      let data = rowCache[key];
       if (!data) {
-        console.warn('캐시 미스 - type:', type, 'key:', key, '보유 키:', Object.keys(rowCache));
-        // 데이터 새로고침 후 재시도
-        refreshAll().then(() => {
-          const d2 = rowCache[key];
-          if (d2) openModal(type, d2);
-          else alert('데이터를 찾을 수 없습니다. 페이지를 새로고침해주세요.');
-        });
+        // 캐시에 없으면 DATA에서 직접 찾기 (fallback)
+        const sheetKey = type;
+        const list = DATA[sheetKey] || [];
+        const rowNum = parseInt(key.split('_').pop());
+        data = list.find(r => r._row == rowNum);
+      }
+      if (!data) {
+        alert('수정할 데이터를 찾을 수 없습니다. 페이지를 새로고침 후 다시 시도해주세요.');
         return;
       }
       openModal(type, data);
+      return;
     }
+
     if (delBtn) {
+      e.preventDefault();
+      e.stopPropagation();
       const type = delBtn.dataset.type;
       const row  = delBtn.dataset.row;
       if (confirm('이 항목을 삭제하시겠습니까?')) {
         apiPost({ action: 'delete', sheet: SHEET_MAP[type], row: parseInt(row) })
           .then(res => { if (res) refreshAll(); });
       }
+      return;
+    }
+
+    if (previewBtn) {
+      e.preventDefault();
+      e.stopPropagation();
+      const fileId   = previewBtn.dataset.fileid;
+      const fileName = previewBtn.dataset.filename || '미리보기';
+      if (fileId) openImagePreview(fileId, fileName);
+      return;
     }
   });
 });
