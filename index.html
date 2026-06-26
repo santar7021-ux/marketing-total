@@ -289,31 +289,36 @@ body { background: var(--bg); color: var(--text); font-size: 14px; line-height: 
 .empty i { font-size: 40px; display: block; margin-bottom: 10px; }
 .empty p { font-size: 13px; }
 
-/* ── 드라이브 링크 첨부 ── */
-.drive-attach { margin-bottom: 4px; }
-.drive-attach label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 8px; font-weight: 500; }
-.drive-guide {
-  background: var(--bg); border: 1px solid var(--border);
-  border-radius: var(--r-lg); padding: 14px 16px; margin-bottom: 10px;
+/* ── 파일 업로드 드롭존 ── */
+.upload-section { margin-bottom: 4px; }
+.upload-section > label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 8px; font-weight: 500; }
+.dropzone {
+  border: 1.5px dashed var(--border-md); border-radius: var(--r-lg);
+  padding: 28px 16px; text-align: center; cursor: pointer;
+  background: var(--bg); transition: border-color .15s, background .15s; position: relative;
 }
-.drive-guide ol { font-size: 12px; color: var(--muted); padding-left: 16px; line-height: 2; }
-.drive-guide ol li strong { color: var(--text); }
-.drive-link-row { display: flex; gap: 8px; align-items: center; }
-.drive-link-row input {
-  flex: 1; padding: 8px 12px; border: 1px solid var(--border-md);
-  border-radius: var(--r-md); font-size: 13px;
-  background: var(--bg); color: var(--text); outline: none;
-}
-.drive-link-row input:focus { border-color: var(--accent); }
-.drive-preview-box {
+.dropzone:hover, .dropzone.drag-over { border-color: var(--accent); background: var(--accent-lt); }
+.dropzone-icon { font-size: 32px; color: var(--muted); margin-bottom: 8px; display: block; }
+.dropzone:hover .dropzone-icon, .dropzone.drag-over .dropzone-icon { color: var(--accent); }
+.dropzone-text { font-size: 13px; font-weight: 500; color: var(--text); }
+.dropzone-sub  { font-size: 12px; color: var(--muted); margin-top: 4px; }
+.upload-state {
   display: none; align-items: center; gap: 10px; margin-top: 10px;
-  padding: 10px 12px; border-radius: var(--r-md);
-  background: var(--accent-lt); border: 1px solid var(--accent);
+  padding: 10px 14px; border-radius: var(--r-md);
+  background: var(--surface); border: 1px solid var(--border);
 }
-.drive-preview-box i { font-size: 20px; color: var(--accent); }
-.drive-preview-box .dp-name { font-size: 13px; font-weight: 500; flex: 1; color: var(--text); }
-.drive-preview-box .dp-link { font-size: 12px; color: var(--accent); text-decoration: none; }
-.drive-preview-box .dp-link:hover { text-decoration: underline; }
+.upload-state.show { display: flex; }
+.upload-state i { font-size: 20px; }
+.upload-state .us-name { font-size: 13px; font-weight: 500; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.upload-state .us-size { font-size: 11px; color: var(--muted); white-space: nowrap; }
+.upload-state .us-clear { font-size: 18px; color: var(--muted); cursor: pointer; line-height: 1; }
+.upload-state .us-clear:hover { color: #A32D2D; }
+.upload-progress { height: 4px; background: var(--border); border-radius: 99px; margin-top: 8px; overflow: hidden; display: none; }
+.upload-progress.show { display: block; }
+.upload-progress-bar { height: 100%; background: var(--accent); border-radius: 99px; width: 0; transition: width .3s; }
+.upload-msg { font-size: 12px; margin-top: 6px; min-height: 18px; }
+.upload-msg.ok  { color: #0F6E56; }
+.upload-msg.err { color: #A32D2D; }
 
 /* ── 스크롤바 ── */
 ::-webkit-scrollbar { width: 5px; }
@@ -1025,32 +1030,32 @@ const MODAL_FORMS = {
   intro: (d) => {
     const existId   = d['파일ID']  || '';
     const existName = d['파일명']  || '';
-    const existUrl  = existId ? `https://drive.google.com/file/d/${existId}/view` : '';
+    const existUrl  = existId ? 'https://drive.google.com/file/d/' + existId + '/view' : '';
     return `
     ${yearMonthSelect(d['게시일']||'')}
     <div class="form-row"><label>분류</label><select id="f-category"><option ${d['분류']==='회사소개서'?'selected':''}>회사소개서</option><option ${d['분류']==='제품별 소개서'?'selected':''}>제품별 소개서</option><option ${d['분류']==='공용 PPT 템플릿'?'selected':''}>공용 PPT 템플릿</option></select></div>
     <div class="form-row"><label>제목</label><input type="text" id="f-title" value="${d['제목']||''}"></div>
     <div class="form-row"><label>내용</label><textarea id="f-content">${d['내용']||''}</textarea></div>
     <div class="form-row"><label>기타 참고사항</label><input type="text" id="f-note" placeholder="기타 참고사항" value="${d['비고']||''}"></div>
-    <div class="drive-attach">
-      <label>첨부 파일 (구글 드라이브 링크)</label>
-      <div class="drive-guide"><ol>
-        <li><a href="https://drive.google.com/drive/folders/1QxgWVyyRES2V3HjjZoqB7EuE4trPYZad" target="_blank" style="color:var(--accent)">마케팅 인프라 폴더</a>에 파일 업로드</li>
-        <li>파일 우클릭 → <strong>링크 복사</strong></li>
-        <li>아래에 붙여넣기</li>
-      </ol></div>
-      <div class="drive-link-row">
-        <input type="text" id="f-drivelink" placeholder="https://drive.google.com/file/d/.../view" oninput="parseDriveLink(this.value,'f-fileid','f-filename','f-preview-box')" value="${existUrl}">
+    <div class="upload-section">
+      <label>첨부 파일 / 이미지</label>
+      <div class="dropzone" id="f-dropzone">
+        <i class="ti ti-paperclip dropzone-icon"></i>
+        <div class="dropzone-text">클릭하거나 파일을 드래그하여 첨부</div>
+        <div class="dropzone-sub">이미지, PDF, PPT, 문서 파일 등 지원</div>
       </div>
-      <div class="drive-preview-box" id="f-preview-box" style="${existId ? 'display:flex' : 'display:none'}">
-        <i class="ti ti-file-check"></i>
-        <span class="dp-name">${existName || '첨부파일'}</span>
-        ${existId ? `<a href="${existUrl}" target="_blank" class="dp-link">열기 →</a>` : ''}
+      <div class="upload-state ${existId ? 'show' : ''}" id="f-upload-state">
+        <i class="ti ti-file-check" style="color:var(--accent)"></i>
+        <span class="us-name" id="f-us-name">${existName || ''}</span>
+        <span class="us-size" id="f-us-size">${existId ? '등록됨' : ''}</span>
+        <span class="us-clear" onclick="clearUpload('intro')" title="파일 제거">×</span>
       </div>
+      <div class="upload-progress" id="f-progress"><div class="upload-progress-bar" id="f-bar"></div></div>
+      <div class="upload-msg" id="f-msg">${existUrl ? '<a href="' + existUrl + '" target="_blank" style="color:var(--accent);font-size:12px">📎 등록된 파일 열기</a>' : ''}</div>
     </div>
-    <div class="form-row" style="margin-top:8px"><label>파일명 <span style="font-size:11px;color:var(--muted)">(예: 회사소개서.pdf)</span></label><input type="text" id="f-filename" placeholder="파일명.확장자" value="${existName}"></div>
-    <input type="hidden" id="f-fileid"  value="${existId}">
-    <input type="hidden" id="f-format"  value="${d['형식']||''}">`;
+    <input type="hidden" id="f-fileid"   value="${existId}">
+    <input type="hidden" id="f-filename" value="${existName}">
+    <input type="hidden" id="f-format"   value="${d['형식']||''}">`;
   },
 
   youtube: (d) => `
@@ -1063,30 +1068,30 @@ const MODAL_FORMS = {
 function boardForm(d) {
   const existId   = d['이미지ID'] || '';
   const existName = d['이미지명'] || '';
-  const existUrl  = existId ? `https://drive.google.com/file/d/${existId}/view` : '';
+  const existUrl  = existId ? 'https://drive.google.com/file/d/' + existId + '/view' : '';
   return `
     ${yearMonthSelect(d['날짜']||'')}
     <div class="form-row"><label>제목</label><input type="text" id="f-title" value="${d['제목']||''}"></div>
     <div class="form-row"><label>내용</label><textarea id="f-content">${d['내용']||''}</textarea></div>
     <div class="form-row"><label>기타 참고사항</label><input type="text" id="f-note" placeholder="기타 참고사항" value="${d['비고']||''}"></div>
-    <div class="drive-attach">
-      <label>첨부 파일 / 이미지 (구글 드라이브 링크)</label>
-      <div class="drive-guide"><ol>
-        <li><a href="https://drive.google.com/drive/folders/1QxgWVyyRES2V3HjjZoqB7EuE4trPYZad" target="_blank" style="color:var(--accent)">마케팅 인프라 폴더</a>에 파일 업로드</li>
-        <li>파일 우클릭 → <strong>링크 복사</strong></li>
-        <li>아래에 붙여넣기</li>
-      </ol></div>
-      <div class="drive-link-row">
-        <input type="text" id="f-drivelink" placeholder="https://drive.google.com/file/d/.../view" oninput="parseDriveLink(this.value,'f-imgid','f-imgname','f-preview-box')" value="${existUrl}">
+    <div class="upload-section">
+      <label>첨부 파일 / 이미지</label>
+      <div class="dropzone" id="f-dropzone">
+        <i class="ti ti-paperclip dropzone-icon"></i>
+        <div class="dropzone-text">클릭하거나 파일을 드래그하여 첨부</div>
+        <div class="dropzone-sub">이미지, PDF, PPT, 문서 파일 등 지원</div>
       </div>
-      <div class="drive-preview-box" id="f-preview-box" style="${existId ? 'display:flex' : 'display:none'}">
-        <i class="ti ti-file-check"></i>
-        <span class="dp-name">${existName || '첨부파일'}</span>
-        ${existId ? `<a href="${existUrl}" target="_blank" class="dp-link">열기 →</a>` : ''}
+      <div class="upload-state ${existId ? 'show' : ''}" id="f-upload-state">
+        <i class="ti ti-file-check" style="color:var(--accent)"></i>
+        <span class="us-name" id="f-us-name">${existName || ''}</span>
+        <span class="us-size" id="f-us-size">${existId ? '등록됨' : ''}</span>
+        <span class="us-clear" onclick="clearUpload('board')" title="파일 제거">×</span>
       </div>
+      <div class="upload-progress" id="f-progress"><div class="upload-progress-bar" id="f-bar"></div></div>
+      <div class="upload-msg" id="f-msg">${existUrl ? '<a href="' + existUrl + '" target="_blank" style="color:var(--accent);font-size:12px">📎 등록된 파일 열기</a>' : ''}</div>
     </div>
-    <div class="form-row" style="margin-top:8px"><label>파일명 <span style="font-size:11px;color:var(--muted)">(예: 인증서.pdf, 수상사진.jpg)</span></label><input type="text" id="f-imgname" placeholder="파일명.확장자" value="${existName}"></div>
-    <input type="hidden" id="f-imgid" value="${existId}">`;
+    <input type="hidden" id="f-imgid"   value="${existId}">
+    <input type="hidden" id="f-imgname" value="${existName}">`;
 }
 
 // ── 엑셀 다운로드 ────────────────────────────────────────
@@ -1157,7 +1162,8 @@ function openModal(type, data = {}) {
   document.getElementById('modal-body').innerHTML = MODAL_FORMS[type](data);
   document.getElementById('modal-bg').classList.add('open');
   // 연/월 드롭다운 초기 동기화
-  setTimeout(() => syncDateField(), 0);
+  setTimeout(() => { syncDateField(); initDropzone(); }, 0);
+  currentUploadFile = null;
 }
 
 function closeModal() {
@@ -1170,6 +1176,20 @@ const v = (id) => { const el = document.getElementById(id); return el ? el.value
 async function submitModal() {
   const t = currentModal;
   let data = {};
+
+  // 파일이 선택된 경우 먼저 업로드
+  if (currentUploadFile) {
+    try {
+      const uploaded = await uploadFileViaForm(currentUploadFile);
+      const imgIdEl   = document.getElementById('f-imgid')   || document.getElementById('f-fileid');
+      const imgNameEl = document.getElementById('f-imgname') || document.getElementById('f-filename');
+      if (imgIdEl)   imgIdEl.value   = uploaded.fileId;
+      if (imgNameEl) imgNameEl.value = currentUploadFile.name;
+      currentUploadFile = null;
+    } catch(e) {
+      return; // 업로드 실패 시 저장 중단
+    }
+  }
 
   if (t === 'history') {
     data = { '날짜': v('f-date'), '내용': v('f-content'), '첨부파일ID': v('f-fileid'), '첨부파일명': v('f-filename'), '상태': v('f-status') };
@@ -1195,34 +1215,7 @@ async function submitModal() {
 // ── 파일 → Base64 → GS 업로드 ────────────────────────────
 
 
-// ── 파일 업로드 — GS 스크립트 multipart (최대 50MB) ─────
-// ── 구글 드라이브 링크 파싱 ─────────────────────────────
-// 링크에서 파일 ID 추출 후 hidden input에 저장
-function parseDriveLink(url, idField, nameField, previewBox) {
-  const match = url.match(/\/d\/([a-zA-Z0-9_-]{10,})/);
-  const idEl   = document.getElementById(idField);
-  const nameEl = document.getElementById(nameField);
-  const boxEl  = document.getElementById(previewBox);
-  if (match) {
-    const fileId = match[1];
-    if (idEl)   idEl.value   = fileId;
-    // 파일명은 URL 마지막 세그먼트로 추정 (입력 시 직접 수정 가능)
-    const nameGuess = url.split('/').filter(Boolean).pop().split('?')[0];
-    if (nameEl && !nameEl.value) nameEl.value = nameGuess !== 'view' ? nameGuess : '';
-    if (boxEl) {
-      boxEl.style.display = 'flex';
-      const nameSpan = document.getElementById(nameField.replace('id','') + '-preview-name') || boxEl.querySelector('.dp-name');
-      if (nameSpan) nameSpan.textContent = nameEl?.value || fileId;
-      // 열기 링크 업데이트
-      let link = boxEl.querySelector('.dp-link');
-      if (!link) { link = document.createElement('a'); link.className = 'dp-link'; link.target = '_blank'; link.textContent = '열기 →'; boxEl.appendChild(link); }
-      link.href = 'https://drive.google.com/file/d/' + fileId + '/view';
-    }
-  } else {
-    if (idEl)   idEl.value = '';
-    if (boxEl)  boxEl.style.display = 'none';
-  }
-}
+
 
 // ── API URL 저장 ─────────────────────────────────────────
 function saveApiUrl() {
