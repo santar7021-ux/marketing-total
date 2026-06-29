@@ -1873,16 +1873,42 @@ function previewBlock(fileId, imgId, format) {
 function renderBoard(key, rows) {
   const el = document.getElementById(key + '-list');
   const ico = BOARD_ICON[key] || 'ti-file';
+
   if (!rows || !rows.length) {
-    el.innerHTML = `<div class="empty"><i class="ti ${ico}"></i><p>등록된 항목이 없습니다.</p></div>`;
+    const emptyDiv = `<div class="empty"><i class="ti ${ico}"></i><p>등록된 항목이 없습니다.</p></div>`;
+    el.innerHTML = key === 'patent' ? `<tr><td colspan="7">${emptyDiv}</td></tr>` : emptyDiv;
     return;
   }
+
   const sorted = [...rows].sort((a,b) => parseDateNum(b['날짜']) - parseDateNum(a['날짜']));
   sorted.forEach((r, idx) => {
     const cKey = key + '_' + (r._row !== undefined && r._row !== null ? String(r._row) : 'i' + idx);
     r._cacheKey = cKey;
     rowCache[cKey] = r;
   });
+
+  // ── 특허: 연혁 형식 테이블 ──
+  if (key === 'patent') {
+    el.innerHTML = sorted.map(r => {
+      const fileId = r['이미지ID'] || '';
+      const fileName = r['이미지명'] || '';
+      const driveUrl = fileId ? `https://drive.google.com/file/d/${fileId}/view` : '';
+      const st = r['상태'] || '출원';
+      return `<tr>
+        <td><span class="chip ${st === '등록' ? 'chip-on' : 'chip-pending'}">${st}</span></td>
+        <td style="white-space:nowrap;color:var(--muted)">${r['날짜']||''}</td>
+        <td style="font-weight:500">${r['제목']||''}</td>
+        <td style="font-size:13px;color:var(--text)">${r['내용']||''}</td>
+        <td style="font-size:13px;color:var(--muted)">${r['비고']||''}</td>
+        <td>${driveUrl ? `<a href="${driveUrl}" target="_blank" class="btn sm"><i class="ti ti-paperclip"></i> ${fileName||'파일'}</a>` : '—'}</td>
+        <td style="text-align:right;white-space:nowrap">
+          <button class="btn sm edit-btn" data-type="patent" data-key="${r._cacheKey}"><i class="ti ti-edit"></i></button>
+          <button class="btn sm danger del-btn" data-type="patent" data-row="${r._row}"><i class="ti ti-trash"></i></button>
+        </td>
+      </tr>`;
+    }).join('');
+    return;
+  }
   el.innerHTML = sorted.map(r => {
     const fileId = r['이미지ID'] || r['파일ID'] || '';
     const fmt    = r['이미지명'] ? r['이미지명'].split('.').pop().toLowerCase() : '';
@@ -2020,16 +2046,10 @@ const MODAL_FORMS = {
   patent: (d) => `
     ${yearMonthSelect(d['날짜']||'')}
     <div class="form-row"><label>상태</label>
-      <div style="display:flex;gap:10px;margin-top:4px">
-        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:15px">
-          <input type="radio" name="f-patent-status" id="f-status-reg" value="등록" ${(d['상태']||'출원')==='등록'?'checked':''}>
-          <span style="color:#065F46;font-weight:500">✅ 등록</span>
-        </label>
-        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:15px">
-          <input type="radio" name="f-patent-status" id="f-status-app" value="출원" ${(d['상태']||'출원')==='출원'?'checked':''}>
-          <span style="color:#92400E;font-weight:500">🟡 출원</span>
-        </label>
-      </div>
+      <select id="f-patent-status">
+        <option value="출원" ${(d['상태']||'출원')==='출원'?'selected':''}>출원</option>
+        <option value="등록" ${d['상태']==='등록'?'selected':''}>등록</option>
+      </select>
     </div>
     <div class="form-row"><label>제목</label><input type="text" id="f-title" value="${d['제목']||''}"></div>
     <div class="form-row"><label>내용</label><textarea id="f-content">${d['내용']||''}</textarea></div>
@@ -2241,8 +2261,7 @@ async function submitModal() {
   if (t === 'history') {
     data = { '날짜': v('f-date'), '구분': v('f-category'), '내용': v('f-content'), '내용(영문)': v('f-content-en'), '첨부파일ID': v('f-fileid'), '첨부파일명': v('f-filename'), '상태': v('f-status') };
   } else if (t === 'patent') {
-    const statusEl = document.querySelector('input[name="f-patent-status"]:checked');
-    data = { '날짜': v('f-date'), '상태': statusEl ? statusEl.value : '출원', '제목': v('f-title'), '내용': v('f-content'), '비고': v('f-note'), '이미지ID': v('f-imgid'), '이미지명': v('f-imgname') };
+    data = { '날짜': v('f-date'), '상태': v('f-patent-status') || '출원', '제목': v('f-title'), '내용': v('f-content'), '비고': v('f-note'), '이미지ID': v('f-imgid'), '이미지명': v('f-imgname') };
   } else if (['cert','award','brand'].includes(t)) {
     data = { '날짜': v('f-date'), '제목': v('f-title'), '내용': v('f-content'), '비고': v('f-note'), '이미지ID': v('f-imgid'), '이미지명': v('f-imgname') };
   } else if (t === 'intro') {
