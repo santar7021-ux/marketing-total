@@ -691,8 +691,15 @@ body { background: var(--bg); color: var(--text); font-size: 14px; line-height: 
         <div class="setup-row">
           <input type="text" id="api-url-input" placeholder="https://script.google.com/macros/s/…/exec">
           <button class="btn primary" onclick="saveApiUrl()"><i class="ti ti-check"></i> 저장 및 연결</button>
+          <button class="btn sm" onclick="resetApiUrl()" style="white-space:nowrap"><i class="ti ti-refresh"></i> 기본값</button>
         </div>
         <p style="font-size:12px;color:var(--muted);margin-top:10px;" id="api-status">현재 저장된 URL 없음</p>
+        <div style="margin-top:8px;padding:10px 12px;background:var(--bg);border:1px solid var(--border);border-radius:var(--r-md)">
+          <div style="font-size:11px;color:var(--muted);margin-bottom:4px">기본 내장 URL (변경 없이 바로 사용 가능)</div>
+          <div style="font-size:11px;color:var(--accent);word-break:break-all;cursor:pointer" onclick="document.getElementById('api-url-input').value=DEFAULT_API_URL">
+            AKfycbxFkZKlzMY7GvBVDiMuKjnwEkaPDZzENNnqaKdCr_o86… (클릭하여 입력란에 적용)
+          </div>
+        </div>
       </div>
 
       <div class="setup-card">
@@ -1456,8 +1463,7 @@ async function confirmAddResource() {
 }
 
 function deleteCustomResource(key) {
-  if (!confirm('이 탭을 삭제하시겠습니까?
-(시트 데이터는 유지됩니다)')) return;
+  if (!confirm('이 탭을 삭제하시겠습니까?\n(시트 데이터는 유지됩니다)')) return;
   const list = loadCustomResources().filter(r => r.key !== key);
   saveCustomResources(list);
   // 페이지 엘리먼트 제거
@@ -1661,11 +1667,8 @@ function downloadCustomExcel(key, name) {
     if (!rows || !rows.length) { banner('다운로드할 데이터가 없습니다.', 'error'); return; }
     const cols = Object.keys(rows[0]).filter(k => !k.startsWith('_'));
     const BOM = '﻿';
-    const esc = v => { const s = String(v==null?'':v); return s.includes(',')||s.includes('"')||s.includes('
-')?'"'+s.replace(/"/g,'""')+'"':s; };
-    const csv = BOM + cols.join(',') + '
-' + rows.map(r => cols.map(c => esc(r[c])).join(',')).join('
-');
+    const esc = v => { const s = String(v==null?'':v); return s.includes(',')||s.includes('"')||s.includes('\n')?'"'+s.replace(/"/g,'""')+'"':s; };
+    const csv = BOM + cols.join(',') + '\n' + rows.map(r => cols.map(c => esc(r[c])).join(',')).join('\n');
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url  = URL.createObjectURL(blob);
     const a    = document.createElement('a');
