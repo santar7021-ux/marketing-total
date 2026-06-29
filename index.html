@@ -286,6 +286,15 @@ body { background: var(--bg); color: var(--text); font-size: 14px; line-height: 
 .post-preview.clickable:hover { background: var(--accent-lt); }
 .post-preview.clickable:hover .preview-label { background: var(--accent); color: #fff; }
 
+/* ── 아이콘 피커 ── */
+.icon-option {
+  width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;
+  border: 1.5px solid var(--border); border-radius: var(--r-md); cursor: pointer;
+  color: var(--muted); transition: all .15s;
+}
+.icon-option:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-lt); }
+.icon-option.selected { border-color: var(--accent); background: var(--accent); color: #fff; }
+
 .modal-bg {
   position: fixed; inset: 0; background: rgba(0,0,0,0.35);
   display: flex; align-items: center; justify-content: center;
@@ -362,6 +371,31 @@ body { background: var(--bg); color: var(--text); font-size: 14px; line-height: 
 </style>
 </head>
 <body>
+
+<!-- ── 자원 관리 추가 모달 ── -->
+<div class="modal-bg" id="add-res-modal-bg">
+  <div class="modal" style="max-width:440px">
+    <div class="modal-hd">
+      <h3>자원 관리 추가</h3>
+      <span class="modal-close" onclick="closeAddResourceModal()">×</span>
+    </div>
+    <div class="modal-body" style="padding:20px">
+      <div class="form-row">
+        <label>탭 이름 <span style="font-size:11px;color:var(--muted)">(예: 카탈로그, 제안서)</span></label>
+        <input type="text" id="new-res-name" placeholder="탭 이름 입력" style="width:100%">
+      </div>
+      <div class="form-row" style="margin-top:12px">
+        <label>픽토그램 선택</label>
+        <div id="icon-picker" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px"></div>
+        <input type="hidden" id="new-res-icon" value="ti-folder">
+      </div>
+    </div>
+    <div class="modal-ft" style="display:flex;justify-content:flex-end;gap:8px;padding:16px 20px;border-top:1px solid var(--border)">
+      <button class="btn sm" onclick="closeAddResourceModal()">취소</button>
+      <button class="btn sm primary" onclick="confirmAddResource()">추가</button>
+    </div>
+  </div>
+</div>
 
 <!-- ── 이미지 미리보기 모달 ── -->
 <div class="img-preview-bg" id="img-preview-bg" onclick="closeImagePreview(event)">
@@ -451,6 +485,10 @@ body { background: var(--bg); color: var(--text); font-size: 14px; line-height: 
           <div class="nav-sub-item" data-page="res-award"   onclick="goSub('res-award',this,'ni-res')"><i class="ti ti-trophy"></i> 수상 관리</div>
           <div class="nav-sub-item" data-page="res-patent"  onclick="goSub('res-patent',this,'ni-res')"><i class="ti ti-shield-check"></i> 특허 관리</div>
           <div class="nav-sub-item" data-page="res-brand"   onclick="goSub('res-brand',this,'ni-res')"><i class="ti ti-registered"></i> 상표 관리</div>
+          <div id="custom-nav-items"></div>
+          <div class="nav-sub-item" style="color:var(--accent);border-top:1px solid var(--border);margin-top:4px;padding-top:8px" onclick="openAddResourceModal()">
+            <i class="ti ti-plus"></i> 자원 관리 추가
+          </div>
         </div>
       </div>
     </div>
@@ -1211,6 +1249,12 @@ function openModal(type, data = {}) {
   // 연/월 드롭다운 초기 동기화
   setTimeout(() => { syncDateField(); initDropzone(); }, 0);
   currentUploadFile = null;
+  // 모달 타입 → 시트명 매핑
+  const MODAL_TO_SHEET = {
+    cert: '인증', award: '수상', patent: '특허', brand: '상표',
+    intro: '소개자료', youtube: '유튜브', history: '연혁'
+  };
+  currentUploadSheet = MODAL_TO_SHEET[type] || '';
 }
 
 function closeModal() {
@@ -1278,8 +1322,236 @@ function closeImagePreview(e) {
   document.getElementById('img-preview-bg').classList.remove('open');
 }
 
+// ── 자원 관리 동적 추가 ─────────────────────────────────
+const ICON_OPTIONS = [
+  { icon: 'ti-folder',         label: '폴더' },
+  { icon: 'ti-file',           label: '파일' },
+  { icon: 'ti-file-text',      label: '문서' },
+  { icon: 'ti-photo',          label: '이미지' },
+  { icon: 'ti-presentation',   label: '프레젠테이션' },
+  { icon: 'ti-chart-bar',      label: '차트' },
+  { icon: 'ti-box',            label: '박스' },
+  { icon: 'ti-bookmark',       label: '북마크' },
+  { icon: 'ti-star',           label: '별' },
+  { icon: 'ti-tag',            label: '태그' },
+  { icon: 'ti-clipboard',      label: '클립보드' },
+  { icon: 'ti-database',       label: '데이터' },
+  { icon: 'ti-tool',           label: '도구' },
+  { icon: 'ti-bulb',           label: '아이디어' },
+  { icon: 'ti-building',       label: '빌딩' },
+  { icon: 'ti-users',          label: '사람들' },
+  { icon: 'ti-mail',           label: '메일' },
+  { icon: 'ti-calendar',       label: '캘린더' },
+  { icon: 'ti-chart-line',     label: '그래프' },
+  { icon: 'ti-link',           label: '링크' },
+  { icon: 'ti-map',            label: '지도' },
+  { icon: 'ti-package',        label: '패키지' },
+  { icon: 'ti-megaphone',      label: '홍보' },
+  { icon: 'ti-award',          label: '어워드' },
+];
+
+// localStorage에서 커스텀 탭 목록 로드
+function loadCustomResources() {
+  try {
+    return JSON.parse(localStorage.getItem('sh_custom_resources') || '[]');
+  } catch(e) { return []; }
+}
+
+function saveCustomResources(list) {
+  localStorage.setItem('sh_custom_resources', JSON.stringify(list));
+}
+
+function openAddResourceModal() {
+  // 아이콘 피커 렌더링
+  const picker = document.getElementById('icon-picker');
+  let selectedIcon = 'ti-folder';
+  picker.innerHTML = ICON_OPTIONS.map(o => `
+    <div class="icon-option ${o.icon === 'ti-folder' ? 'selected' : ''}"
+         data-icon="${o.icon}"
+         title="${o.label}"
+         onclick="selectIcon(this, '${o.icon}')">
+      <i class="ti ${o.icon}" style="font-size:20px"></i>
+    </div>
+  `).join('');
+  document.getElementById('new-res-name').value = '';
+  document.getElementById('new-res-icon').value = 'ti-folder';
+  document.getElementById('add-res-modal-bg').classList.add('open');
+  setTimeout(() => document.getElementById('new-res-name').focus(), 100);
+}
+
+function selectIcon(el, icon) {
+  document.querySelectorAll('.icon-option').forEach(e => e.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('new-res-icon').value = icon;
+}
+
+function closeAddResourceModal() {
+  document.getElementById('add-res-modal-bg').classList.remove('open');
+}
+
+async function confirmAddResource() {
+  const name = document.getElementById('new-res-name').value.trim();
+  const icon = document.getElementById('new-res-icon').value;
+
+  if (!name) { alert('탭 이름을 입력해주세요.'); return; }
+
+  const key = 'custom_' + name.replace(/\s+/g, '_');
+
+  // 중복 확인
+  const existing = loadCustomResources();
+  if (existing.find(r => r.name === name)) {
+    alert('이미 같은 이름의 탭이 있습니다.'); return;
+  }
+
+  banner('새 자원 관리 탭 생성 중…', 'loading');
+
+  // GAS에 새 시트 생성 요청
+  const res = await apiPost({ action: 'createResourceSheet', sheetName: name });
+  if (!res) { banner('생성 실패', 'error'); return; }
+
+  const newRes = { name, icon, key, sheetName: name };
+  existing.push(newRes);
+  saveCustomResources(existing);
+
+  closeAddResourceModal();
+  renderCustomNavItems();
+  createCustomResPage(newRes);
+  goSub('res-' + key, document.querySelector('[data-page="res-' + key + '"]'), 'ni-res');
+  banner('✅ ' + name + ' 탭이 추가됐습니다!', 'loading');
+  setTimeout(() => bannerClear(), 2000);
+}
+
+function renderCustomNavItems() {
+  const list = loadCustomResources();
+  const container = document.getElementById('custom-nav-items');
+  if (!container) return;
+  container.innerHTML = list.map(r => `
+    <div class="nav-sub-item" data-page="res-${r.key}" onclick="goSub('res-${r.key}',this,'ni-res')">
+      <i class="ti ${r.icon}"></i> ${r.name}
+    </div>
+  `).join('');
+}
+
+function createCustomResPage(res) {
+  const container = document.getElementById('custom-res-pages');
+  if (!container) return;
+  // 이미 있으면 skip
+  if (document.getElementById('pg-res-' + res.key)) return;
+
+  const div = document.createElement('div');
+  div.id = 'pg-res-' + res.key;
+  div.className = 'page';
+  div.innerHTML = `
+    <div class="page-hd">
+      <h1><i class="ti ${res.icon}"></i> ${res.name}</h1>
+      <p>${res.name} 자원 관리</p>
+    </div>
+    <div class="card">
+      <div class="card-hd">
+        <h2><i class="ti ${res.icon}"></i> ${res.name} 목록</h2>
+        <div style="display:flex;gap:6px">
+          <button class="btn sm" onclick="downloadCustomExcel('${res.key}','${res.name}')">
+            <i class="ti ti-file-spreadsheet"></i> 엑셀 다운로드
+          </button>
+          <button class="btn sm primary" onclick="openCustomModal('${res.key}','${res.name}','${res.sheetName}')">
+            <i class="ti ti-plus"></i> 항목 추가
+          </button>
+        </div>
+      </div>
+      <div class="post-list" id="${res.key}-list">
+        <div class="empty"><i class="ti ${res.icon}"></i><p>등록된 항목이 없습니다.</p></div>
+      </div>
+    </div>
+  `;
+  container.appendChild(div);
+}
+
+function initCustomResPages() {
+  const list = loadCustomResources();
+  list.forEach(res => createCustomResPage(res));
+  renderCustomNavItems();
+}
+
+// 커스텀 탭 렌더 (renderPage에서 호출)
+function renderCustomPage(key) {
+  const list = loadCustomResources();
+  const res  = list.find(r => r.key === key);
+  if (!res) return;
+  const el = document.getElementById(key + '-list');
+  if (!el) return;
+
+  banner('데이터 불러오는 중…', 'loading');
+  apiFetch({ action: 'getCustomSheet', sheetName: res.sheetName }).then(rows => {
+    bannerClear();
+    if (!rows || !rows.length) {
+      el.innerHTML = `<div class="empty"><i class="ti ${res.icon}"></i><p>등록된 항목이 없습니다.</p></div>`;
+      return;
+    }
+    el.innerHTML = rows.map((r, idx) => {
+      const cKey = key + '_' + (r._row || idx);
+      r._cacheKey = cKey;
+      rowCache[cKey] = r;
+      const fileId = r['이미지ID'] || r['파일ID'] || '';
+      const fileName = r['이미지명'] || r['파일명'] || '';
+      return `
+      <div class="post-card post-card-simple">
+        <div class="post-body">
+          <div class="post-date">${r['날짜'] || r['게시일'] || ''}</div>
+          <div class="post-title">${r['제목'] || '(제목 없음)'}</div>
+          ${r['내용'] ? `<div class="post-content">${r['내용']}</div>` : ''}
+          ${r['비고'] ? `<div class="post-note"><span>비고</span> ${r['비고']}</div>` : ''}
+          <div class="post-actions">
+            ${fileId ? `<a href="https://drive.google.com/file/d/${fileId}/view" target="_blank" class="post-file-btn"><i class="ti ti-download"></i> ${fileName || '파일 열기'}</a>` : ''}
+            <button class="btn sm edit-btn" data-type="${key}" data-key="${cKey}"><i class="ti ti-edit"></i> 수정</button>
+            <button class="btn sm danger del-btn" data-type="${key}" data-row="${r._row}"><i class="ti ti-trash"></i> 삭제</button>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  });
+}
+
+function openCustomModal(key, name, sheetName) {
+  // 커스텀 탭 모달은 boardForm 재활용
+  currentModal = key;
+  editRow = null;
+  document.getElementById('modal-title').textContent = '항목 추가 — ' + name;
+  document.getElementById('modal-body').innerHTML = boardForm({});
+  // SHEET_MAP에 동적 추가
+  SHEET_MAP[key] = sheetName;
+  document.getElementById('modal-bg').classList.add('open');
+  setTimeout(() => { syncDateField(); initDropzone(); }, 0);
+  currentUploadFile = null;
+  currentUploadSheet = sheetName;
+}
+
+function downloadCustomExcel(key, name) {
+  const list = loadCustomResources();
+  const res  = list.find(r => r.key === key);
+  if (!res) return;
+  apiFetch({ action: 'getCustomSheet', sheetName: res.sheetName }).then(rows => {
+    if (!rows || !rows.length) { banner('다운로드할 데이터가 없습니다.', 'error'); return; }
+    const cols = Object.keys(rows[0]).filter(k => !k.startsWith('_'));
+    const BOM = '\uFEFF';
+    const escape = v => {
+      const s = String(v == null ? '' : v);
+      return s.includes(',') || s.includes('"') || s.includes('\n') ? '"' + s.replace(/"/g, '""') + '"' : s;
+    };
+    const csv = BOM + cols.join(',') + '\n' + rows.map(r => cols.map(c => escape(r[c])).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url; a.download = `소프트힐스_${name}_${new Date().toISOString().slice(0,10)}.csv`;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    banner('✅ 엑셀 다운로드 완료!', 'loading');
+    setTimeout(() => bannerClear(), 2000);
+  });
+}
+
 // ── 드롭존 + 파일 업로드 ─────────────────────────────────
 let currentUploadFile = null;
+let currentUploadSheet = ''; // 업로드 대상 시트명
 
 function initDropzone() {
   const dz = document.getElementById('f-dropzone');
@@ -1373,6 +1645,7 @@ async function uploadFileViaForm(file) {
       fileName: file.name,
       mimeType: file.type || 'application/octet-stream',
       base64:   base64Full,
+      sheet:    currentUploadSheet || '',  // 카테고리 폴더 지정
     }),
   });
 
