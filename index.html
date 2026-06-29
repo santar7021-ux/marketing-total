@@ -1175,23 +1175,27 @@ function toggle(navId, defaultPage) {
 }
 
 function goSub(pageId, el, navId) {
+  // 페이지 전환
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   const pg = document.getElementById('pg-' + pageId);
   if (pg) pg.classList.add('active');
+
+  // 네비 활성화
   document.querySelectorAll('.nav-main, .nav-sub-item').forEach(n => n.classList.remove('active'));
   if (el) el.classList.add('active');
-  // 커스텀 탭 렌더
-  if (pageId.startsWith('res-custom_')) {
-    renderCustomPage(pageId.replace('res-', ''));
-  } else {
-    renderPage(pageId);
-  }
   const ni = document.getElementById(navId);
   if (ni) {
     ni.classList.add('open');
     ni.querySelector('.nav-main').classList.add('active');
   }
-  renderPage(pageId);
+
+  // 렌더 (커스텀 탭과 기존 탭 분리)
+  if (pageId.startsWith('res-custom_')) {
+    const customKey = pageId.replace('res-', '');
+    renderCustomPage(customKey);
+  } else {
+    renderPage(pageId);
+  }
 }
 
 // ── 배너 ────────────────────────────────────────────────
@@ -2179,29 +2183,42 @@ async function confirmAddResource() {
   // 1. 모달 닫기
   closeAddResourceModal();
 
-  // 2. 네비 업데이트
-  renderCustomNavItems();
-
-  // 3. 페이지 생성
-  createCustomResPage(newRes);
-
-  // 4. SHEET_MAP 등록
+  // 2. SHEET_MAP 등록
   SHEET_MAP[key] = name;
 
-  // 5. 해당 탭으로 이동
-  setTimeout(() => {
-    const navEl = document.querySelector('[data-page="res-' + key + '"]');
-    if (navEl) goSub('res-' + key, navEl, 'ni-res');
-    else {
-      // 네비 요소가 아직 없으면 직접 페이지 전환
-      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-      const pg = document.getElementById('pg-res-' + key);
-      if (pg) pg.classList.add('active');
-    }
-  }, 100);
+  // 3. 페이지 DOM 생성
+  createCustomResPage(newRes);
 
-  banner('✅ ' + name + ' 탭이 추가됐습니다!', 'loading');
-  setTimeout(() => bannerClear(), 2000);
+  // 4. 네비 업데이트
+  renderCustomNavItems();
+
+  // 5. 해당 탭으로 이동 (DOM 생성 후 약간 대기)
+  setTimeout(() => {
+    // 모든 페이지 비활성화
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+
+    // 새 페이지 활성화
+    const pg = document.getElementById('pg-res-' + key);
+    if (pg) pg.classList.add('active');
+
+    // 네비 활성화
+    document.querySelectorAll('.nav-main, .nav-sub-item').forEach(n => n.classList.remove('active'));
+    const navEl = document.querySelector('[data-page="res-' + key + '"]');
+    if (navEl) navEl.classList.add('active');
+
+    // 자원 관리 섹션 열기
+    const ni = document.getElementById('ni-res');
+    if (ni) {
+      ni.classList.add('open');
+      ni.querySelector('.nav-main')?.classList.add('active');
+    }
+
+    // 데이터 렌더 (새 시트이므로 빈 상태)
+    renderCustomPage(key);
+
+    banner('✅ ' + name + ' 탭이 추가됐습니다!', 'loading');
+    setTimeout(() => bannerClear(), 2000);
+  }, 150);
 }
 
 function deleteCustomResource(key) {
