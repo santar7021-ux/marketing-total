@@ -1103,10 +1103,15 @@ function renderIntro(rows) {
   el.innerHTML = sorted.map(r => {
     const fileId = r['파일ID'] || '';
     const driveUrl = fileId ? `https://drive.google.com/file/d/${fileId}/view` : '';
+    const folderUrl = r['공유폴더URL'] || '';
     return `
     <div class="post-card post-card-simple">
       <div class="post-body">
-        <div class="post-date">${r['게시일'] || ''} ${r['분류'] ? `<span style="margin-left:6px;background:var(--accent-lt);color:#0F6E56;padding:1px 8px;border-radius:100px;font-size:11px">${r['분류']}</span>` : ''}</div>
+        <div class="post-date">
+          ${r['게시일'] || ''}
+          ${r['분류'] ? `<span style="margin-left:6px;background:var(--accent-lt);color:#0F6E56;padding:1px 8px;border-radius:100px;font-size:11px">${r['분류']}</span>` : ''}
+          ${folderUrl ? `<a href="${folderUrl}" target="_blank" style="margin-left:8px;font-size:11px;color:var(--accent);text-decoration:none;display:inline-flex;align-items:center;gap:3px;padding:1px 8px;border:1px solid var(--accent);border-radius:100px" title="공유 폴더 열기"><i class="ti ti-folder-open" style="font-size:12px"></i> 공유 폴더</a>` : ''}
+        </div>
         <div class="post-title">${r['제목'] || '(제목 없음)'}</div>
         ${r['내용'] ? `<div class="post-content">${r['내용']}</div>` : ''}
         ${r['비고'] ? `<div class="post-note"><span>비고</span> ${r['비고']}</div>` : ''}
@@ -1333,6 +1338,13 @@ const MODAL_FORMS = {
     <div class="form-row"><label>분류</label><select id="f-category"><option ${d['분류']==='회사소개서'?'selected':''}>회사소개서</option><option ${d['분류']==='제품별 소개서'?'selected':''}>제품별 소개서</option><option ${d['분류']==='공용 PPT 템플릿'?'selected':''}>공용 PPT 템플릿</option></select></div>
     <div class="form-row"><label>제목</label><input type="text" id="f-title" value="${d['제목']||''}"></div>
     <div class="form-row"><label>내용</label><textarea id="f-content">${d['내용']||''}</textarea></div>
+    <div class="form-row">
+      <label>공유 폴더 위치 <span style="font-size:11px;color:var(--muted)">(공유 드라이브 폴더 URL)</span></label>
+      <div style="display:flex;gap:6px;align-items:center">
+        <input type="text" id="f-folderurl" placeholder="https://drive.google.com/drive/folders/..." value="${d['공유폴더URL']||''}" style="flex:1">
+        ${d['공유폴더URL'] ? `<a href="${d['공유폴더URL']}" target="_blank" class="btn sm" style="white-space:nowrap"><i class="ti ti-external-link"></i> 열기</a>` : ''}
+      </div>
+    </div>
     <div class="form-row"><label>기타 참고사항</label><input type="text" id="f-note" placeholder="기타 참고사항" value="${d['비고']||''}"></div>
     <div class="upload-section">
       <label>첨부 파일</label>
@@ -1370,6 +1382,13 @@ function boardForm(d) {
     ${yearMonthSelect(d['날짜']||'')}
     <div class="form-row"><label>제목</label><input type="text" id="f-title" value="${d['제목']||''}"></div>
     <div class="form-row"><label>내용</label><textarea id="f-content">${d['내용']||''}</textarea></div>
+    <div class="form-row">
+      <label>공유 폴더 위치 <span style="font-size:11px;color:var(--muted)">(공유 드라이브 폴더 URL)</span></label>
+      <div style="display:flex;gap:6px;align-items:center">
+        <input type="text" id="f-folderurl" placeholder="https://drive.google.com/drive/folders/..." value="${d['공유폴더URL']||''}" style="flex:1">
+        ${d['공유폴더URL'] ? `<a href="${d['공유폴더URL']}" target="_blank" class="btn sm" style="white-space:nowrap"><i class="ti ti-external-link"></i> 열기</a>` : ''}
+      </div>
+    </div>
     <div class="form-row"><label>기타 참고사항</label><input type="text" id="f-note" placeholder="기타 참고사항" value="${d['비고']||''}"></div>
     <div class="upload-section">
       <label>첨부 파일 / 이미지</label>
@@ -1500,7 +1519,7 @@ async function submitModal() {
     data = { '날짜': v('f-date'), '제목': v('f-title'), '내용': v('f-content'), '비고': v('f-note'), '이미지ID': v('f-imgid'), '이미지명': v('f-imgname') };
   } else if (t === 'intro') {
     const fmt = v('f-filename').split('.').pop().toLowerCase();
-    data = { '게시일': v('f-date'), '분류': v('f-category'), '제목': v('f-title'), '내용': v('f-content'), '비고': v('f-note'), '파일ID': v('f-fileid'), '파일명': v('f-filename'), '형식': fmt };
+    data = { '게시일': v('f-date'), '분류': v('f-category'), '제목': v('f-title'), '내용': v('f-content'), '비고': v('f-note'), '공유폴더URL': v('f-folderurl'), '파일ID': v('f-fileid'), '파일명': v('f-filename'), '형식': fmt };
   } else if (t === 'youtube') {
     data = { '게시일': v('f-date'), '솔루션명': v('f-solution'), '제목': v('f-title'), '유튜브URL': v('f-url') };
   }
