@@ -618,6 +618,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
     <!-- ══ 소개 자료 ══ -->
     <div id="pg-res-intro" class="page">
       <div class="page-hd"><h1>소개 자료</h1><p>회사소개서 · 제품별 소개서 · 공용 PPT 템플릿</p></div>
+      <!-- 일반 소개자료 (회사소개서 + 공용 PPT 템플릿) -->
       <div class="card">
         <div class="card-hd">
           <h2><i class="ti ti-files"></i> 파일 목록</h2>
@@ -627,6 +628,17 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
           </div>
         </div>
         <div class="post-list" id="intro-list"></div>
+      </div>
+      <!-- 제품별 소개서 별도 목록 -->
+      <div class="card" style="margin-top:20px">
+        <div class="card-hd">
+          <h2><i class="ti ti-package"></i> 제품별 소개서</h2>
+          <div style="display:flex;gap:6px">
+            <button class="btn sm" onclick="downloadIntroProduct()"><i class="ti ti-file-spreadsheet"></i> 엑셀 다운로드</button>
+            <button class="btn sm primary" onclick="openModal('intro')"><i class="ti ti-plus"></i> 항목 추가</button>
+          </div>
+        </div>
+        <div class="post-list" id="intro-product-list"></div>
       </div>
     </div>
 
@@ -666,7 +678,71 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
             <option value="활성">활성</option>
             <option value="비활성">비활성</option>
           </select>
-          <input type="text" id="hf-year" placeholder="일자 (예: 2025)" oninput="applyHistoryFilter()">
+          <div style="display:flex;align-items:center;gap:4px">
+            <select id="hf-year-from" onchange="applyHistoryFilter()">
+              <option value="">시작년도</option>
+              <option value="2040">2040년</option>
+<option value="2039">2039년</option>
+<option value="2038">2038년</option>
+<option value="2037">2037년</option>
+<option value="2036">2036년</option>
+<option value="2035">2035년</option>
+<option value="2034">2034년</option>
+<option value="2033">2033년</option>
+<option value="2032">2032년</option>
+<option value="2031">2031년</option>
+<option value="2030">2030년</option>
+<option value="2029">2029년</option>
+<option value="2028">2028년</option>
+<option value="2027">2027년</option>
+<option value="2026">2026년</option>
+<option value="2025">2025년</option>
+<option value="2024">2024년</option>
+<option value="2023">2023년</option>
+<option value="2022">2022년</option>
+<option value="2021">2021년</option>
+<option value="2020">2020년</option>
+<option value="2019">2019년</option>
+<option value="2018">2018년</option>
+<option value="2017">2017년</option>
+<option value="2016">2016년</option>
+<option value="2015">2015년</option>
+<option value="2014">2014년</option>
+<option value="2013">2013년</option>
+            </select>
+            <span style="color:var(--muted);font-size:13px">~</span>
+            <select id="hf-year-to" onchange="applyHistoryFilter()">
+              <option value="">끝년도</option>
+              <option value="2040">2040년</option>
+<option value="2039">2039년</option>
+<option value="2038">2038년</option>
+<option value="2037">2037년</option>
+<option value="2036">2036년</option>
+<option value="2035">2035년</option>
+<option value="2034">2034년</option>
+<option value="2033">2033년</option>
+<option value="2032">2032년</option>
+<option value="2031">2031년</option>
+<option value="2030">2030년</option>
+<option value="2029">2029년</option>
+<option value="2028">2028년</option>
+<option value="2027">2027년</option>
+<option value="2026">2026년</option>
+<option value="2025">2025년</option>
+<option value="2024">2024년</option>
+<option value="2023">2023년</option>
+<option value="2022">2022년</option>
+<option value="2021">2021년</option>
+<option value="2020">2020년</option>
+<option value="2019">2019년</option>
+<option value="2018">2018년</option>
+<option value="2017">2017년</option>
+<option value="2016">2016년</option>
+<option value="2015">2015년</option>
+<option value="2014">2014년</option>
+<option value="2013">2013년</option>
+            </select>
+          </div>
           <input type="text" id="hf-category" placeholder="구분 검색" oninput="applyHistoryFilter()">
           <input type="text" id="hf-content" placeholder="내용 검색" oninput="applyHistoryFilter()">
           <button class="btn sm" onclick="resetHistoryFilter()"><i class="ti ti-x"></i> 필터 초기화</button>
@@ -682,19 +758,335 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
     <!-- ══ 인증·수상·특허·상표 (공통 구조) ══ -->
     <div id="pg-res-cert" class="page">
       <div class="page-hd"><h1>인증 관리</h1><p>왼쪽 파일·이미지 미리보기 / 오른쪽 제목·내용·비고</p></div>
-      <div class="card"><div class="card-hd"><h2><i class="ti ti-certificate"></i> 인증 목록</h2><div style="display:flex;gap:6px"><button class="btn sm" onclick="downloadExcel('cert')"><i class="ti ti-file-spreadsheet"></i> 엑셀 다운로드</button><button class="btn sm primary" onclick="openModal('cert')"><i class="ti ti-plus"></i> 항목 추가</button></div></div><div class="post-list" id="cert-list"></div></div>
+      <div class="card">
+        <div class="card-hd">
+          <h2><i class="ti ti-certificate"></i> 인증 목록</h2>
+          <div style="display:flex;gap:6px">
+            <button class="btn sm" onclick="downloadBoardFiltered('cert')"><i class="ti ti-file-spreadsheet"></i> 엑셀 다운로드</button>
+            <button class="btn sm primary" onclick="openModal('cert')"><i class="ti ti-plus"></i> 항목 추가</button>
+          </div>
+        </div>
+        <div class="history-filter-bar">
+          <div style="display:flex;align-items:center;gap:4px">
+            <select id="bf-cert-from" onchange="applyBoardFilter('cert')">
+              <option value="">시작년도</option>
+              <option value="2040">2040년</option>
+              <option value="2039">2039년</option>
+              <option value="2038">2038년</option>
+              <option value="2037">2037년</option>
+              <option value="2036">2036년</option>
+              <option value="2035">2035년</option>
+              <option value="2034">2034년</option>
+              <option value="2033">2033년</option>
+              <option value="2032">2032년</option>
+              <option value="2031">2031년</option>
+              <option value="2030">2030년</option>
+              <option value="2029">2029년</option>
+              <option value="2028">2028년</option>
+              <option value="2027">2027년</option>
+              <option value="2026">2026년</option>
+              <option value="2025">2025년</option>
+              <option value="2024">2024년</option>
+              <option value="2023">2023년</option>
+              <option value="2022">2022년</option>
+              <option value="2021">2021년</option>
+              <option value="2020">2020년</option>
+              <option value="2019">2019년</option>
+              <option value="2018">2018년</option>
+              <option value="2017">2017년</option>
+              <option value="2016">2016년</option>
+              <option value="2015">2015년</option>
+              <option value="2014">2014년</option>
+              <option value="2013">2013년</option>
+            </select>
+            <span style="color:var(--muted);font-size:13px">~</span>
+            <select id="bf-cert-to" onchange="applyBoardFilter('cert')">
+              <option value="">끝년도</option>
+              <option value="2040">2040년</option>
+              <option value="2039">2039년</option>
+              <option value="2038">2038년</option>
+              <option value="2037">2037년</option>
+              <option value="2036">2036년</option>
+              <option value="2035">2035년</option>
+              <option value="2034">2034년</option>
+              <option value="2033">2033년</option>
+              <option value="2032">2032년</option>
+              <option value="2031">2031년</option>
+              <option value="2030">2030년</option>
+              <option value="2029">2029년</option>
+              <option value="2028">2028년</option>
+              <option value="2027">2027년</option>
+              <option value="2026">2026년</option>
+              <option value="2025">2025년</option>
+              <option value="2024">2024년</option>
+              <option value="2023">2023년</option>
+              <option value="2022">2022년</option>
+              <option value="2021">2021년</option>
+              <option value="2020">2020년</option>
+              <option value="2019">2019년</option>
+              <option value="2018">2018년</option>
+              <option value="2017">2017년</option>
+              <option value="2016">2016년</option>
+              <option value="2015">2015년</option>
+              <option value="2014">2014년</option>
+              <option value="2013">2013년</option>
+            </select>
+          </div>
+          <input type="text" id="bf-cert-title" placeholder="제목 검색" oninput="applyBoardFilter('cert')">
+          <button class="btn sm" onclick="resetBoardFilter('cert')"><i class="ti ti-x"></i> 필터 초기화</button>
+        </div>
+        <div id="bf-cert-info" style="font-size:13.5px;color:var(--muted);padding:6px 16px;display:none"></div>
+        <div class="post-list" id="cert-list"></div>
+      </div>
     </div>
     <div id="pg-res-award" class="page">
       <div class="page-hd"><h1>수상 관리</h1><p>왼쪽 파일·이미지 미리보기 / 오른쪽 제목·내용·비고</p></div>
-      <div class="card"><div class="card-hd"><h2><i class="ti ti-trophy"></i> 수상 목록</h2><div style="display:flex;gap:6px"><button class="btn sm" onclick="downloadExcel('award')"><i class="ti ti-file-spreadsheet"></i> 엑셀 다운로드</button><button class="btn sm primary" onclick="openModal('award')"><i class="ti ti-plus"></i> 항목 추가</button></div></div><div class="post-list" id="award-list"></div></div>
+      <div class="card">
+        <div class="card-hd">
+          <h2><i class="ti ti-trophy"></i> 수상 목록</h2>
+          <div style="display:flex;gap:6px">
+            <button class="btn sm" onclick="downloadBoardFiltered('award')"><i class="ti ti-file-spreadsheet"></i> 엑셀 다운로드</button>
+            <button class="btn sm primary" onclick="openModal('award')"><i class="ti ti-plus"></i> 항목 추가</button>
+          </div>
+        </div>
+        <div class="history-filter-bar">
+          <div style="display:flex;align-items:center;gap:4px">
+            <select id="bf-award-from" onchange="applyBoardFilter('award')">
+              <option value="">시작년도</option>
+              <option value="2040">2040년</option>
+              <option value="2039">2039년</option>
+              <option value="2038">2038년</option>
+              <option value="2037">2037년</option>
+              <option value="2036">2036년</option>
+              <option value="2035">2035년</option>
+              <option value="2034">2034년</option>
+              <option value="2033">2033년</option>
+              <option value="2032">2032년</option>
+              <option value="2031">2031년</option>
+              <option value="2030">2030년</option>
+              <option value="2029">2029년</option>
+              <option value="2028">2028년</option>
+              <option value="2027">2027년</option>
+              <option value="2026">2026년</option>
+              <option value="2025">2025년</option>
+              <option value="2024">2024년</option>
+              <option value="2023">2023년</option>
+              <option value="2022">2022년</option>
+              <option value="2021">2021년</option>
+              <option value="2020">2020년</option>
+              <option value="2019">2019년</option>
+              <option value="2018">2018년</option>
+              <option value="2017">2017년</option>
+              <option value="2016">2016년</option>
+              <option value="2015">2015년</option>
+              <option value="2014">2014년</option>
+              <option value="2013">2013년</option>
+            </select>
+            <span style="color:var(--muted);font-size:13px">~</span>
+            <select id="bf-award-to" onchange="applyBoardFilter('award')">
+              <option value="">끝년도</option>
+              <option value="2040">2040년</option>
+              <option value="2039">2039년</option>
+              <option value="2038">2038년</option>
+              <option value="2037">2037년</option>
+              <option value="2036">2036년</option>
+              <option value="2035">2035년</option>
+              <option value="2034">2034년</option>
+              <option value="2033">2033년</option>
+              <option value="2032">2032년</option>
+              <option value="2031">2031년</option>
+              <option value="2030">2030년</option>
+              <option value="2029">2029년</option>
+              <option value="2028">2028년</option>
+              <option value="2027">2027년</option>
+              <option value="2026">2026년</option>
+              <option value="2025">2025년</option>
+              <option value="2024">2024년</option>
+              <option value="2023">2023년</option>
+              <option value="2022">2022년</option>
+              <option value="2021">2021년</option>
+              <option value="2020">2020년</option>
+              <option value="2019">2019년</option>
+              <option value="2018">2018년</option>
+              <option value="2017">2017년</option>
+              <option value="2016">2016년</option>
+              <option value="2015">2015년</option>
+              <option value="2014">2014년</option>
+              <option value="2013">2013년</option>
+            </select>
+          </div>
+          <input type="text" id="bf-award-title" placeholder="제목 검색" oninput="applyBoardFilter('award')">
+          <button class="btn sm" onclick="resetBoardFilter('award')"><i class="ti ti-x"></i> 필터 초기화</button>
+        </div>
+        <div id="bf-award-info" style="font-size:13.5px;color:var(--muted);padding:6px 16px;display:none"></div>
+        <div class="post-list" id="award-list"></div>
+      </div>
     </div>
     <div id="pg-res-patent" class="page">
       <div class="page-hd"><h1>특허 관리</h1><p>왼쪽 파일·이미지 미리보기 / 오른쪽 제목·내용·비고</p></div>
-      <div class="card"><div class="card-hd"><h2><i class="ti ti-shield-check"></i> 특허 목록</h2><div style="display:flex;gap:6px"><button class="btn sm" onclick="downloadExcel('patent')"><i class="ti ti-file-spreadsheet"></i> 엑셀 다운로드</button><button class="btn sm primary" onclick="openModal('patent')"><i class="ti ti-plus"></i> 항목 추가</button></div></div><div class="post-list" id="patent-list"></div></div>
+      <div class="card">
+        <div class="card-hd">
+          <h2><i class="ti ti-shield-check"></i> 특허 목록</h2>
+          <div style="display:flex;gap:6px">
+            <button class="btn sm" onclick="downloadBoardFiltered('patent')"><i class="ti ti-file-spreadsheet"></i> 엑셀 다운로드</button>
+            <button class="btn sm primary" onclick="openModal('patent')"><i class="ti ti-plus"></i> 항목 추가</button>
+          </div>
+        </div>
+        <div class="history-filter-bar">
+          <div style="display:flex;align-items:center;gap:4px">
+            <select id="bf-patent-from" onchange="applyBoardFilter('patent')">
+              <option value="">시작년도</option>
+              <option value="2040">2040년</option>
+              <option value="2039">2039년</option>
+              <option value="2038">2038년</option>
+              <option value="2037">2037년</option>
+              <option value="2036">2036년</option>
+              <option value="2035">2035년</option>
+              <option value="2034">2034년</option>
+              <option value="2033">2033년</option>
+              <option value="2032">2032년</option>
+              <option value="2031">2031년</option>
+              <option value="2030">2030년</option>
+              <option value="2029">2029년</option>
+              <option value="2028">2028년</option>
+              <option value="2027">2027년</option>
+              <option value="2026">2026년</option>
+              <option value="2025">2025년</option>
+              <option value="2024">2024년</option>
+              <option value="2023">2023년</option>
+              <option value="2022">2022년</option>
+              <option value="2021">2021년</option>
+              <option value="2020">2020년</option>
+              <option value="2019">2019년</option>
+              <option value="2018">2018년</option>
+              <option value="2017">2017년</option>
+              <option value="2016">2016년</option>
+              <option value="2015">2015년</option>
+              <option value="2014">2014년</option>
+              <option value="2013">2013년</option>
+            </select>
+            <span style="color:var(--muted);font-size:13px">~</span>
+            <select id="bf-patent-to" onchange="applyBoardFilter('patent')">
+              <option value="">끝년도</option>
+              <option value="2040">2040년</option>
+              <option value="2039">2039년</option>
+              <option value="2038">2038년</option>
+              <option value="2037">2037년</option>
+              <option value="2036">2036년</option>
+              <option value="2035">2035년</option>
+              <option value="2034">2034년</option>
+              <option value="2033">2033년</option>
+              <option value="2032">2032년</option>
+              <option value="2031">2031년</option>
+              <option value="2030">2030년</option>
+              <option value="2029">2029년</option>
+              <option value="2028">2028년</option>
+              <option value="2027">2027년</option>
+              <option value="2026">2026년</option>
+              <option value="2025">2025년</option>
+              <option value="2024">2024년</option>
+              <option value="2023">2023년</option>
+              <option value="2022">2022년</option>
+              <option value="2021">2021년</option>
+              <option value="2020">2020년</option>
+              <option value="2019">2019년</option>
+              <option value="2018">2018년</option>
+              <option value="2017">2017년</option>
+              <option value="2016">2016년</option>
+              <option value="2015">2015년</option>
+              <option value="2014">2014년</option>
+              <option value="2013">2013년</option>
+            </select>
+          </div>
+          <input type="text" id="bf-patent-title" placeholder="제목 검색" oninput="applyBoardFilter('patent')">
+          <button class="btn sm" onclick="resetBoardFilter('patent')"><i class="ti ti-x"></i> 필터 초기화</button>
+        </div>
+        <div id="bf-patent-info" style="font-size:13.5px;color:var(--muted);padding:6px 16px;display:none"></div>
+        <div class="post-list" id="patent-list"></div>
+      </div>
     </div>
     <div id="pg-res-brand" class="page">
       <div class="page-hd"><h1>상표 관리</h1><p>왼쪽 파일·이미지 미리보기 / 오른쪽 제목·내용·비고</p></div>
-      <div class="card"><div class="card-hd"><h2><i class="ti ti-registered"></i> 상표 목록</h2><div style="display:flex;gap:6px"><button class="btn sm" onclick="downloadExcel('brand')"><i class="ti ti-file-spreadsheet"></i> 엑셀 다운로드</button><button class="btn sm primary" onclick="openModal('brand')"><i class="ti ti-plus"></i> 항목 추가</button></div></div><div class="post-list" id="brand-list"></div></div>
+      <div class="card">
+        <div class="card-hd">
+          <h2><i class="ti ti-registered"></i> 상표 목록</h2>
+          <div style="display:flex;gap:6px">
+            <button class="btn sm" onclick="downloadBoardFiltered('brand')"><i class="ti ti-file-spreadsheet"></i> 엑셀 다운로드</button>
+            <button class="btn sm primary" onclick="openModal('brand')"><i class="ti ti-plus"></i> 항목 추가</button>
+          </div>
+        </div>
+        <div class="history-filter-bar">
+          <div style="display:flex;align-items:center;gap:4px">
+            <select id="bf-brand-from" onchange="applyBoardFilter('brand')">
+              <option value="">시작년도</option>
+              <option value="2040">2040년</option>
+              <option value="2039">2039년</option>
+              <option value="2038">2038년</option>
+              <option value="2037">2037년</option>
+              <option value="2036">2036년</option>
+              <option value="2035">2035년</option>
+              <option value="2034">2034년</option>
+              <option value="2033">2033년</option>
+              <option value="2032">2032년</option>
+              <option value="2031">2031년</option>
+              <option value="2030">2030년</option>
+              <option value="2029">2029년</option>
+              <option value="2028">2028년</option>
+              <option value="2027">2027년</option>
+              <option value="2026">2026년</option>
+              <option value="2025">2025년</option>
+              <option value="2024">2024년</option>
+              <option value="2023">2023년</option>
+              <option value="2022">2022년</option>
+              <option value="2021">2021년</option>
+              <option value="2020">2020년</option>
+              <option value="2019">2019년</option>
+              <option value="2018">2018년</option>
+              <option value="2017">2017년</option>
+              <option value="2016">2016년</option>
+              <option value="2015">2015년</option>
+              <option value="2014">2014년</option>
+              <option value="2013">2013년</option>
+            </select>
+            <span style="color:var(--muted);font-size:13px">~</span>
+            <select id="bf-brand-to" onchange="applyBoardFilter('brand')">
+              <option value="">끝년도</option>
+              <option value="2040">2040년</option>
+              <option value="2039">2039년</option>
+              <option value="2038">2038년</option>
+              <option value="2037">2037년</option>
+              <option value="2036">2036년</option>
+              <option value="2035">2035년</option>
+              <option value="2034">2034년</option>
+              <option value="2033">2033년</option>
+              <option value="2032">2032년</option>
+              <option value="2031">2031년</option>
+              <option value="2030">2030년</option>
+              <option value="2029">2029년</option>
+              <option value="2028">2028년</option>
+              <option value="2027">2027년</option>
+              <option value="2026">2026년</option>
+              <option value="2025">2025년</option>
+              <option value="2024">2024년</option>
+              <option value="2023">2023년</option>
+              <option value="2022">2022년</option>
+              <option value="2021">2021년</option>
+              <option value="2020">2020년</option>
+              <option value="2019">2019년</option>
+              <option value="2018">2018년</option>
+              <option value="2017">2017년</option>
+              <option value="2016">2016년</option>
+              <option value="2015">2015년</option>
+              <option value="2014">2014년</option>
+              <option value="2013">2013년</option>
+            </select>
+          </div>
+          <input type="text" id="bf-brand-title" placeholder="제목 검색" oninput="applyBoardFilter('brand')">
+          <button class="btn sm" onclick="resetBoardFilter('brand')"><i class="ti ti-x"></i> 필터 초기화</button>
+        </div>
+        <div id="bf-brand-info" style="font-size:13.5px;color:var(--muted);padding:6px 16px;display:none"></div>
+        <div class="post-list" id="brand-list"></div>
+      </div>
     </div>
 
     <!-- ══ 변경 기록 ══ -->
@@ -942,6 +1334,103 @@ function renderAlerts(rows) {
   }).join('');
 }
 
+// ── 인증/수상/특허/상표 연도 필터 ──────────────────────────
+const _boardAllRows = {}; // key별 원본 저장
+
+function applyBoardFilter(key) {
+  const from  = parseInt(document.getElementById('bf-' + key + '-from')?.value || '0') || 0;
+  const to    = parseInt(document.getElementById('bf-' + key + '-to')?.value   || '0') || 0;
+  const title = document.getElementById('bf-' + key + '-title')?.value.trim() || '';
+
+  const all = _boardAllRows[key] || [];
+  const filtered = all.filter(r => {
+    const dateStr = r['날짜'] || r['게시일'] || '';
+    const y = parseInt(String(dateStr).split('.')[0]) || 0;
+    if (from && y < from) return false;
+    if (to   && y > to)   return false;
+    if (title && !String(r['제목'] || '').includes(title)) return false;
+    return true;
+  });
+
+  const info = document.getElementById('bf-' + key + '-info');
+  const hasFilter = from || to || title;
+  if (info) {
+    if (hasFilter) {
+      info.style.display = 'block';
+      info.textContent = `필터 적용 중 — ${filtered.length}건 / 전체 ${all.length}건`;
+    } else {
+      info.style.display = 'none';
+    }
+  }
+
+  renderBoardRows(key, filtered);
+}
+
+function resetBoardFilter(key) {
+  ['bf-' + key + '-from', 'bf-' + key + '-to', 'bf-' + key + '-title'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  const info = document.getElementById('bf-' + key + '-info');
+  if (info) info.style.display = 'none';
+  renderBoardRows(key, _boardAllRows[key] || []);
+}
+
+function downloadBoardFiltered(key) {
+  const from  = parseInt(document.getElementById('bf-' + key + '-from')?.value || '0') || 0;
+  const to    = parseInt(document.getElementById('bf-' + key + '-to')?.value   || '0') || 0;
+  const title = document.getElementById('bf-' + key + '-title')?.value.trim() || '';
+  const all   = _boardAllRows[key] || [];
+  const hasFilter = from || to || title;
+
+  const rows = hasFilter ? all.filter(r => {
+    const y = parseInt(String(r['날짜'] || '').split('.')[0]) || 0;
+    if (from && y < from) return false;
+    if (to   && y > to)   return false;
+    if (title && !String(r['제목'] || '').includes(title)) return false;
+    return true;
+  }) : all;
+
+  if (!rows.length) { banner('다운로드할 데이터가 없습니다.', 'error'); return; }
+
+  const colMap  = EXCEL_COLS[key];
+  const headers = Object.keys(colMap);
+  const dataKeys = Object.values(colMap);
+  const BOM = '\uFEFF';
+  const esc = v => { const s = String(v==null?'':v); return s.includes(',')||s.includes('"')||s.includes('\n')?'"'+s.replace(/"/g,'""')+'"':s; };
+  const sorted = [...rows].sort((a,b) => parseDateNum(b['날짜']) - parseDateNum(a['날짜']));
+  const csv = BOM + headers.join(',') + '\n' + sorted.map(r => dataKeys.map((k,i) => esc(headers[i]==='일자'?normalizeDate(r[k]):r[k])).join(',')).join('\n');
+
+  const labels = { cert:'인증', award:'수상', patent:'특허', brand:'상표' };
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url;
+  a.download = `소프트힐스_${labels[key]||key}${hasFilter?'_필터링':''}_${new Date().toISOString().slice(0,10)}.csv`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  banner(`✅ 엑셀 다운로드 완료 (${rows.length}건)`, 'loading');
+  setTimeout(() => bannerClear(), 2000);
+}
+
+function downloadIntroProduct() {
+  const rows = (DATA.intro || []).filter(r => r['분류'] === '제품별 소개서');
+  if (!rows.length) { banner('다운로드할 제품별 소개서가 없습니다.', 'error'); return; }
+  const cols = ['게시일','분류','제목','내용','비고','파일명'];
+  const BOM = '\uFEFF';
+  const esc = v => { const s = String(v==null?'':v); return s.includes(',')||s.includes('"')||s.includes('\n')?'"'+s.replace(/"/g,'""')+'"':s; };
+  const sorted = [...rows].sort((a,b) => parseDateNum(b['게시일']) - parseDateNum(a['게시일']));
+  const csv = BOM + cols.join(',') + '\n' + sorted.map(r => cols.map(c => esc(r[c])).join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = `소프트힐스_제품별소개서_${new Date().toISOString().slice(0,10)}.csv`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  banner(`✅ 제품별 소개서 다운로드 완료 (${rows.length}건)`, 'loading');
+  setTimeout(() => bannerClear(), 2000);
+}
+
 // ── 메인 페이지 활성화 연혁 렌더 ─────────────────────────
 function renderResMain(history) {
   const el = document.getElementById('rm-history-list');
@@ -967,13 +1456,18 @@ let _historyAllRows = []; // 전체 원본 보관
 
 function applyHistoryFilter() {
   const status   = document.getElementById('hf-status')?.value   || '';
-  const year     = document.getElementById('hf-year')?.value.trim()     || '';
+  const yearFrom = parseInt(document.getElementById('hf-year-from')?.value || '0') || 0;
+  const yearTo   = parseInt(document.getElementById('hf-year-to')?.value   || '0') || 0;
   const category = document.getElementById('hf-category')?.value.trim() || '';
   const keyword  = document.getElementById('hf-content')?.value.trim()  || '';
 
   const filtered = _historyAllRows.filter(r => {
-    if (status   && r['상태'] !== status) return false;
-    if (year     && !String(r['날짜'] || '').includes(year)) return false;
+    if (status && r['상태'] !== status) return false;
+    if (yearFrom || yearTo) {
+      const y = parseInt(String(r['날짜'] || '').split('.')[0]) || 0;
+      if (yearFrom && y < yearFrom) return false;
+      if (yearTo   && y > yearTo)   return false;
+    }
     if (category && !String(r['구분'] || '').includes(category)) return false;
     if (keyword  && !String(r['내용'] || '').includes(keyword)) return false;
     return true;
@@ -981,7 +1475,7 @@ function applyHistoryFilter() {
 
   // 필터 정보 표시
   const info = document.getElementById('history-filter-info');
-  const hasFilter = status || year || category || keyword;
+  const hasFilter = status || yearFrom || yearTo || category || keyword;
   if (info) {
     if (hasFilter) {
       info.style.display = 'block';
@@ -995,7 +1489,7 @@ function applyHistoryFilter() {
 }
 
 function resetHistoryFilter() {
-  const ids = ['hf-status','hf-year','hf-category','hf-content'];
+  const ids = ['hf-status','hf-year-from','hf-year-to','hf-category','hf-content'];
   ids.forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = '';
@@ -1007,14 +1501,19 @@ function resetHistoryFilter() {
 
 function downloadHistoryFiltered() {
   const status   = document.getElementById('hf-status')?.value   || '';
-  const year     = document.getElementById('hf-year')?.value.trim()     || '';
+  const yearFrom = parseInt(document.getElementById('hf-year-from')?.value || '0') || 0;
+  const yearTo   = parseInt(document.getElementById('hf-year-to')?.value   || '0') || 0;
   const category = document.getElementById('hf-category')?.value.trim() || '';
   const keyword  = document.getElementById('hf-content')?.value.trim()  || '';
 
-  const hasFilter = status || year || category || keyword;
+  const hasFilter = status || yearFrom || yearTo || category || keyword;
   const rows = hasFilter ? _historyAllRows.filter(r => {
-    if (status   && r['상태'] !== status) return false;
-    if (year     && !String(r['날짜'] || '').includes(year)) return false;
+    if (status && r['상태'] !== status) return false;
+    if (yearFrom || yearTo) {
+      const y = parseInt(String(r['날짜'] || '').split('.')[0]) || 0;
+      if (yearFrom && y < yearFrom) return false;
+      if (yearTo   && y > yearTo)   return false;
+    }
     if (category && !String(r['구분'] || '').includes(category)) return false;
     if (keyword  && !String(r['내용'] || '').includes(keyword)) return false;
     return true;
@@ -1089,9 +1588,20 @@ function renderHistoryRows(rows) {
 
 // ── 소개 자료 렌더 (post-list 방식) ─────────────────────
 function renderIntro(rows) {
-  const el = document.getElementById('intro-list');
+  const allRows = rows || [];
+  // 제품별 소개서와 일반 구분
+  const general = allRows.filter(r => r['분류'] !== '제품별 소개서');
+  const product = allRows.filter(r => r['분류'] === '제품별 소개서');
+
+  _renderIntroList('intro-list', general, '소개 자료가 없습니다.');
+  _renderIntroList('intro-product-list', product, '제품별 소개서가 없습니다.');
+}
+
+function _renderIntroList(elId, rows, emptyMsg) {
+  const el = document.getElementById(elId);
+  if (!el) return;
   if (!rows || !rows.length) {
-    el.innerHTML = '<div class="empty"><i class="ti ti-files"></i><p>소개 자료가 없습니다.</p></div>';
+    el.innerHTML = `<div class="empty"><i class="ti ti-files"></i><p>${emptyMsg}</p></div>`;
     return;
   }
   const sorted = [...rows].sort((a,b) => parseDateNum(b['게시일']) - parseDateNum(a['게시일']));
