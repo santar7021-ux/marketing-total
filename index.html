@@ -714,7 +714,7 @@ body { background: var(--bg); color: var(--text); font-size: 14px; line-height: 
 
 <script>
 // ── 상태 ──────────────────────────────────────────────────
-const DEFAULT_API_URL = 'https://script.google.com/macros/s/AKfycbywoIYXxurXNam3imaKekUnMcS2_y-4wsTjYAXBGI8Em_nuiFMFKciCX4LdR45dW_AS/exec';
+const DEFAULT_API_URL = 'https://script.google.com/macros/s/AKfycbxFkZKlzMY7GvBVDiMuKjnwEkaPDZzENNnqaKdCr_o86_PdhfKencUMbrgCa2JVjyIx/exec';
 let API_URL = localStorage.getItem('sh_api_url') || DEFAULT_API_URL;
 let DATA = {};
 let currentModal = null;
@@ -776,7 +776,10 @@ async function apiFetch(params = {}) {
   banner('데이터 불러오는 중…', 'loading');
   try {
     const qs = new URLSearchParams(params).toString();
-    const res = await fetch(API_URL + (qs ? '?' + qs : ''));
+    const res = await fetch(API_URL + (qs ? '?' + qs : ''), {
+      redirect: 'follow',
+      mode: 'cors',
+    });
     const json = await res.json();
     bannerClear();
     if (json && json.error) { banner(json.error, 'error'); return null; }
@@ -813,8 +816,7 @@ async function refreshAll() {
   if (!d) return;
   DATA = d;
   renderMetrics(d.metrics);
-  renderAlerts(d.alerts);
-  // renderResMain은 renderPage('main')에서 호출됨
+  renderResMain(d.history, d.metrics);  // 메인 페이지 활성화 연혁
   renderHistory(d.history);
   renderIntro(d.intro);
   renderYoutube(d.youtube);
@@ -822,6 +824,10 @@ async function refreshAll() {
   renderBoard('award',  d.award);
   renderBoard('patent', d.patent);
   renderBoard('brand',  d.brand);
+  // 변경 기록 페이지가 열려 있으면 알림도 갱신
+  if (document.getElementById('pg-changelog')?.classList.contains('active')) {
+    renderAlerts(d.alerts);
+  }
 }
 
 function renderPage(pageId) {
@@ -831,8 +837,13 @@ function renderPage(pageId) {
   }
   const m = DATA.metrics || {};
   switch(pageId) {
-    case 'main':        renderMetrics(m); renderResMain(DATA.history, m); break;
-    case 'changelog':   renderAlerts(DATA.alerts); break;
+    case 'main':
+      renderMetrics(m);
+      renderResMain(DATA.history, m);
+      break;
+    case 'changelog':
+      renderAlerts(DATA.alerts);
+      break;
     case 'res-history': renderHistory(DATA.history); break;
     case 'res-intro':   renderIntro(DATA.intro); break;
     case 'res-youtube': renderYoutube(DATA.youtube); break;
@@ -867,6 +878,7 @@ function renderMetrics(m) {
 const ALERT_COLORS = { '자동':'a-gray', '수정':'a-blue', '추가':'a-green', '경고':'a-amber', '오류':'a-red' };
 function renderAlerts(rows) {
   const el = document.getElementById('main-alerts');
+  if (!el) return; // changelog 페이지가 아니면 요소 없음
   if (!rows || !rows.length) { el.innerHTML = '<div class="empty"><i class="ti ti-bell-off"></i><p>알림이 없습니다.</p></div>'; return; }
   el.innerHTML = rows.slice(-10).reverse().map(r => {
     const cls = ALERT_COLORS[r['유형']] || 'a-gray';
