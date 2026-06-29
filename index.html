@@ -266,7 +266,7 @@ body { background: var(--bg); color: var(--text); font-size: 14px; line-height: 
 .img-preview-bg.open { display: flex; }
 .img-preview-box {
   background: var(--surface); border-radius: var(--r-lg);
-  max-width: 90vw; max-height: 90vh;
+  max-width: 90vw; max-height: 90vh; width: 90vw;
   display: flex; flex-direction: column; overflow: hidden;
 }
 .img-preview-header {
@@ -436,7 +436,10 @@ body { background: var(--bg); color: var(--text); font-size: 14px; line-height: 
       <span class="img-preview-name" id="img-preview-name"></span>
       <span class="img-preview-close" onclick="closeImagePreview()">×</span>
     </div>
-    <img class="img-preview-content" id="img-preview-img" alt="">
+    <!-- 이미지 미리보기 -->
+    <img class="img-preview-content" id="img-preview-img" alt="" style="display:none">
+    <!-- PDF/문서 미리보기 (iframe) -->
+    <iframe id="img-preview-iframe" style="display:none;width:80vw;height:70vh;border:none;background:#f4f4f4"></iframe>
     <div class="img-preview-footer">
       <a id="img-preview-link" href="#" target="_blank" class="btn sm">
         <i class="ti ti-external-link"></i> 원본 열기
@@ -1038,14 +1041,24 @@ function renderBoard(key, rows) {
     const fmt    = r['이미지명'] ? r['이미지명'].split('.').pop().toLowerCase() : '';
     const isImg  = ['jpg','jpeg','png','gif','webp'].includes(fmt);
     const fileName = r['이미지명'] || r['파일명'] || '';
+    const canPreview = fileId && (isImg || ['pdf','ppt','pptx','doc','docx','xls','xlsx'].includes(fmt));
     return `
     <div class="post-card">
-      <div class="post-preview ${isImg ? 'clickable preview-btn' : ''}" ${isImg ? `data-fileid="${fileId}" data-filename="${fileName}"` : ''}>
+      <div class="post-preview ${canPreview ? 'clickable preview-btn' : ''}" ${canPreview ? `data-fileid="${fileId}" data-filename="${fileName}"` : ''}>
         ${fileId && isImg
           ? `<img src="https://drive.google.com/thumbnail?id=${fileId}&sz=w320" alt="">
              <span class="preview-label">클릭하여 확대</span>`
-          : `<i class="ti ti-${fmt === 'pdf' ? 'file-type-pdf' : fmt === 'pptx' || fmt === 'ppt' ? 'presentation' : 'file'} preview-icon"></i>
-             <span class="preview-label">${fmt ? fmt.toUpperCase() : '미리보기 없음'}</span>`}
+          : fileId && fmt === 'pdf'
+          ? `<i class="ti ti-file-type-pdf preview-icon" style="color:#A32D2D;opacity:1;font-size:44px"></i>
+             <span class="preview-label" style="color:#A32D2D">클릭하여 보기</span>`
+          : fileId && ['ppt','pptx'].includes(fmt)
+          ? `<i class="ti ti-presentation preview-icon" style="color:#854F0B;opacity:1;font-size:44px"></i>
+             <span class="preview-label" style="color:#854F0B">클릭하여 보기</span>`
+          : fileId
+          ? `<i class="ti ti-file preview-icon" style="font-size:44px"></i>
+             <span class="preview-label">클릭하여 보기</span>`
+          : `<i class="ti ti-file preview-icon"></i>
+             <span class="preview-label">미리보기 없음</span>`}
       </div>
       <div class="post-body">
         <div class="post-date">${r['날짜'] || r['게시일'] || ''}</div>
@@ -1349,14 +1362,32 @@ async function submitModal() {
 
 // ── 이미지 미리보기 모달 ─────────────────────────────────
 function openImagePreview(fileId, fileName) {
-  const bg = document.getElementById('img-preview-bg');
-  const img = document.getElementById('img-preview-img');
-  const name = document.getElementById('img-preview-name');
-  const link = document.getElementById('img-preview-link');
-  // 큰 사이즈로 가져오기
-  img.src = `https://drive.google.com/thumbnail?id=${fileId}&sz=w1600`;
+  const bg     = document.getElementById('img-preview-bg');
+  const img    = document.getElementById('img-preview-img');
+  const iframe = document.getElementById('img-preview-iframe');
+  const name   = document.getElementById('img-preview-name');
+  const link   = document.getElementById('img-preview-link');
+
   name.textContent = fileName || '미리보기';
   link.href = `https://drive.google.com/file/d/${fileId}/view`;
+
+  const ext = (fileName || '').split('.').pop().toLowerCase();
+  const isImage = ['jpg','jpeg','png','gif','webp','bmp'].includes(ext);
+
+  if (isImage) {
+    // 이미지: 썸네일 URL로 직접 표시
+    img.src = `https://drive.google.com/thumbnail?id=${fileId}&sz=w1600`;
+    img.style.display = 'block';
+    iframe.style.display = 'none';
+    iframe.src = '';
+  } else {
+    // PDF, PPT, 문서: 구글 드라이브 뷰어로 표시
+    img.style.display = 'none';
+    img.src = '';
+    iframe.src = `https://drive.google.com/file/d/${fileId}/preview`;
+    iframe.style.display = 'block';
+  }
+
   bg.classList.add('open');
 }
 
