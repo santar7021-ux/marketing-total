@@ -152,6 +152,22 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
 .a-gray  { background: #F1EFE8; color: #5F5E5A; }
 
 /* ── 테이블 공통 ── */
+/* ── 연혁 필터 바 ── */
+.history-filter-bar {
+  display: flex; gap: 8px; align-items: center;
+  padding: 12px 16px; border-bottom: 1px solid var(--border);
+  flex-wrap: wrap; background: var(--bg); border-radius: var(--r-md) var(--r-md) 0 0;
+}
+.history-filter-bar select,
+.history-filter-bar input[type=text] {
+  padding: 6px 10px; border: 1px solid var(--border-md);
+  border-radius: var(--r-md); font-size: 13.5px;
+  background: var(--surface); color: var(--text); outline: none;
+  min-width: 120px;
+}
+.history-filter-bar select:focus,
+.history-filter-bar input[type=text]:focus { border-color: var(--accent); }
+
 .tbl { width: 100%; border-collapse: collapse; font-size: 16.2px; }
 .tbl th { padding: 8px 10px; text-align: left; font-weight: 500; color: var(--muted); border-bottom: 1px solid var(--border); font-size: 15px; }
 .tbl td { padding: 10px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; }
@@ -639,10 +655,23 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
         <div class="card-hd">
           <h2><i class="ti ti-timeline"></i> 연혁 목록</h2>
           <div style="display:flex;gap:6px">
-            <button class="btn sm" onclick="downloadExcel('history')"><i class="ti ti-file-spreadsheet"></i> 엑셀 다운로드</button>
+            <button class="btn sm" onclick="downloadHistoryFiltered()"><i class="ti ti-file-spreadsheet"></i> 엑셀 다운로드</button>
             <button class="btn sm primary" onclick="openModal('history')"><i class="ti ti-plus"></i> 항목 추가</button>
           </div>
         </div>
+        <!-- 필터 바 -->
+        <div class="history-filter-bar">
+          <select id="hf-status" onchange="applyHistoryFilter()">
+            <option value="">상태 전체</option>
+            <option value="활성">활성</option>
+            <option value="비활성">비활성</option>
+          </select>
+          <input type="text" id="hf-year" placeholder="일자 (예: 2025)" oninput="applyHistoryFilter()">
+          <input type="text" id="hf-category" placeholder="구분 검색" oninput="applyHistoryFilter()">
+          <input type="text" id="hf-content" placeholder="내용 검색" oninput="applyHistoryFilter()">
+          <button class="btn sm" onclick="resetHistoryFilter()"><i class="ti ti-x"></i> 필터 초기화</button>
+        </div>
+        <div id="history-filter-info" style="font-size:13.5px;color:var(--muted);padding:6px 16px;display:none"></div>
         <table class="tbl">
           <thead><tr><th>상태</th><th>일자</th><th>구분</th><th>내용</th><th>첨부</th><th></th></tr></thead>
           <tbody id="history-list"></tbody>
@@ -920,9 +949,108 @@ function renderResMain(history) {
 }
 
 // ── 연혁 렌더 ────────────────────────────────────────────
+// ── 연혁 필터 ──────────────────────────────────────────
+let _historyAllRows = []; // 전체 원본 보관
+
+function applyHistoryFilter() {
+  const status   = document.getElementById('hf-status')?.value   || '';
+  const year     = document.getElementById('hf-year')?.value.trim()     || '';
+  const category = document.getElementById('hf-category')?.value.trim() || '';
+  const keyword  = document.getElementById('hf-content')?.value.trim()  || '';
+
+  const filtered = _historyAllRows.filter(r => {
+    if (status   && r['상태'] !== status) return false;
+    if (year     && !String(r['날짜'] || '').includes(year)) return false;
+    if (category && !String(r['구분'] || '').includes(category)) return false;
+    if (keyword  && !String(r['내용'] || '').includes(keyword)) return false;
+    return true;
+  });
+
+  // 필터 정보 표시
+  const info = document.getElementById('history-filter-info');
+  const hasFilter = status || year || category || keyword;
+  if (info) {
+    if (hasFilter) {
+      info.style.display = 'block';
+      info.textContent = `필터 적용 중 — ${filtered.length}건 / 전체 ${_historyAllRows.length}건`;
+    } else {
+      info.style.display = 'none';
+    }
+  }
+
+  renderHistoryRows(filtered);
+}
+
+function resetHistoryFilter() {
+  const ids = ['hf-status','hf-year','hf-category','hf-content'];
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  const info = document.getElementById('history-filter-info');
+  if (info) info.style.display = 'none';
+  renderHistoryRows(_historyAllRows);
+}
+
+function downloadHistoryFiltered() {
+  const status   = document.getElementById('hf-status')?.value   || '';
+  const year     = document.getElementById('hf-year')?.value.trim()     || '';
+  const category = document.getElementById('hf-category')?.value.trim() || '';
+  const keyword  = document.getElementById('hf-content')?.value.trim()  || '';
+
+  const hasFilter = status || year || category || keyword;
+  const rows = hasFilter ? _historyAllRows.filter(r => {
+    if (status   && r['상태'] !== status) return false;
+    if (year     && !String(r['날짜'] || '').includes(year)) return false;
+    if (category && !String(r['구분'] || '').includes(category)) return false;
+    if (keyword  && !String(r['내용'] || '').includes(keyword)) return false;
+    return true;
+  }) : _historyAllRows;
+
+  if (!rows.length) { banner('다운로드할 데이터가 없습니다.', 'error'); return; }
+
+  const colMap  = EXCEL_COLS['history'];
+  const headers = Object.keys(colMap);
+  const dataKeys = Object.values(colMap);
+
+  const BOM = '\uFEFF';
+  const escape = v => {
+    const s = String(v == null ? '' : v);
+    return s.includes(',') || s.includes('"') || s.includes('\n') ? '"' + s.replace(/"/g, '""') + '"' : s;
+  };
+
+  const sorted = [...rows].sort((a,b) => parseDateNum(b['날짜']) - parseDateNum(a['날짜']));
+  const csv = BOM + headers.join(',') + '\n' +
+    sorted.map(r => dataKeys.map((k,i) => {
+      let val = r[k];
+      if (headers[i] === '일자') val = normalizeDate(val);
+      return escape(val);
+    }).join(',')).join('\n');
+
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url;
+  const suffix = hasFilter ? '_필터링' : '';
+  a.download = `소프트힐스_연혁${suffix}_${new Date().toISOString().slice(0,10)}.csv`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  banner(`✅ 엑셀 다운로드 완료 (${rows.length}건)`, 'loading');
+  setTimeout(() => bannerClear(), 2000);
+}
+
 function renderHistory(rows) {
+  _historyAllRows = rows || [];
+  applyHistoryFilter();
+}
+
+function renderHistoryRows(rows) {
   const el = document.getElementById('history-list');
-  if (!rows || !rows.length) { el.innerHTML = '<tr><td colspan="6"><div class="empty"><i class="ti ti-timeline"></i><p>연혁이 없습니다.</p></div></td></tr>'; return; }
+  if (!el) return;
+  if (!rows || !rows.length) {
+    el.innerHTML = '<tr><td colspan="6"><div class="empty"><i class="ti ti-timeline"></i><p>연혁이 없습니다.</p></div></td></tr>';
+    return;
+  }
   const sorted = [...rows].sort((a,b) => parseDateNum(b['날짜']) - parseDateNum(a['날짜']));
   sorted.forEach((r, idx) => {
     const cKey = 'history_' + (r._row !== undefined && r._row !== null ? String(r._row) : 'i' + idx);
