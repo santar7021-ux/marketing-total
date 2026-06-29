@@ -660,7 +660,6 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
         <div class="card-hd">
           <h2><i class="ti ti-files"></i> 파일 목록</h2>
           <div style="display:flex;gap:6px">
-            <button class="btn sm" onclick="downloadExcel('intro')"><i class="ti ti-file-spreadsheet"></i> 엑셀 다운로드</button>
             <button class="btn sm primary" onclick="openModal('intro')"><i class="ti ti-plus"></i> 항목 추가</button>
           </div>
         </div>
@@ -671,7 +670,6 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
         <div class="card-hd">
           <h2><i class="ti ti-package"></i> 제품별 소개서</h2>
           <div style="display:flex;gap:6px">
-            <button class="btn sm" onclick="downloadIntroProduct()"><i class="ti ti-file-spreadsheet"></i> 엑셀 다운로드</button>
             <button class="btn sm primary" onclick="openModal('intro')"><i class="ti ti-plus"></i> 항목 추가</button>
           </div>
         </div>
@@ -1780,16 +1778,19 @@ function _renderIntroList(elId, rows, emptyMsg) {
     el.innerHTML = `<div class="empty"><i class="ti ti-files"></i><p>${emptyMsg}</p></div>`;
     return;
   }
-  const sorted = [...rows].sort((a,b) => parseDateNum(b['게시일']) - parseDateNum(a['게시일']));
+  // 시트 행 번호(_row) 순서 그대로 표시 (사용자가 순서 직접 관리)
+  const sorted = [...rows].sort((a,b) => (a._row||0) - (b._row||0));
   sorted.forEach((r, idx) => {
     const cKey = 'intro_' + (r._row !== undefined && r._row !== null ? String(r._row) : 'i' + idx);
     r._cacheKey = cKey;
     rowCache[cKey] = r;
   });
-  el.innerHTML = sorted.map(r => {
+  el.innerHTML = sorted.map((r, idx) => {
     const fileId = r['파일ID'] || '';
     const driveUrl = fileId ? `https://drive.google.com/file/d/${fileId}/view` : '';
     const folderUrl = r['공유폴더URL'] || '';
+    const isFirst = idx === 0;
+    const isLast  = idx === sorted.length - 1;
     return `
     <div class="post-card post-card-simple">
       <div class="post-body">
@@ -1803,6 +1804,8 @@ function _renderIntroList(elId, rows, emptyMsg) {
         ${r['비고'] ? `<div class="post-note"><span>비고</span> ${r['비고']}</div>` : ''}
         <div class="post-actions">
           ${driveUrl ? `<a href="${driveUrl}" target="_blank" class="post-file-btn"><i class="ti ti-download"></i> ${r['파일명'] || '파일 열기'}</a>` : ''}
+          <button class="btn sm" onclick="moveIntroRow('${elId}',${idx},-1)" ${isFirst?'disabled':''} title="위로"><i class="ti ti-arrow-up"></i></button>
+          <button class="btn sm" onclick="moveIntroRow('${elId}',${idx},+1)" ${isLast?'disabled':''} title="아래로"><i class="ti ti-arrow-down"></i></button>
           <button class="btn sm edit-btn" data-type="intro" data-key="${r._cacheKey}"><i class="ti ti-edit"></i> 수정</button>
           <button class="btn sm danger del-btn" data-type="intro" data-row="${r._row}"><i class="ti ti-trash"></i> 삭제</button>
         </div>
@@ -1811,7 +1814,39 @@ function _renderIntroList(elId, rows, emptyMsg) {
   }).join('');
 }
 
-// ── 유튜브 렌더 ──────────────────────────────────────────
+// ── 소개 자료 순서 변경 ──────────────────────────────────────
+// elId: 'intro-list' | 'intro-product-list', idx: 현재 인덱스, dir: -1(위) / +1(아래)
+async function moveIntroRow(elId, idx, dir) {
+  // 현재 렌더된 카드들에서 _row 값 추출
+  const el = document.getElementById(elId);
+  if (!el) return;
+
+  // 각 카드의 del-btn data-row 속성으로 _row 수집
+  const cards  = el.querySelectorAll('.post-card');
+  const rowNums = Array.from(cards).map(c => {
+    const btn = c.querySelector('.del-btn');
+    return btn ? parseInt(btn.dataset.row) : null;
+  }).filter(v => v !== null);
+
+  const targetIdx = idx + dir;
+  if (targetIdx < 0 || targetIdx >= rowNums.length) return;
+
+  const rowA = rowNums[idx];
+  const rowB = rowNums[targetIdx];
+
+  // 버튼 비활성화 (중복 클릭 방지)
+  el.querySelectorAll('button').forEach(b => b.disabled = true);
+  banner('순서 변경 중…', 'loading');
+
+  const res = await apiPost({ action: 'swapRows', sheet: '소개자료', rowA, rowB });
+  if (res && res.ok) {
+    await refreshAll();
+    bannerClear();
+  } else {
+    banner('순서 변경 실패: ' + (res?.error || '오류'), 'error');
+    el.querySelectorAll('button').forEach(b => b.disabled = false);
+  }
+}
 function renderYoutube(rows) {
   const el = document.getElementById('youtube-list');
   if (!rows || !rows.length) { el.innerHTML = '<tr><td colspan="5"><div class="empty"><i class="ti ti-brand-youtube"></i><p>영상이 없습니다.</p></div></td></tr>'; return; }
