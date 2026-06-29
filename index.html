@@ -2285,17 +2285,22 @@ async function confirmAddResource() {
   // 4. 네비 업데이트
   renderCustomNavItems();
 
-  // 5. 해당 탭으로 이동 (DOM 생성 후 약간 대기)
+  // 5. 해당 탭으로 이동
   setTimeout(() => {
     // 모든 페이지 비활성화
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
 
     // 새 페이지 활성화
     const pg = document.getElementById('pg-res-' + key);
-    if (pg) pg.classList.add('active');
+    if (pg) {
+      pg.classList.add('active');
+    } else {
+      console.error('페이지 DOM 없음: pg-res-' + key);
+    }
 
     // 네비 활성화
     document.querySelectorAll('.nav-main, .nav-sub-item').forEach(n => n.classList.remove('active'));
+    // 새로 생성된 네비 아이템 찾기 (renderCustomNavItems 후)
     const navEl = document.querySelector('[data-page="res-' + key + '"]');
     if (navEl) navEl.classList.add('active');
 
@@ -2303,15 +2308,16 @@ async function confirmAddResource() {
     const ni = document.getElementById('ni-res');
     if (ni) {
       ni.classList.add('open');
-      ni.querySelector('.nav-main')?.classList.add('active');
+      const nm = ni.querySelector('.nav-main');
+      if (nm) nm.classList.add('active');
     }
 
-    // 데이터 렌더 (새 시트이므로 빈 상태)
+    // 렌더 (빈 시트여도 "등록된 항목이 없습니다" 표시)
     renderCustomPage(key);
 
     banner('✅ ' + name + ' 탭이 추가됐습니다!', 'loading');
-    setTimeout(() => bannerClear(), 2000);
-  }, 150);
+    setTimeout(() => bannerClear(), 2500);
+  }, 200);
 }
 
 function deleteCustomResource(key) {
@@ -2400,16 +2406,29 @@ function initCustomResPages() {
 function renderCustomPage(key) {
   const list = loadCustomResources();
   const res  = list.find(r => r.key === key);
-  if (!res) return;
+  if (!res) {
+    console.warn('renderCustomPage: res not found for key', key);
+    return;
+  }
+
+  // 페이지 DOM이 없으면 먼저 생성
+  if (!document.getElementById('pg-res-' + key)) {
+    createCustomResPage(res);
+  }
+
   const el = document.getElementById(key + '-list');
-  if (!el) return;
+  if (!el) {
+    console.warn('renderCustomPage: list element not found:', key + '-list');
+    return;
+  }
   const type = res.formType || 'board';
 
-  banner('데이터 불러오는 중…', 'loading');
+  el.innerHTML = `<div class="empty"><i class="ti ti-loader"></i><p>불러오는 중…</p></div>`;
+
   apiFetch({ action: 'getCustomSheet', sheetName: res.sheetName }).then(rows => {
     bannerClear();
     if (!rows || !rows.length) {
-      el.innerHTML = `<div class="empty"><i class="ti ${res.icon}"></i><p>등록된 항목이 없습니다.</p></div>`;
+      el.innerHTML = `<div class="empty"><i class="ti ${res.icon}"></i><p>등록된 항목이 없습니다.<br><small style="color:var(--muted)">항목 추가 버튼으로 데이터를 입력하세요.</small></p></div>`;
       return;
     }
 
