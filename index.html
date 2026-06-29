@@ -644,7 +644,7 @@ body { background: var(--bg); color: var(--text); font-size: 14px; line-height: 
           </div>
         </div>
         <table class="tbl">
-          <thead><tr><th>일자</th><th>구분</th><th>내용</th><th>첨부</th><th>상태</th><th></th></tr></thead>
+          <thead><tr><th>상태</th><th>일자</th><th>구분</th><th>내용</th><th>첨부</th><th></th></tr></thead>
           <tbody id="history-list"></tbody>
         </table>
       </div>
@@ -910,7 +910,10 @@ function renderResMain(history) {
     ${active.map(r => `<tr>
       <td style="color:var(--muted);white-space:nowrap">${r['날짜']}</td>
       <td>${r['구분'] ? `<span style="background:var(--accent-lt);color:var(--accent);padding:2px 8px;border-radius:100px;font-size:11px;font-weight:500">${r['구분']}</span>` : '—'}</td>
-      <td>${r['내용']}</td>
+      <td>
+        <div>${r['내용']}</div>
+        ${r['내용(영문)'] ? `<div style="font-size:11px;color:var(--muted);margin-top:2px">${r['내용(영문)']}</div>` : ''}
+      </td>
       <td style="color:var(--muted)">${r['첨부파일명'] || '—'}</td>
     </tr>`).join('')}
   </tbody></table>`;
@@ -928,11 +931,14 @@ function renderHistory(rows) {
   });
   el.innerHTML = sorted.map(r => `
     <tr>
+      <td><span class="chip ${r['상태'] === '활성' ? 'chip-on' : 'chip-off'}" onclick="toggleStatus(${r._row})">${r['상태'] || '비활성'}</span></td>
       <td style="white-space:nowrap;color:var(--muted)">${r['날짜']}</td>
       <td style="white-space:nowrap">${r['구분'] ? `<span style="background:var(--accent-lt);color:var(--accent);padding:2px 8px;border-radius:100px;font-size:11px;font-weight:500">${r['구분']}</span>` : '—'}</td>
-      <td>${r['내용']}</td>
+      <td>
+        <div>${r['내용']}</div>
+        ${r['내용(영문)'] ? `<div style="font-size:11px;color:var(--muted);margin-top:3px">${r['내용(영문)']}</div>` : ''}
+      </td>
       <td>${r['첨부파일명'] ? `<a href="https://drive.google.com/file/d/${r['첨부파일ID']}/view" target="_blank" class="btn sm"><i class="ti ti-paperclip"></i> ${r['첨부파일명']}</a>` : '—'}</td>
-      <td><span class="chip ${r['상태'] === '활성' ? 'chip-on' : 'chip-off'}" onclick="toggleStatus(${r._row})">${r['상태'] || '비활성'}</span></td>
       <td style="text-align:right">
         <button class="btn sm edit-btn" data-type="history" data-key="${r._cacheKey}"><i class="ti ti-edit"></i></button>
         <button class="btn sm danger del-btn" data-type="history" data-row="${r._row}"><i class="ti ti-trash"></i></button>
@@ -1166,7 +1172,8 @@ const MODAL_FORMS = {
   history: (d) => `
     ${yearMonthSelect(d['날짜']||'')}
     <div class="form-row"><label>구분 <span style="font-size:11px;color:var(--muted)">(예: 설립, 수상, 계약, 출시 등)</span></label><input type="text" id="f-category" placeholder="구분 직접 입력" value="${d['구분']||''}"></div>
-    <div class="form-row"><label>내용</label><input type="text" id="f-content" placeholder="연혁 내용" value="${d['내용']||''}"></div>
+    <div class="form-row"><label>내용 (국문)</label><input type="text" id="f-content" placeholder="연혁 내용 (한국어)" value="${d['내용']||''}"></div>
+    <div class="form-row"><label>내용 (영문)</label><input type="text" id="f-content-en" placeholder="연혁 내용 (English)" value="${d['내용(영문)']||''}"></div>
     <div class="form-row"><label>첨부파일 구글 드라이브 ID</label><input type="text" id="f-fileid" placeholder="구글 드라이브 파일 ID" value="${d['첨부파일ID']||''}"></div>
     <div class="form-row"><label>첨부파일명</label><input type="text" id="f-filename" placeholder="예) 수상내역.pdf" value="${d['첨부파일명']||''}"></div>
     <div class="form-row"><label>상태</label><select id="f-status"><option ${d['상태']==='활성'?'selected':''}>활성</option><option ${d['상태']==='비활성'?'selected':''}>비활성</option></select></div>`,
@@ -1347,7 +1354,7 @@ async function submitModal() {
   }
 
   if (t === 'history') {
-    data = { '날짜': v('f-date'), '구분': v('f-category'), '내용': v('f-content'), '첨부파일ID': v('f-fileid'), '첨부파일명': v('f-filename'), '상태': v('f-status') };
+    data = { '날짜': v('f-date'), '구분': v('f-category'), '내용': v('f-content'), '내용(영문)': v('f-content-en'), '첨부파일ID': v('f-fileid'), '첨부파일명': v('f-filename'), '상태': v('f-status') };
   } else if (['cert','award','patent','brand'].includes(t)) {
     data = { '날짜': v('f-date'), '제목': v('f-title'), '내용': v('f-content'), '비고': v('f-note'), '이미지ID': v('f-imgid'), '이미지명': v('f-imgname') };
   } else if (t === 'intro') {
@@ -1635,7 +1642,7 @@ function renderCustomPage(key) {
 
     } else if (type === 'history') {
       // 연혁 형식 — 테이블
-      el.innerHTML = `<table class="tbl"><thead><tr><th>일자</th><th>구분</th><th>내용</th><th>첨부</th><th>상태</th><th></th></tr></thead><tbody>
+      el.innerHTML = `<table class="tbl"><thead><tr><th>상태</th><th>일자</th><th>구분</th><th>내용</th><th>첨부</th><th></th></tr></thead><tbody>
         ${rows.map(r => `<tr>
           <td style="white-space:nowrap;color:var(--muted)">${r['날짜']||''}</td>
           <td>${r['내용']||''}</td>
