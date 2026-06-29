@@ -472,12 +472,11 @@ body { background: var(--bg); color: var(--text); font-size: 14px; line-height: 
 
     <div class="nav-group">
       <div class="nav-item" id="ni-res">
-        <div class="nav-main" onclick="toggle('ni-res','res-main')">
+        <div class="nav-main" onclick="toggle('ni-res','res-intro')">
           <i class="ti ti-folder"></i> 자원 관리
           <i class="ti ti-chevron-down nav-arrow"></i>
         </div>
         <div class="nav-sub">
-          <div class="nav-sub-item" data-page="res-main"    onclick="goSub('res-main',this,'ni-res')"><i class="ti ti-dashboard"></i> 자원 관리 메인</div>
           <div class="nav-sub-item" data-page="res-intro"   onclick="goSub('res-intro',this,'ni-res')"><i class="ti ti-files"></i> 소개 자료</div>
           <div class="nav-sub-item" data-page="res-youtube" onclick="goSub('res-youtube',this,'ni-res')"><i class="ti ti-brand-youtube"></i> 유튜브 영상</div>
           <div class="nav-sub-item" data-page="res-history" onclick="goSub('res-history',this,'ni-res')"><i class="ti ti-timeline"></i> 연혁 관리</div>
@@ -519,7 +518,10 @@ body { background: var(--bg); color: var(--text); font-size: 14px; line-height: 
         <div class="metric"><div class="metric-label">특허</div><div class="metric-val" id="m-patent">—</div><span class="metric-badge badge-blue">건</span></div>
         <div class="metric"><div class="metric-label">상표</div><div class="metric-val" id="m-brand">—</div><span class="metric-badge badge-green">건</span></div>
       </div>
-
+      <div class="card">
+        <div class="card-hd"><h2><i class="ti ti-timeline"></i> 활성화된 연혁</h2></div>
+        <div id="rm-history-list"><div class="empty"><i class="ti ti-loader"></i><p>불러오는 중…</p></div></div>
+      </div>
     </div>
 
     <!-- ══ iframe 탭 공용 ══ -->
@@ -562,21 +564,6 @@ body { background: var(--bg); color: var(--text); font-size: 14px; line-height: 
       <div class="card"><div class="empty"><i class="ti ti-layout-grid"></i><p>미디어 매체 관리 탭은 추후 구성 예정입니다.</p></div></div>
     </div>
 
-    <!-- ══ 자원 관리 메인 ══ -->
-    <div id="pg-res-main" class="page">
-      <div class="page-hd"><h1>자원 관리 메인</h1><p>인증·수상·특허·상표 현황 및 활성화 연혁</p></div>
-      <div class="metric-grid">
-        <div class="metric"><div class="metric-label">인증</div><div class="metric-val" id="rm-cert">—</div><span class="metric-badge badge-blue">건</span></div>
-        <div class="metric"><div class="metric-label">수상</div><div class="metric-val" id="rm-award">—</div><span class="metric-badge badge-amber">건</span></div>
-        <div class="metric"><div class="metric-label">특허</div><div class="metric-val" id="rm-patent">—</div><span class="metric-badge badge-blue">건</span></div>
-        <div class="metric"><div class="metric-label">상표</div><div class="metric-val" id="rm-brand">—</div><span class="metric-badge badge-green">건</span></div>
-      </div>
-      <div class="card">
-        <div class="card-hd"><h2><i class="ti ti-timeline"></i> 활성화된 연혁</h2></div>
-        <div id="rm-history-list"><div class="empty"><i class="ti ti-loader"></i><p>불러오는 중…</p></div></div>
-      </div>
-    </div>
-
     <!-- ══ 소개 자료 ══ -->
     <div id="pg-res-intro" class="page">
       <div class="page-hd"><h1>소개 자료</h1><p>회사소개서 · 제품별 소개서 · 공용 PPT 템플릿</p></div>
@@ -612,7 +599,7 @@ body { background: var(--bg); color: var(--text); font-size: 14px; line-height: 
 
     <!-- ══ 연혁 관리 ══ -->
     <div id="pg-res-history" class="page">
-      <div class="page-hd"><h1>연혁 관리</h1><p>활성화 항목은 메인 및 자원 관리 메인에 노출됩니다.</p></div>
+      <div class="page-hd"><h1>연혁 관리</h1><p>활성화 항목은 메인 페이지에 노출됩니다.</p></div>
       <div class="card">
         <div class="card-hd">
           <h2><i class="ti ti-timeline"></i> 연혁 목록</h2>
@@ -795,7 +782,7 @@ async function refreshAll() {
   DATA = d;
   renderMetrics(d.metrics);
   renderAlerts(d.alerts);
-  renderResMain(d.history, d.metrics);
+  // renderResMain은 renderPage('main')에서 호출됨
   renderHistory(d.history);
   renderIntro(d.intro);
   renderYoutube(d.youtube);
@@ -812,9 +799,8 @@ function renderPage(pageId) {
   }
   const m = DATA.metrics || {};
   switch(pageId) {
-    case 'main':        renderMetrics(m); break;
+    case 'main':        renderMetrics(m); renderResMain(DATA.history, m); break;
     case 'changelog':   renderAlerts(DATA.alerts); break;
-    case 'res-main':    renderResMain(DATA.history, m); break;
     case 'res-history': renderHistory(DATA.history); break;
     case 'res-intro':   renderIntro(DATA.intro); break;
     case 'res-youtube': renderYoutube(DATA.youtube); break;
@@ -833,8 +819,7 @@ function renderMetrics(m) {
     if (el && m[key]) el.textContent = m[key].value !== undefined ? m[key].value : '—';
   };
   ['cert','award','patent','brand'].forEach(k => {
-    set('m-' + k, k === 'history' ? '활성연혁' : (k === 'cert' ? '인증' : k === 'award' ? '수상' : k === 'patent' ? '특허' : '상표'));
-    set('rm-' + k, k === 'cert' ? '인증' : k === 'award' ? '수상' : k === 'patent' ? '특허' : '상표');
+    set('m-' + k, k === 'cert' ? '인증' : k === 'award' ? '수상' : k === 'patent' ? '특허' : '상표');
   });
   set('m-cert',    '인증');
   set('m-award',   '수상');
@@ -843,10 +828,7 @@ function renderMetrics(m) {
   set('m-history', '활성연혁');
   set('m-budget',  '예산집행률');
   set('m-traffic', '월유입');
-  set('rm-cert',   '인증');
-  set('rm-award',  '수상');
-  set('rm-patent', '특허');
-  set('rm-brand',  '상표');
+
 }
 
 // ── 알림 렌더 ────────────────────────────────────────────
@@ -864,7 +846,7 @@ function renderAlerts(rows) {
   }).join('');
 }
 
-// ── 자원 관리 메인 렌더 ──────────────────────────────────
+// ── 메인 페이지 활성화 연혁 렌더 ─────────────────────────
 function renderResMain(history) {
   const el = document.getElementById('rm-history-list');
   const active = (history || []).filter(r => r['상태'] === '활성')
