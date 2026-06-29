@@ -678,7 +678,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
           </div>
         </div>
         <table class="tbl">
-          <thead><tr><th>게시일</th><th>솔루션명</th><th>제목</th><th>링크</th><th></th></tr></thead>
+          <thead><tr><th>게시일</th><th>솔루션명</th><th>제목 / 내용</th><th>링크</th><th></th></tr></thead>
           <tbody id="youtube-list"></tbody>
         </table>
       </div>
@@ -1743,7 +1743,10 @@ function renderYoutube(rows) {
   el.innerHTML = rows.map(r => `<tr>
     <td style="color:var(--muted);white-space:nowrap">${r['게시일']}</td>
     <td>${r['솔루션명']||''}</td>
-    <td>${r['제목']}</td>
+    <td>
+      <div style="font-weight:500">${r['제목']||''}</div>
+      ${r['내용'] ? `<div style="font-size:12.5px;color:var(--muted);margin-top:3px">${r['내용']}</div>` : ''}
+    </td>
     <td>${r['유튜브URL'] ? `<a href="${r['유튜브URL']}" target="_blank" class="btn sm" style="color:#C4302B"><i class="ti ti-brand-youtube"></i> 시청하기</a>` : '—'}</td>
     <td style="text-align:right">
       <button class="btn sm edit-btn" data-type="youtube" data-key="${r._cacheKey}"><i class="ti ti-edit"></i></button>
@@ -2214,7 +2217,11 @@ function selectResType(el, type) {
 }
 
 function loadCustomResources() {
-  try { return JSON.parse(localStorage.getItem('sh_custom_resources') || '[]'); }
+  try {
+    const list = JSON.parse(localStorage.getItem('sh_custom_resources') || '[]');
+    // key 없거나 이상한 경우 보정
+    return list.filter(r => r && r.name && r.key);
+  }
   catch(e) { return []; }
 }
 function saveCustomResources(list) {
@@ -2256,7 +2263,8 @@ async function confirmAddResource() {
 
   if (!name) { alert('탭 이름을 입력해주세요.'); return; }
 
-  const key = 'custom_' + name.replace(/[^a-zA-Z0-9가-힣]/g, '_');
+  // 타임스탬프 기반 key (특수문자/공백/언더스코어 문제 원천 제거)
+  const key = 'custom_' + Date.now().toString(36);
   const existing = loadCustomResources();
   if (existing.find(r => r.name === name)) { alert('이미 같은 이름의 탭이 있습니다.'); return; }
 
