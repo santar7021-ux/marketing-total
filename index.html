@@ -654,7 +654,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
 
     <!-- ══ 소개 자료 ══ -->
     <div id="pg-res-intro" class="page">
-      <div class="page-hd"><h1>소개 자료</h1><p>회사소개서 · 제품별 소개서 · 공용 PPT 템플릿</p></div>
+      <div class="page-hd"><h1>소개 자료</h1><p>(주)소프트힐스의 소개 자료를 제공합니다.</p></div>
       <!-- 일반 소개자료 (회사소개서 + 공용 PPT 템플릿) -->
       <div class="card">
         <div class="card-hd">
@@ -681,7 +681,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
 
     <!-- ══ 유튜브 영상 ══ -->
     <div id="pg-res-youtube" class="page">
-      <div class="page-hd"><h1>유튜브 영상</h1><p>솔루션별 유튜브 영상 목록</p></div>
+      <div class="page-hd"><h1>유튜브 영상</h1><p>(주)소프트힐스의 영상 자료를 제공합니다.</p></div>
       <div class="card">
         <div class="card-hd">
           <h2><i class="ti ti-brand-youtube"></i> 영상 목록</h2>
@@ -699,7 +699,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
 
     <!-- ══ 연혁 관리 ══ -->
     <div id="pg-res-history" class="page">
-      <div class="page-hd"><h1>연혁 관리</h1><p>활성화 항목은 메인 페이지에 노출됩니다.</p></div>
+      <div class="page-hd"><h1>연혁 관리</h1><p>(주)소프트힐스의 연혁을 관리합니다.</p></div>
       <div class="card">
         <div class="card-hd">
           <h2><i class="ti ti-timeline"></i> 연혁 목록</h2>
@@ -794,7 +794,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
 
     <!-- ══ 인증·수상·특허·상표 (공통 구조) ══ -->
     <div id="pg-res-cert" class="page">
-      <div class="page-hd"><h1>인증 관리</h1><p>왼쪽 파일·이미지 미리보기 / 오른쪽 제목·내용·비고</p></div>
+      <div class="page-hd"><h1>인증 관리</h1><p>(주)소프트힐스의 인증 사항을 관리합니다.</p></div>
       <div class="card">
         <div class="card-hd">
           <h2><i class="ti ti-certificate"></i> 인증 목록</h2>
@@ -877,7 +877,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
       </div>
     </div>
     <div id="pg-res-award" class="page">
-      <div class="page-hd"><h1>수상 관리</h1><p>왼쪽 파일·이미지 미리보기 / 오른쪽 제목·내용·비고</p></div>
+      <div class="page-hd"><h1>수상 관리</h1><p>(주)소프트힐스의 수상 사항을 관리합니다.</p></div>
       <div class="card">
         <div class="card-hd">
           <h2><i class="ti ti-trophy"></i> 수상 목록</h2>
@@ -960,7 +960,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
       </div>
     </div>
     <div id="pg-res-patent" class="page">
-      <div class="page-hd"><h1>특허 관리</h1><p>왼쪽 파일·이미지 미리보기 / 오른쪽 제목·내용·비고</p></div>
+      <div class="page-hd"><h1>특허 관리</h1><p>(주)소프트힐스의 특허 사항을 관리합니다.</p></div>
       <div class="card">
         <div class="card-hd">
           <h2><i class="ti ti-shield-check"></i> 특허 목록</h2>
@@ -1051,7 +1051,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
       </div>
     </div>
     <div id="pg-res-brand" class="page">
-      <div class="page-hd"><h1>상표 관리</h1><p>왼쪽 파일·이미지 미리보기 / 오른쪽 제목·내용·비고</p></div>
+      <div class="page-hd"><h1>상표 관리</h1><p>(주)소프트힐스의 상표 사항을 관리합니다.</p></div>
       <div class="card">
         <div class="card-hd">
           <h2><i class="ti ti-registered"></i> 상표 목록</h2>
@@ -1136,7 +1136,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
 
     <!-- ══ 프로그램 저작 ══ -->
     <div id="pg-res-copyright" class="page">
-      <div class="page-hd"><h1>프로그램 저작</h1><p>왼쪽 파일·이미지 미리보기 / 오른쪽 제목·내용·비고</p></div>
+      <div class="page-hd"><h1>프로그램 저작</h1><p>(주)소프트힐스의 프로그램 등록 및 저작권 사항을 관리합니다.</p></div>
       <div class="card">
         <div class="card-hd">
           <h2><i class="ti ti-copyright"></i> 프로그램 저작 목록</h2>
@@ -1835,6 +1835,45 @@ function renderYoutube(rows) {
   </tr>`).join('');
 }
 
+// ── 특허 카드 렌더 헬퍼 ────────────────────────────────
+function _renderPatentCards(sorted) {
+  return sorted.map(r => {
+    const fileId   = r['이미지ID'] || '';
+    const fileName = r['이미지명'] || '';
+    const fmt      = fileName.split('.').pop().toLowerCase();
+    const isImg    = ['jpg','jpeg','png','gif','webp'].includes(fmt);
+    const canPreview = fileId && (isImg || ['pdf','ppt','pptx','doc','docx'].includes(fmt));
+    const driveUrl = fileId ? `https://drive.google.com/file/d/${fileId}/view` : '';
+    const st       = r['상태'] || '출원';
+    return `
+    <div class="post-card">
+      <div class="post-preview ${canPreview ? 'clickable preview-btn' : ''}" ${canPreview ? `data-fileid="${fileId}" data-filename="${fileName}"` : ''}>
+        ${fileId && isImg
+          ? `<img src="https://drive.google.com/thumbnail?id=${fileId}&sz=w320" alt=""><span class="preview-label">클릭하여 확대</span>`
+          : fileId && fmt === 'pdf'
+          ? `<i class="ti ti-file-type-pdf preview-icon" style="color:#A32D2D;opacity:1;font-size:44px"></i><span class="preview-label" style="color:#A32D2D">클릭하여 보기</span>`
+          : fileId
+          ? `<i class="ti ti-file preview-icon" style="font-size:44px"></i><span class="preview-label">클릭하여 보기</span>`
+          : `<i class="ti ti-shield-check preview-icon"></i><span class="preview-label">파일 없음</span>`}
+      </div>
+      <div class="post-body">
+        <div class="post-date">
+          ${r['날짜']||''}
+          <span class="chip ${st === '등록' ? 'chip-on' : 'chip-pending'}" style="margin-left:8px;font-size:12px">${st}</span>
+        </div>
+        <div class="post-title">${r['제목']||'(제목 없음)'}</div>
+        ${r['내용'] ? `<div class="post-content">${r['내용']}</div>` : ''}
+        ${r['비고'] ? `<div class="post-note"><span>비고</span> ${r['비고']}</div>` : ''}
+        <div class="post-actions">
+          ${driveUrl ? `<a href="${driveUrl}" target="_blank" class="post-file-btn"><i class="ti ti-download"></i> ${fileName||'파일 열기'}</a>` : ''}
+          <button class="btn sm edit-btn" data-type="patent" data-key="${r._cacheKey}"><i class="ti ti-edit"></i> 수정</button>
+          <button class="btn sm danger del-btn" data-type="patent" data-row="${r._row}"><i class="ti ti-trash"></i> 삭제</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
 // ── 게시판 공통 렌더 (소개자료·인증·수상·특허·상표) ────
 const BOARD_ICON = { cert:'ti-certificate', award:'ti-trophy', patent:'ti-shield-check', brand:'ti-registered', copyright:'ti-copyright', intro:'ti-files' };
 
@@ -1887,26 +1926,23 @@ function renderBoard(key, rows) {
     rowCache[cKey] = r;
   });
 
-  // ── 특허: 연혁 형식 테이블 ──
+  // ── 특허: 수상과 동일한 카드 형식 (미리보기 포함) ──
   if (key === 'patent') {
-    el.innerHTML = sorted.map(r => {
-      const fileId = r['이미지ID'] || '';
-      const fileName = r['이미지명'] || '';
-      const driveUrl = fileId ? `https://drive.google.com/file/d/${fileId}/view` : '';
-      const st = r['상태'] || '출원';
-      return `<tr>
-        <td><span class="chip ${st === '등록' ? 'chip-on' : 'chip-pending'}">${st}</span></td>
-        <td style="white-space:nowrap;color:var(--muted)">${r['날짜']||''}</td>
-        <td style="font-weight:500">${r['제목']||''}</td>
-        <td style="font-size:13px;color:var(--text)">${r['내용']||''}</td>
-        <td style="font-size:13px;color:var(--muted)">${r['비고']||''}</td>
-        <td>${driveUrl ? `<a href="${driveUrl}" target="_blank" class="btn sm"><i class="ti ti-paperclip"></i> ${fileName||'파일'}</a>` : '—'}</td>
-        <td style="text-align:right;white-space:nowrap">
-          <button class="btn sm edit-btn" data-type="patent" data-key="${r._cacheKey}"><i class="ti ti-edit"></i></button>
-          <button class="btn sm danger del-btn" data-type="patent" data-row="${r._row}"><i class="ti ti-trash"></i></button>
-        </td>
-      </tr>`;
-    }).join('');
+    // tbody → post-list div로 전환
+    const container = el.closest('.card');
+    // tbody를 post-list div로 교체 (최초 1회)
+    if (el.tagName === 'TBODY') {
+      const div = document.createElement('div');
+      div.className = 'post-list';
+      div.id = 'patent-list';
+      el.parentElement.parentElement.replaceWith(div); // table 전체 교체
+      // 새 엘리먼트 참조
+      const newEl = document.getElementById('patent-list');
+      if (!newEl) return;
+      newEl.innerHTML = _renderPatentCards(sorted);
+    } else {
+      el.innerHTML = _renderPatentCards(sorted);
+    }
     return;
   }
   el.innerHTML = sorted.map(r => {
