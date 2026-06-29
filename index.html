@@ -788,6 +788,12 @@ function goSub(pageId, el, navId) {
   if (pg) pg.classList.add('active');
   document.querySelectorAll('.nav-main, .nav-sub-item').forEach(n => n.classList.remove('active'));
   if (el) el.classList.add('active');
+  // 커스텀 탭 렌더
+  if (pageId.startsWith('res-custom_')) {
+    renderCustomPage(pageId.replace('res-', ''));
+  } else {
+    renderPage(pageId);
+  }
   const ni = document.getElementById(navId);
   if (ni) {
     ni.classList.add('open');
@@ -890,6 +896,13 @@ function renderPage(pageId) {
     case 'res-award':   renderBoard('award',  DATA.award);  break;
     case 'res-patent':  renderBoard('patent', DATA.patent); break;
     case 'res-brand':   renderBoard('brand',  DATA.brand);  break;
+    default:
+      // 커스텀 자원 관리 탭
+      if (pageId.startsWith('res-custom_')) {
+        const customKey = pageId.replace('res-', '');
+        renderCustomPage(customKey);
+      }
+      break;
   }
 }
 
@@ -1594,7 +1607,9 @@ function openAddResourceModal() {
   document.getElementById('new-res-icon').value = 'ti-folder';
   document.getElementById('new-res-type').value = 'board';
   document.querySelectorAll('.res-type-card').forEach((e,i) => e.classList.toggle('selected', i===0));
-  document.getElementById('add-res-modal-bg').classList.add('open');
+  const addResBg = document.getElementById('add-res-modal-bg');
+  addResBg.classList.add('open');
+  addResBg.style.zIndex = '300'; // 기존 모달(z-index:100)보다 높게
   setTimeout(() => document.getElementById('new-res-name').focus(), 100);
 }
 
@@ -1620,17 +1635,42 @@ async function confirmAddResource() {
   if (existing.find(r => r.name === name)) { alert('이미 같은 이름의 탭이 있습니다.'); return; }
 
   banner('새 자원 관리 탭 생성 중…', 'loading');
-  const res = await apiPost({ action: 'createResourceSheet', sheetName: name, formType: type });
-  if (!res) { banner('생성 실패', 'error'); return; }
+
+  // GAS에 시트 생성 요청 (실패해도 탭은 추가)
+  try {
+    await apiPost({ action: 'createResourceSheet', sheetName: name, formType: type });
+  } catch(e) {
+    console.warn('시트 생성 오류:', e);
+  }
 
   const newRes = { name, icon, key, sheetName: name, formType: type };
   existing.push(newRes);
   saveCustomResources(existing);
 
+  // 1. 모달 닫기
   closeAddResourceModal();
+
+  // 2. 네비 업데이트
   renderCustomNavItems();
+
+  // 3. 페이지 생성
   createCustomResPage(newRes);
-  goSub('res-' + key, document.querySelector('[data-page="res-' + key + '"]'), 'ni-res');
+
+  // 4. SHEET_MAP 등록
+  SHEET_MAP[key] = name;
+
+  // 5. 해당 탭으로 이동
+  setTimeout(() => {
+    const navEl = document.querySelector('[data-page="res-' + key + '"]');
+    if (navEl) goSub('res-' + key, navEl, 'ni-res');
+    else {
+      // 네비 요소가 아직 없으면 직접 페이지 전환
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      const pg = document.getElementById('pg-res-' + key);
+      if (pg) pg.classList.add('active');
+    }
+  }, 100);
+
   banner('✅ ' + name + ' 탭이 추가됐습니다!', 'loading');
   setTimeout(() => bannerClear(), 2000);
 }
