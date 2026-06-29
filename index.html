@@ -286,6 +286,17 @@ body { background: var(--bg); color: var(--text); font-size: 14px; line-height: 
 .post-preview.clickable:hover { background: var(--accent-lt); }
 .post-preview.clickable:hover .preview-label { background: var(--accent); color: #fff; }
 
+/* ── 자원 관리 형식 카드 ── */
+.res-type-card {
+  border: 2px solid var(--border); border-radius: var(--r-lg);
+  padding: 14px 10px; text-align: center; cursor: pointer;
+  transition: all .15s; background: var(--bg);
+}
+.res-type-card:hover { border-color: var(--accent); background: var(--accent-lt); }
+.res-type-card.selected { border-color: var(--accent); background: var(--accent-lt); }
+.res-type-name { font-weight: 600; font-size: 13px; margin: 8px 0 4px; }
+.res-type-desc { font-size: 11px; color: var(--muted); line-height: 1.5; }
+
 /* ── 아이콘 피커 ── */
 .icon-option {
   width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;
@@ -374,17 +385,38 @@ body { background: var(--bg); color: var(--text); font-size: 14px; line-height: 
 
 <!-- ── 자원 관리 추가 모달 ── -->
 <div class="modal-bg" id="add-res-modal-bg">
-  <div class="modal" style="max-width:440px">
+  <div class="modal" style="max-width:500px">
     <div class="modal-hd">
       <h3>자원 관리 추가</h3>
       <span class="modal-close" onclick="closeAddResourceModal()">×</span>
     </div>
-    <div class="modal-body" style="padding:20px">
+    <div class="modal-body" style="padding:20px;display:flex;flex-direction:column;gap:16px">
       <div class="form-row">
         <label>탭 이름 <span style="font-size:11px;color:var(--muted)">(예: 카탈로그, 제안서)</span></label>
-        <input type="text" id="new-res-name" placeholder="탭 이름 입력" style="width:100%">
+        <input type="text" id="new-res-name" placeholder="탭 이름 입력">
       </div>
-      <div class="form-row" style="margin-top:12px">
+      <div class="form-row">
+        <label>탭 형식 선택</label>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:8px">
+          <div class="res-type-card selected" data-type="board" onclick="selectResType(this,'board')">
+            <i class="ti ti-certificate" style="font-size:28px;color:var(--accent)"></i>
+            <div class="res-type-name">파일 형식</div>
+            <div class="res-type-desc">일자·제목·내용·파일 첨부<br>(인증·수상·특허 등)</div>
+          </div>
+          <div class="res-type-card" data-type="history" onclick="selectResType(this,'history')">
+            <i class="ti ti-timeline" style="font-size:28px;color:#6366f1"></i>
+            <div class="res-type-name">연혁 형식</div>
+            <div class="res-type-desc">일자·내용·활성/비활성<br>상태 관리</div>
+          </div>
+          <div class="res-type-card" data-type="youtube" onclick="selectResType(this,'youtube')">
+            <i class="ti ti-brand-youtube" style="font-size:28px;color:#ef4444"></i>
+            <div class="res-type-name">링크 형식</div>
+            <div class="res-type-desc">게시일·제목·URL<br>영상·링크 관리</div>
+          </div>
+        </div>
+        <input type="hidden" id="new-res-type" value="board">
+      </div>
+      <div class="form-row">
         <label>픽토그램 선택</label>
         <div id="icon-picker" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px"></div>
         <input type="hidden" id="new-res-icon" value="ti-folder">
@@ -1343,31 +1375,33 @@ const ICON_OPTIONS = [
   { icon: 'ti-award',          label: '어워드' },
 ];
 
-// localStorage에서 커스텀 탭 목록 로드
-function loadCustomResources() {
-  try {
-    return JSON.parse(localStorage.getItem('sh_custom_resources') || '[]');
-  } catch(e) { return []; }
+// 형식 선택
+function selectResType(el, type) {
+  document.querySelectorAll('.res-type-card').forEach(e => e.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('new-res-type').value = type;
 }
 
+function loadCustomResources() {
+  try { return JSON.parse(localStorage.getItem('sh_custom_resources') || '[]'); }
+  catch(e) { return []; }
+}
 function saveCustomResources(list) {
   localStorage.setItem('sh_custom_resources', JSON.stringify(list));
 }
 
 function openAddResourceModal() {
-  // 아이콘 피커 렌더링
   const picker = document.getElementById('icon-picker');
-  let selectedIcon = 'ti-folder';
   picker.innerHTML = ICON_OPTIONS.map(o => `
     <div class="icon-option ${o.icon === 'ti-folder' ? 'selected' : ''}"
-         data-icon="${o.icon}"
-         title="${o.label}"
-         onclick="selectIcon(this, '${o.icon}')">
+         data-icon="${o.icon}" title="${o.label}"
+         onclick="selectIcon(this,'${o.icon}')">
       <i class="ti ${o.icon}" style="font-size:20px"></i>
-    </div>
-  `).join('');
+    </div>`).join('');
   document.getElementById('new-res-name').value = '';
   document.getElementById('new-res-icon').value = 'ti-folder';
+  document.getElementById('new-res-type').value = 'board';
+  document.querySelectorAll('.res-type-card').forEach((e,i) => e.classList.toggle('selected', i===0));
   document.getElementById('add-res-modal-bg').classList.add('open');
   setTimeout(() => document.getElementById('new-res-name').focus(), 100);
 }
@@ -1385,24 +1419,19 @@ function closeAddResourceModal() {
 async function confirmAddResource() {
   const name = document.getElementById('new-res-name').value.trim();
   const icon = document.getElementById('new-res-icon').value;
+  const type = document.getElementById('new-res-type').value; // board | history | youtube
 
   if (!name) { alert('탭 이름을 입력해주세요.'); return; }
 
-  const key = 'custom_' + name.replace(/\s+/g, '_');
-
-  // 중복 확인
+  const key = 'custom_' + name.replace(/[^a-zA-Z0-9가-힣]/g, '_');
   const existing = loadCustomResources();
-  if (existing.find(r => r.name === name)) {
-    alert('이미 같은 이름의 탭이 있습니다.'); return;
-  }
+  if (existing.find(r => r.name === name)) { alert('이미 같은 이름의 탭이 있습니다.'); return; }
 
   banner('새 자원 관리 탭 생성 중…', 'loading');
-
-  // GAS에 새 시트 생성 요청
-  const res = await apiPost({ action: 'createResourceSheet', sheetName: name });
+  const res = await apiPost({ action: 'createResourceSheet', sheetName: name, formType: type });
   if (!res) { banner('생성 실패', 'error'); return; }
 
-  const newRes = { name, icon, key, sheetName: name };
+  const newRes = { name, icon, key, sheetName: name, formType: type };
   existing.push(newRes);
   saveCustomResources(existing);
 
@@ -1414,22 +1443,53 @@ async function confirmAddResource() {
   setTimeout(() => bannerClear(), 2000);
 }
 
+function deleteCustomResource(key) {
+  if (!confirm('이 탭을 삭제하시겠습니까?
+(시트 데이터는 유지됩니다)')) return;
+  const list = loadCustomResources().filter(r => r.key !== key);
+  saveCustomResources(list);
+  // 페이지 엘리먼트 제거
+  const pg = document.getElementById('pg-res-' + key);
+  if (pg) pg.remove();
+  renderCustomNavItems();
+  // 메인으로 이동
+  go('main', document.querySelector('[data-page="main"]'));
+  banner('탭이 삭제됐습니다.', 'loading');
+  setTimeout(() => bannerClear(), 1500);
+}
+
 function renderCustomNavItems() {
   const list = loadCustomResources();
   const container = document.getElementById('custom-nav-items');
   if (!container) return;
   container.innerHTML = list.map(r => `
-    <div class="nav-sub-item" data-page="res-${r.key}" onclick="goSub('res-${r.key}',this,'ni-res')">
-      <i class="ti ${r.icon}"></i> ${r.name}
-    </div>
-  `).join('');
+    <div class="nav-sub-item" data-page="res-${r.key}" onclick="goSub('res-${r.key}',this,'ni-res')" style="display:flex;align-items:center;justify-content:space-between;padding-right:8px">
+      <span><i class="ti ${r.icon}"></i> ${r.name}</span>
+      <span onclick="event.stopPropagation();deleteCustomResource('${r.key}')"
+            title="탭 삭제"
+            style="font-size:16px;color:var(--muted);cursor:pointer;line-height:1;padding:0 2px;border-radius:4px"
+            onmouseover="this.style.color='#A32D2D'" onmouseout="this.style.color='var(--muted)'">×</span>
+    </div>`).join('');
 }
+
+// 형식별 헤더 정의
+const CUSTOM_TYPE_HEADERS = {
+  board:   ['날짜','제목','내용','비고','이미지ID','이미지명'],
+  history: ['날짜','내용','첨부파일ID','첨부파일명','상태'],
+  youtube: ['게시일','솔루션명','제목','유튜브URL'],
+};
 
 function createCustomResPage(res) {
   const container = document.getElementById('custom-res-pages');
-  if (!container) return;
-  // 이미 있으면 skip
-  if (document.getElementById('pg-res-' + res.key)) return;
+  if (!container || document.getElementById('pg-res-' + res.key)) return;
+
+  const type = res.formType || 'board';
+  const listId = res.key + '-list';
+  const addFn = type === 'board'
+    ? `openCustomModal('${res.key}','${res.name}','${res.sheetName}','board')`
+    : type === 'history'
+    ? `openCustomModal('${res.key}','${res.name}','${res.sheetName}','history')`
+    : `openCustomModal('${res.key}','${res.name}','${res.sheetName}','youtube')`;
 
   const div = document.createElement('div');
   div.id = 'pg-res-' + res.key;
@@ -1446,16 +1506,15 @@ function createCustomResPage(res) {
           <button class="btn sm" onclick="downloadCustomExcel('${res.key}','${res.name}')">
             <i class="ti ti-file-spreadsheet"></i> 엑셀 다운로드
           </button>
-          <button class="btn sm primary" onclick="openCustomModal('${res.key}','${res.name}','${res.sheetName}')">
+          <button class="btn sm primary" onclick="${addFn}">
             <i class="ti ti-plus"></i> 항목 추가
           </button>
         </div>
       </div>
-      <div class="post-list" id="${res.key}-list">
+      <div class="${type === 'board' ? 'post-list' : ''}" id="${listId}">
         <div class="empty"><i class="ti ${res.icon}"></i><p>등록된 항목이 없습니다.</p></div>
       </div>
-    </div>
-  `;
+    </div>`;
   container.appendChild(div);
 }
 
@@ -1463,15 +1522,18 @@ function initCustomResPages() {
   const list = loadCustomResources();
   list.forEach(res => createCustomResPage(res));
   renderCustomNavItems();
+  // SHEET_MAP에 동적 등록
+  list.forEach(res => { SHEET_MAP[res.key] = res.sheetName; });
 }
 
-// 커스텀 탭 렌더 (renderPage에서 호출)
+// ── 커스텀 탭 렌더 (형식별) ──────────────────────────────
 function renderCustomPage(key) {
   const list = loadCustomResources();
   const res  = list.find(r => r.key === key);
   if (!res) return;
   const el = document.getElementById(key + '-list');
   if (!el) return;
+  const type = res.formType || 'board';
 
   banner('데이터 불러오는 중…', 'loading');
   apiFetch({ action: 'getCustomSheet', sheetName: res.sheetName }).then(rows => {
@@ -1480,40 +1542,101 @@ function renderCustomPage(key) {
       el.innerHTML = `<div class="empty"><i class="ti ${res.icon}"></i><p>등록된 항목이 없습니다.</p></div>`;
       return;
     }
-    el.innerHTML = rows.map((r, idx) => {
+
+    // 캐시 등록
+    rows.forEach((r, idx) => {
       const cKey = key + '_' + (r._row || idx);
       r._cacheKey = cKey;
       rowCache[cKey] = r;
-      const fileId = r['이미지ID'] || r['파일ID'] || '';
-      const fileName = r['이미지명'] || r['파일명'] || '';
-      return `
-      <div class="post-card post-card-simple">
-        <div class="post-body">
-          <div class="post-date">${r['날짜'] || r['게시일'] || ''}</div>
-          <div class="post-title">${r['제목'] || '(제목 없음)'}</div>
-          ${r['내용'] ? `<div class="post-content">${r['내용']}</div>` : ''}
-          ${r['비고'] ? `<div class="post-note"><span>비고</span> ${r['비고']}</div>` : ''}
-          <div class="post-actions">
-            ${fileId ? `<a href="https://drive.google.com/file/d/${fileId}/view" target="_blank" class="post-file-btn"><i class="ti ti-download"></i> ${fileName || '파일 열기'}</a>` : ''}
-            <button class="btn sm edit-btn" data-type="${key}" data-key="${cKey}"><i class="ti ti-edit"></i> 수정</button>
-            <button class="btn sm danger del-btn" data-type="${key}" data-row="${r._row}"><i class="ti ti-trash"></i> 삭제</button>
+    });
+
+    if (type === 'board') {
+      // 파일 형식 — 카드
+      el.innerHTML = rows.map(r => {
+        const fileId = r['이미지ID'] || '';
+        const fileName = r['이미지명'] || '';
+        const isImg = ['jpg','jpeg','png','gif','webp'].includes((fileName.split('.').pop()||'').toLowerCase());
+        return `
+        <div class="post-card">
+          <div class="post-preview ${isImg ? 'clickable preview-btn' : ''}" ${isImg ? `data-fileid="${fileId}" data-filename="${fileName}"` : ''}>
+            ${fileId && isImg
+              ? `<img src="https://drive.google.com/thumbnail?id=${fileId}&sz=w320" alt=""><span class="preview-label">클릭하여 확대</span>`
+              : `<i class="ti ti-file preview-icon"></i><span class="preview-label">${fileName ? fileName.split('.').pop().toUpperCase() : '없음'}</span>`}
           </div>
-        </div>
-      </div>`;
-    }).join('');
+          <div class="post-body">
+            <div class="post-date">${r['날짜'] || ''}</div>
+            <div class="post-title">${r['제목'] || '(제목 없음)'}</div>
+            ${r['내용'] ? `<div class="post-content">${r['내용']}</div>` : ''}
+            ${r['비고'] ? `<div class="post-note"><span>비고</span> ${r['비고']}</div>` : ''}
+            <div class="post-actions">
+              ${fileId ? `<a href="https://drive.google.com/file/d/${fileId}/view" target="_blank" class="post-file-btn"><i class="ti ti-download"></i> ${fileName || '파일 열기'}</a>` : ''}
+              <button class="btn sm edit-btn" data-type="${key}" data-key="${r._cacheKey}"><i class="ti ti-edit"></i> 수정</button>
+              <button class="btn sm danger del-btn" data-type="${key}" data-row="${r._row}"><i class="ti ti-trash"></i> 삭제</button>
+            </div>
+          </div>
+        </div>`;
+      }).join('');
+
+    } else if (type === 'history') {
+      // 연혁 형식 — 테이블
+      el.innerHTML = `<table class="tbl"><thead><tr><th>일자</th><th>내용</th><th>첨부</th><th>상태</th><th></th></tr></thead><tbody>
+        ${rows.map(r => `<tr>
+          <td style="white-space:nowrap;color:var(--muted)">${r['날짜']||''}</td>
+          <td>${r['내용']||''}</td>
+          <td>${r['첨부파일명']||'—'}</td>
+          <td><span class="badge ${r['상태']==='활성'?'badge-green':'badge-gray'}">${r['상태']||'비활성'}</span></td>
+          <td style="display:flex;gap:4px">
+            <button class="btn sm edit-btn" data-type="${key}" data-key="${r._cacheKey}"><i class="ti ti-edit"></i></button>
+            <button class="btn sm danger del-btn" data-type="${key}" data-row="${r._row}"><i class="ti ti-trash"></i></button>
+          </td>
+        </tr>`).join('')}
+      </tbody></table>`;
+
+    } else if (type === 'youtube') {
+      // 링크 형식 — 테이블
+      el.innerHTML = `<table class="tbl"><thead><tr><th>게시일</th><th>제목</th><th>URL</th><th></th></tr></thead><tbody>
+        ${rows.map(r => `<tr>
+          <td style="white-space:nowrap;color:var(--muted)">${r['게시일']||r['날짜']||''}</td>
+          <td>${r['솔루션명']?`<span class="badge badge-blue" style="margin-right:4px">${r['솔루션명']}</span>`:''}${r['제목']||''}</td>
+          <td>${r['유튜브URL']||r['URL']||''?`<a href="${r['유튜브URL']||r['URL']}" target="_blank" class="post-file-btn" style="font-size:12px"><i class="ti ti-external-link"></i> 열기</a>`:'—'}</td>
+          <td style="display:flex;gap:4px">
+            <button class="btn sm edit-btn" data-type="${key}" data-key="${r._cacheKey}"><i class="ti ti-edit"></i></button>
+            <button class="btn sm danger del-btn" data-type="${key}" data-row="${r._row}"><i class="ti ti-trash"></i></button>
+          </td>
+        </tr>`).join('')}
+      </tbody></table>`;
+    }
   });
 }
 
-function openCustomModal(key, name, sheetName) {
-  // 커스텀 탭 모달은 boardForm 재활용
+// ── 커스텀 탭 모달 열기 (형식별) ──────────────────────────
+function openCustomModal(key, name, sheetName, formType) {
   currentModal = key;
   editRow = null;
-  document.getElementById('modal-title').textContent = '항목 추가 — ' + name;
-  document.getElementById('modal-body').innerHTML = boardForm({});
-  // SHEET_MAP에 동적 추가
   SHEET_MAP[key] = sheetName;
+  document.getElementById('modal-title').textContent = '항목 추가 — ' + name;
+
+  let formHtml = '';
+  if (formType === 'history') {
+    formHtml = `
+      ${yearMonthSelect('')}
+      <div class="form-row"><label>내용</label><input type="text" id="f-content" placeholder="연혁 내용"></div>
+      <div class="form-row"><label>첨부파일 ID</label><input type="text" id="f-fileid" placeholder="구글 드라이브 파일 ID"></div>
+      <div class="form-row"><label>첨부파일명</label><input type="text" id="f-filename" placeholder="예) 계약서.pdf"></div>
+      <div class="form-row"><label>상태</label><select id="f-status"><option>활성</option><option>비활성</option></select></div>`;
+  } else if (formType === 'youtube') {
+    formHtml = `
+      ${yearMonthSelect('')}
+      <div class="form-row"><label>솔루션명</label><input type="text" id="f-solution" placeholder="솔루션명"></div>
+      <div class="form-row"><label>제목</label><input type="text" id="f-title" placeholder="영상 제목"></div>
+      <div class="form-row"><label>URL</label><input type="text" id="f-url" placeholder="https://www.youtube.com/watch?v=..."></div>`;
+  } else {
+    formHtml = boardForm({});
+  }
+
+  document.getElementById('modal-body').innerHTML = formHtml;
   document.getElementById('modal-bg').classList.add('open');
-  setTimeout(() => { syncDateField(); initDropzone(); }, 0);
+  setTimeout(() => { syncDateField(); if (formType === 'board') initDropzone(); }, 0);
   currentUploadFile = null;
   currentUploadSheet = sheetName;
 }
@@ -1525,12 +1648,12 @@ function downloadCustomExcel(key, name) {
   apiFetch({ action: 'getCustomSheet', sheetName: res.sheetName }).then(rows => {
     if (!rows || !rows.length) { banner('다운로드할 데이터가 없습니다.', 'error'); return; }
     const cols = Object.keys(rows[0]).filter(k => !k.startsWith('_'));
-    const BOM = '\uFEFF';
-    const escape = v => {
-      const s = String(v == null ? '' : v);
-      return s.includes(',') || s.includes('"') || s.includes('\n') ? '"' + s.replace(/"/g, '""') + '"' : s;
-    };
-    const csv = BOM + cols.join(',') + '\n' + rows.map(r => cols.map(c => escape(r[c])).join(',')).join('\n');
+    const BOM = '﻿';
+    const esc = v => { const s = String(v==null?'':v); return s.includes(',')||s.includes('"')||s.includes('
+')?'"'+s.replace(/"/g,'""')+'"':s; };
+    const csv = BOM + cols.join(',') + '
+' + rows.map(r => cols.map(c => esc(r[c])).join(',')).join('
+');
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url  = URL.createObjectURL(blob);
     const a    = document.createElement('a');
