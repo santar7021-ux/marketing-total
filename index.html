@@ -569,9 +569,33 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
         <div class="metric"><div class="metric-label">특허</div><div class="metric-val" id="m-patent">—</div><span class="metric-badge badge-blue">건</span></div>
         <div class="metric"><div class="metric-label">상표</div><div class="metric-val" id="m-brand">—</div><span class="metric-badge badge-green">건</span></div>
       </div>
+      <!-- 활성화된 연혁 (최근 3년) -->
       <div class="card">
-        <div class="card-hd"><h2><i class="ti ti-timeline"></i> 활성화된 연혁</h2></div>
+        <div class="card-hd">
+          <h2><i class="ti ti-timeline"></i> 활성화된 연혁 <span style="font-size:13.5px;color:var(--muted);font-weight:400">(최근 3년)</span></h2>
+        </div>
         <div id="rm-history-list"><div class="empty"><i class="ti ti-loader"></i><p>불러오는 중…</p></div></div>
+      </div>
+
+      <!-- 최근 업로드 영상 -->
+      <div class="card" style="margin-top:16px">
+        <div class="card-hd">
+          <h2><i class="ti ti-brand-youtube"></i> 최근 업로드 영상 <span style="font-size:13.5px;color:var(--muted);font-weight:400">(최근 5개)</span></h2>
+          <a onclick="goSub('res-youtube',document.querySelector('[data-page=res-youtube]'),'ni-res')" class="btn sm" style="cursor:pointer">전체 보기</a>
+        </div>
+        <table class="tbl">
+          <thead><tr><th>게시일</th><th>솔루션명</th><th>제목</th><th>링크</th></tr></thead>
+          <tbody id="main-youtube-list"><tr><td colspan="4"><div class="empty"><i class="ti ti-loader"></i><p>불러오는 중…</p></div></td></tr></tbody>
+        </table>
+      </div>
+
+      <!-- 소개 자료 파일 목록 -->
+      <div class="card" style="margin-top:16px">
+        <div class="card-hd">
+          <h2><i class="ti ti-files"></i> 소개 자료</h2>
+          <a onclick="goSub('res-intro',document.querySelector('[data-page=res-intro]'),'ni-res')" class="btn sm" style="cursor:pointer">전체 보기</a>
+        </div>
+        <div class="post-list" id="main-intro-list"></div>
       </div>
     </div>
 
@@ -1257,7 +1281,9 @@ async function refreshAll() {
   if (!d) return;
   DATA = d;
   renderMetrics(d.metrics);
-  renderResMain(d.history, d.metrics);  // 메인 페이지 활성화 연혁
+  renderResMain(d.history, d.metrics);   // 메인: 활성화 연혁 (최근 3년)
+  renderMainYoutube(d.youtube);          // 메인: 최근 영상 5개
+  renderMainIntro(d.intro);              // 메인: 소개 자료
   renderHistory(d.history);
   renderIntro(d.intro);
   renderYoutube(d.youtube);
@@ -1265,7 +1291,6 @@ async function refreshAll() {
   renderBoard('award',  d.award);
   renderBoard('patent', d.patent);
   renderBoard('brand',  d.brand);
-  // 변경 기록 페이지가 열려 있으면 알림도 갱신
   if (document.getElementById('pg-changelog')?.classList.contains('active')) {
     renderAlerts(d.alerts);
   }
@@ -1438,9 +1463,24 @@ function downloadIntroProduct() {
 // ── 메인 페이지 활성화 연혁 렌더 ─────────────────────────
 function renderResMain(history) {
   const el = document.getElementById('rm-history-list');
-  const active = (history || []).filter(r => r['상태'] === '활성')
+  if (!el) return;
+
+  // 현재 연도 기준 최근 3년
+  const thisYear = new Date().getFullYear();
+  const minYear  = thisYear - 2; // 3년: thisYear, thisYear-1, thisYear-2
+
+  const active = (history || [])
+    .filter(r => {
+      if (r['상태'] !== '활성') return false;
+      const y = parseInt(String(r['날짜'] || '').split('.')[0]) || 0;
+      return y >= minYear;
+    })
     .sort((a,b) => parseDateNum(b['날짜']) - parseDateNum(a['날짜']));
-  if (!active.length) { el.innerHTML = '<div class="empty"><i class="ti ti-timeline"></i><p>활성화된 연혁이 없습니다.</p></div>'; return; }
+
+  if (!active.length) {
+    el.innerHTML = '<div class="empty"><i class="ti ti-timeline"></i><p>최근 3년 활성화된 연혁이 없습니다.</p></div>';
+    return;
+  }
   el.innerHTML = `<table class="tbl"><thead><tr><th>일자</th><th>구분</th><th>내용</th><th>첨부</th></tr></thead><tbody>
     ${active.map(r => `<tr>
       <td style="color:var(--muted);white-space:nowrap">${r['날짜']}</td>
@@ -1452,6 +1492,58 @@ function renderResMain(history) {
       <td style="color:var(--muted)">${r['첨부파일명'] || '—'}</td>
     </tr>`).join('')}
   </tbody></table>`;
+}
+
+// ── 메인 페이지 최근 영상 5개 렌더 ──────────────────────
+function renderMainYoutube(rows) {
+  const el = document.getElementById('main-youtube-list');
+  if (!el) return;
+  if (!rows || !rows.length) {
+    el.innerHTML = '<tr><td colspan="4"><div class="empty"><i class="ti ti-brand-youtube"></i><p>등록된 영상이 없습니다.</p></div></td></tr>';
+    return;
+  }
+  const sorted = [...rows].sort((a,b) => parseDateNum(b['게시일']) - parseDateNum(a['게시일']));
+  const top5 = sorted.slice(0, 5);
+  el.innerHTML = top5.map(r => `<tr>
+    <td style="white-space:nowrap;color:var(--muted)">${r['게시일'] || ''}</td>
+    <td>${r['솔루션명'] ? `<span style="background:var(--accent-lt);color:var(--accent);padding:2px 8px;border-radius:100px;font-size:11px">${r['솔루션명']}</span>` : '—'}</td>
+    <td>${r['제목'] || ''}</td>
+    <td>${r['유튜브URL'] ? `<a href="${r['유튜브URL']}" target="_blank" class="btn sm"><i class="ti ti-external-link"></i> 보기</a>` : '—'}</td>
+  </tr>`).join('');
+}
+
+// ── 메인 페이지 소개 자료 렌더 ───────────────────────────
+function renderMainIntro(rows) {
+  const el = document.getElementById('main-intro-list');
+  if (!el) return;
+  // 제품별 소개서 제외한 일반 목록
+  const list = (rows || [])
+    .filter(r => r['분류'] !== '제품별 소개서')
+    .sort((a,b) => parseDateNum(b['게시일']) - parseDateNum(a['게시일']));
+  if (!list.length) {
+    el.innerHTML = '<div class="empty"><i class="ti ti-files"></i><p>소개 자료가 없습니다.</p></div>';
+    return;
+  }
+  el.innerHTML = list.map(r => {
+    const fileId = r['파일ID'] || '';
+    const driveUrl = fileId ? `https://drive.google.com/file/d/${fileId}/view` : '';
+    const folderUrl = r['공유폴더URL'] || '';
+    return `
+    <div class="post-card post-card-simple">
+      <div class="post-body">
+        <div class="post-date">
+          ${r['게시일'] || ''}
+          ${r['분류'] ? `<span style="margin-left:6px;background:var(--accent-lt);color:#0F6E56;padding:1px 8px;border-radius:100px;font-size:11px">${r['분류']}</span>` : ''}
+          ${folderUrl ? `<a href="${folderUrl}" target="_blank" style="margin-left:8px;font-size:11px;color:var(--accent);text-decoration:none;display:inline-flex;align-items:center;gap:3px;padding:1px 8px;border:1px solid var(--accent);border-radius:100px"><i class="ti ti-folder-open" style="font-size:12px"></i> 공유 폴더</a>` : ''}
+        </div>
+        <div class="post-title">${r['제목'] || '(제목 없음)'}</div>
+        ${r['내용'] ? `<div class="post-content">${r['내용']}</div>` : ''}
+        <div class="post-actions">
+          ${driveUrl ? `<a href="${driveUrl}" target="_blank" class="post-file-btn"><i class="ti ti-download"></i> ${r['파일명'] || '파일 열기'}</a>` : ''}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
 }
 
 // ── 연혁 렌더 ────────────────────────────────────────────
