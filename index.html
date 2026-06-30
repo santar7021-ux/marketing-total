@@ -82,7 +82,8 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
 .page { display: none; }
 .page.active { display: block; }
 
-.page-hd { margin-bottom: 20px; }
+.page-hd { margin-bottom: 20px; display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
+.page-hd > div { flex:1; }
 .page-hd h1 { font-size: 25px; font-weight: 600; }
 .page-hd p  { font-size: 16.2px; color: var(--muted); margin-top: 3px; }
 
@@ -877,26 +878,32 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
 
     <!-- ══ 소개 자료 ══ -->
     <div id="pg-res-intro" class="page">
-      <div class="page-hd"><h1>소개 자료</h1><p>(주)소프트힐스의 소개 자료를 제공합니다.</p></div>
-      <!-- 일반 소개자료 (회사소개서 + 공용 PPT 템플릿) -->
+      <div class="page-hd">
+        <div>
+          <h1>소개 자료</h1><p>(주)소프트힐스의 소개 자료를 제공합니다.</p>
+        </div>
+        <button class="btn sm primary" onclick="openModal('intro')" style="align-self:flex-start;margin-top:4px"><i class="ti ti-plus"></i> 항목 추가</button>
+      </div>
+      <!-- 회사소개서 및 공용 -->
       <div class="card">
         <div class="card-hd">
-          <h2><i class="ti ti-files"></i> 파일 목록</h2>
-          <div style="display:flex;gap:6px">
-            <button class="btn sm primary" onclick="openModal('intro')"><i class="ti ti-plus"></i> 항목 추가</button>
-          </div>
+          <h2><i class="ti ti-files"></i> 회사소개서 및 공용</h2>
         </div>
         <div class="post-list" id="intro-list"></div>
       </div>
-      <!-- 제품별 소개서 별도 목록 -->
+      <!-- 제품별 소개서 -->
       <div class="card" style="margin-top:20px">
         <div class="card-hd">
           <h2><i class="ti ti-package"></i> 제품별 소개서</h2>
-          <div style="display:flex;gap:6px">
-            <button class="btn sm primary" onclick="openModal('intro')"><i class="ti ti-plus"></i> 항목 추가</button>
-          </div>
         </div>
         <div class="post-list" id="intro-product-list"></div>
+      </div>
+      <!-- 브로슈어 -->
+      <div class="card" style="margin-top:20px">
+        <div class="card-hd">
+          <h2><i class="ti ti-bookmarks"></i> 브로슈어</h2>
+        </div>
+        <div class="post-list" id="intro-brochure-list"></div>
       </div>
     </div>
 
@@ -1880,9 +1887,9 @@ function renderMainPatent(rows) {
 function renderMainIntro(rows) {
   const el = document.getElementById('main-intro-list');
   if (!el) return;
-  // 제품별 소개서 제외한 일반 목록
+  // 제품별 소개서, 브로슈어 제외한 일반 목록
   const list = (rows || [])
-    .filter(r => r['분류'] !== '제품별 소개서')
+    .filter(r => r['분류'] !== '제품별 소개서' && r['분류'] !== '브로슈어')
     .sort((a,b) => parseDateNum(b['게시일']) - parseDateNum(a['게시일']));
   if (!list.length) {
     el.innerHTML = '<div class="empty"><i class="ti ti-files"></i><p>소개 자료가 없습니다.</p></div>';
@@ -2047,12 +2054,14 @@ function renderHistoryRows(rows) {
 // ── 소개 자료 렌더 (post-list 방식) ─────────────────────
 function renderIntro(rows) {
   const allRows = rows || [];
-  // 제품별 소개서와 일반 구분
-  const general = allRows.filter(r => r['분류'] !== '제품별 소개서');
-  const product = allRows.filter(r => r['분류'] === '제품별 소개서');
+  // 분류별 분리: 회사소개서 및 공용 / 제품별 소개서 / 브로슈어
+  const general  = allRows.filter(r => r['분류'] !== '제품별 소개서' && r['분류'] !== '브로슈어');
+  const product  = allRows.filter(r => r['분류'] === '제품별 소개서');
+  const brochure = allRows.filter(r => r['분류'] === '브로슈어');
 
-  _renderIntroList('intro-list', general, '소개 자료가 없습니다.');
-  _renderIntroList('intro-product-list', product, '제품별 소개서가 없습니다.');
+  _renderIntroList('intro-list',          general,   '소개 자료가 없습니다.');
+  _renderIntroList('intro-product-list',  product,   '제품별 소개서가 없습니다.');
+  _renderIntroList('intro-brochure-list', brochure,  '브로슈어가 없습니다.');
 }
 
 function _renderIntroList(elId, rows, emptyMsg) {
@@ -2645,7 +2654,7 @@ const MODAL_FORMS = {
     const existUrl  = existId ? 'https://drive.google.com/file/d/' + existId + '/view' : '';
     return `
     ${yearMonthSelect(d['게시일']||'')}
-    <div class="form-row"><label>분류</label><select id="f-category"><option ${d['분류']==='회사소개서'?'selected':''}>회사소개서</option><option ${d['분류']==='제품별 소개서'?'selected':''}>제품별 소개서</option><option ${d['분류']==='공용 PPT 템플릿'?'selected':''}>공용 PPT 템플릿</option></select></div>
+    <div class="form-row"><label>분류</label><select id="f-category"><option ${d['분류']==='회사소개서'?'selected':''}>회사소개서</option><option ${d['분류']==='제품별 소개서'?'selected':''}>제품별 소개서</option><option ${d['분류']==='공용 PPT 템플릿'?'selected':''}>공용 PPT 템플릿</option><option ${d['분류']==='브로슈어'?'selected':''}>브로슈어</option></select></div>
     <div class="form-row"><label>제목</label><input type="text" id="f-title" value="${d['제목']||''}"></div>
     <div class="form-row"><label>내용</label><textarea id="f-content">${d['내용']||''}</textarea></div>
     <div class="form-row">
