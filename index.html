@@ -635,7 +635,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
       <div class="ais-empty">
         <i class="ti ti-search"></i>
         <span>검색어를 입력하세요</span>
-        <span style="font-size:12px">인증, 수상, 특허, 상표, 연혁, 소개 자료, 유튜브 영상, 프로그램 저작 전체 검색</span>
+        <span style="font-size:12px">인증, 수상, 특허, 상표, 연혁, 소개 자료, 유튜브 영상, 프로그램 저작/등록 전체 검색</span>
       </div>
     </div>
     <!-- 푸터 -->
@@ -738,7 +738,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
           <div class="nav-sub-item" data-page="res-award"   onclick="goSub('res-award',this,'ni-res')"><i class="ti ti-trophy"></i> 수상 관리</div>
           <div class="nav-sub-item" data-page="res-patent"  onclick="goSub('res-patent',this,'ni-res')"><i class="ti ti-shield-check"></i> 특허 관리</div>
           <div class="nav-sub-item" data-page="res-brand"   onclick="goSub('res-brand',this,'ni-res')"><i class="ti ti-registered"></i> 상표 관리</div>
-          <div class="nav-sub-item" data-page="res-copyright" onclick="goSub('res-copyright',this,'ni-res')"><i class="ti ti-copyright"></i> 프로그램 저작</div>
+          <div class="nav-sub-item" data-page="res-copyright" onclick="goSub('res-copyright',this,'ni-res')"><i class="ti ti-copyright"></i> 프로그램 저작/등록</div>
           <div id="custom-nav-items"></div>
           <div class="nav-sub-item" style="color:var(--accent);border-top:1px solid var(--border);margin-top:4px;padding-top:8px" onclick="openAddResourceModal()">
             <i class="ti ti-plus"></i> 자원 관리 추가
@@ -779,7 +779,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
         <div class="metric"><div class="metric-label">수상</div><div class="metric-val" id="m-award">—</div><span class="metric-badge badge-amber">건</span></div>
         <div class="metric"><div class="metric-label">특허</div><div class="metric-val" id="m-patent">—</div><span class="metric-badge badge-blue">건</span></div>
         <div class="metric"><div class="metric-label">상표</div><div class="metric-val" id="m-brand">—</div><span class="metric-badge badge-green">건</span></div>
-        <div class="metric"><div class="metric-label">프로그램 저작</div><div class="metric-val" id="m-copyright">—</div><span class="metric-badge badge-green">건</span></div>
+        <div class="metric"><div class="metric-label">프로그램 저작/등록</div><div class="metric-val" id="m-copyright">—</div><span class="metric-badge badge-green">건</span></div>
       </div>
       <!-- 활성화된 연혁 (최근 3년) -->
       <div class="card">
@@ -1349,12 +1349,12 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
       </div>
     </div>
 
-    <!-- ══ 프로그램 저작 ══ -->
+    <!-- ══ 프로그램 저작/등록 ══ -->
     <div id="pg-res-copyright" class="page">
-      <div class="page-hd"><h1>프로그램 저작</h1><p>(주)소프트힐스의 프로그램 등록 및 저작권 사항을 관리합니다.</p></div>
+      <div class="page-hd"><h1>프로그램 저작/등록</h1><p>(주)소프트힐스의 프로그램 등록 및 저작권 사항을 관리합니다.</p></div>
       <div class="card">
         <div class="card-hd">
-          <h2><i class="ti ti-copyright"></i> 프로그램 저작 목록</h2>
+          <h2><i class="ti ti-copyright"></i> 프로그램 저작/등록 목록</h2>
           <div style="display:flex;gap:6px">
             <button class="btn sm" onclick="downloadBoardFiltered('copyright')"><i class="ti ti-file-spreadsheet"></i> 엑셀 다운로드</button>
             <button class="btn sm primary" onclick="openModal('copyright')"><i class="ti ti-plus"></i> 항목 추가</button>
@@ -1705,7 +1705,7 @@ function downloadBoardFiltered(key) {
   const sorted = [...rows].sort((a,b) => parseDateNum(b['날짜']) - parseDateNum(a['날짜']));
   const csv = BOM + headers.join(',') + '\n' + sorted.map(r => dataKeys.map((k,i) => esc(headers[i]==='일자'?normalizeDate(r[k]):r[k])).join(',')).join('\n');
 
-  const labels = { cert:'인증', award:'수상', patent:'특허', brand:'상표', copyright:'프로그램저작' };
+  const labels = { cert:'인증', award:'수상', patent:'특허', brand:'상표', copyright:'프로그램저작등록' };
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
   const url  = URL.createObjectURL(blob);
   const a    = document.createElement('a');
@@ -2567,7 +2567,7 @@ const EXCEL_COLS = {
   youtube: ['게시일','구분','솔루션명','제목','유튜브URL'],
 };
 const EXCEL_LABELS = {
-  cert:'인증', award:'수상', patent:'특허', brand:'상표', copyright:'프로그램저작',
+  cert:'인증', award:'수상', patent:'특허', brand:'상표', copyright:'프로그램저작등록',
   history:'연혁', intro:'소개자료', youtube:'유튜브영상'
 };
 
@@ -2620,7 +2620,7 @@ function openModalCached(type, cacheKey) {
 function openModal(type, data = {}) {
   currentModal = type;
   editRow = data._row || null;
-  document.getElementById('modal-title').textContent = (editRow ? '항목 수정' : '항목 추가') + ' — ' + ({ cert:'인증', award:'수상', patent:'특허', brand:'상표', copyright:'프로그램저작', history:'연혁', intro:'소개자료', youtube:'유튜브' }[type] || type);
+  document.getElementById('modal-title').textContent = (editRow ? '항목 수정' : '항목 추가') + ' — ' + ({ cert:'인증', award:'수상', patent:'특허', brand:'상표', copyright:'프로그램 저작/등록', history:'연혁', intro:'소개자료', youtube:'유튜브' }[type] || type);
   document.getElementById('modal-body').innerHTML = MODAL_FORMS[type](data);
   document.getElementById('modal-bg').classList.add('open');
   // 연/월(/일) 드롭다운 초기 동기화
@@ -3313,7 +3313,7 @@ const AIS_CAT = {
   award:     { label:'수상',       icon:'ti-trophy',       page:'res-award',     navId:'ni-res', dateKey:'날짜',  titleKey:'제목' },
   patent:    { label:'특허',       icon:'ti-shield-check', page:'res-patent',    navId:'ni-res', dateKey:'날짜',  titleKey:'제목' },
   brand:     { label:'상표',       icon:'ti-registered',   page:'res-brand',     navId:'ni-res', dateKey:'날짜',  titleKey:'제목' },
-  copyright: { label:'프로그램저작', icon:'ti-copyright',   page:'res-copyright', navId:'ni-res', dateKey:'날짜',  titleKey:'제목' },
+  copyright: { label:'프로그램 저작/등록', icon:'ti-copyright',   page:'res-copyright', navId:'ni-res', dateKey:'날짜',  titleKey:'제목' },
   history:   { label:'연혁',       icon:'ti-timeline',     page:'res-history',   navId:'ni-res', dateKey:'날짜',  titleKey:'내용' },
   intro:     { label:'소개 자료',   icon:'ti-files',        page:'res-intro',     navId:'ni-res', dateKey:'게시일', titleKey:'제목' },
   youtube:   { label:'유튜브',     icon:'ti-brand-youtube', page:'res-youtube',  navId:'ni-res', dateKey:'게시일', titleKey:'제목' },
@@ -3481,7 +3481,7 @@ function renderAisEmpty() {
     <div class="ais-empty">
       <i class="ti ti-search"></i>
       <span>검색어를 입력하세요</span>
-      <span style="font-size:12px">인증·수상·특허·상표·연혁·소개 자료·유튜브 영상·프로그램 저작 전체 검색</span>
+      <span style="font-size:12px">인증·수상·특허·상표·연혁·소개 자료·유튜브 영상·프로그램 저작/등록 전체 검색</span>
     </div>`;
 }
 
