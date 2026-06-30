@@ -1831,8 +1831,10 @@ function renderResMain(history) {
       <td style="color:var(--muted);white-space:nowrap">${r['날짜']}</td>
       <td>${r['구분'] ? `<span style="background:var(--accent-lt);color:var(--accent);padding:2px 8px;border-radius:100px;font-size:11px;font-weight:500">${r['구분']}</span>` : '—'}</td>
       <td>
-        <div>${r['내용']}</div>
-        ${r['내용2'] ? `<div style="font-size:11px;color:var(--muted);margin-top:2px">${r['내용2']}</div>` : ''}
+        <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap">
+          <span>${r['내용']}</span>
+          ${r['내용2'] ? `<span style="font-size:12px;color:var(--muted)">${r['내용2']}</span>` : ''}
+        </div>
       </td>
       <td style="color:var(--muted)">${r['첨부파일명'] || '—'}</td>
     </tr>`).join('')}
@@ -2037,8 +2039,10 @@ function renderHistoryRows(rows) {
       <td style="white-space:nowrap;color:var(--muted)">${r['날짜']}</td>
       <td style="white-space:nowrap">${r['구분'] ? `<span style="background:var(--accent-lt);color:var(--accent);padding:2px 8px;border-radius:100px;font-size:11px;font-weight:500">${r['구분']}</span>` : '—'}</td>
       <td>
-        <div>${r['내용']}</div>
-        ${r['내용2'] ? `<div style="font-size:11px;color:var(--muted);margin-top:3px">${r['내용2']}</div>` : ''}
+        <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap">
+          <span>${r['내용']}</span>
+          ${r['내용2'] ? `<span style="font-size:12px;color:var(--muted)">${r['내용2']}</span>` : ''}
+        </div>
       </td>
       <td>${r['첨부파일명'] ? `<a href="https://drive.google.com/file/d/${r['첨부파일ID']}/view" target="_blank" class="btn sm"><i class="ti ti-paperclip"></i> ${r['첨부파일명']}</a>` : '—'}</td>
       <td style="text-align:right">
