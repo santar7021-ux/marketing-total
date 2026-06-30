@@ -1042,10 +1042,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
           <button class="btn sm" onclick="resetBoardFilter('patent')"><i class="ti ti-x"></i> 필터 초기화</button>
         </div>
         <div id="bf-patent-info" style="font-size:13.5px;color:var(--muted);padding:6px 16px;display:none"></div>
-        <table class="tbl">
-          <thead><tr><th>상태</th><th>일자</th><th>제목</th><th>내용</th><th>비고</th><th>파일</th><th></th></tr></thead>
-          <tbody id="patent-list"></tbody>
-        </table>
+        <div class="post-list" id="patent-list"></div>
       </div>
     </div>
     <div id="pg-res-brand" class="page">
@@ -1437,7 +1434,7 @@ function applyBoardFilter(key) {
   });
 
   const info = document.getElementById('bf-' + key + '-info');
-  const hasFilter = from || to || title;
+  const hasFilter = from || to || title || status;
   if (info) {
     if (hasFilter) {
       info.style.display = 'block';
@@ -1945,12 +1942,18 @@ function previewBlock(fileId, imgId, format) {
 }
 
 function renderBoard(key, rows) {
-  const el = document.getElementById(key + '-list');
+  // 원본 저장 (필터링용)
+  _boardAllRows[key] = rows || [];
+  renderBoardRows(key, rows || []);
+}
+
+function renderBoardRows(key, rows) {
+  let el = document.getElementById(key + '-list');
+  if (!el) return;
   const ico = BOARD_ICON[key] || 'ti-file';
 
   if (!rows || !rows.length) {
-    const emptyDiv = `<div class="empty"><i class="ti ${ico}"></i><p>등록된 항목이 없습니다.</p></div>`;
-    el.innerHTML = key === 'patent' ? `<tr><td colspan="7">${emptyDiv}</td></tr>` : emptyDiv;
+    el.innerHTML = `<div class="empty"><i class="ti ${ico}"></i><p>등록된 항목이 없습니다.</p></div>`;
     return;
   }
 
@@ -1961,25 +1964,12 @@ function renderBoard(key, rows) {
     rowCache[cKey] = r;
   });
 
-  // ── 특허: 수상과 동일한 카드 형식 (미리보기 포함) ──
+  // 특허: post-list 카드 형식
   if (key === 'patent') {
-    // tbody → post-list div로 전환
-    const container = el.closest('.card');
-    // tbody를 post-list div로 교체 (최초 1회)
-    if (el.tagName === 'TBODY') {
-      const div = document.createElement('div');
-      div.className = 'post-list';
-      div.id = 'patent-list';
-      el.parentElement.parentElement.replaceWith(div); // table 전체 교체
-      // 새 엘리먼트 참조
-      const newEl = document.getElementById('patent-list');
-      if (!newEl) return;
-      newEl.innerHTML = _renderPatentCards(sorted);
-    } else {
-      el.innerHTML = _renderPatentCards(sorted);
-    }
+    el.innerHTML = _renderPatentCards(sorted);
     return;
   }
+
   el.innerHTML = sorted.map(r => {
     const fileId = r['이미지ID'] || r['파일ID'] || '';
     const fmt    = r['이미지명'] ? r['이미지명'].split('.').pop().toLowerCase() : '';
