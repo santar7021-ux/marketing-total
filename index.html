@@ -825,15 +825,14 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
 
     <!-- ══ iframe 탭 공용 ══ -->
     <div id="pg-budget" class="page">
-      <div class="page-hd"><h1>마케팅 예산 현황</h1><p>아래 버튼을 클릭하면 새 탭에서 열립니다.</p></div>
-      <div class="launch-card" onclick="window.open('https://santar7021-ux.github.io/budget/','_blank')">
-        <div class="launch-icon"><i class="ti ti-wallet"></i></div>
-        <div class="launch-info">
-          <div class="launch-title">마케팅 워크오더 (예산 관리)</div>
-          <div class="launch-url">https://santar7021-ux.github.io/budget/</div>
-          <div class="launch-desc">마케팅 운영 비용 정리 테이블 — 로그인 후 전체 기능 이용 가능합니다.</div>
+      <div class="page-hd"><h1>마케팅 예산 현황</h1><p>마케팅 운영 비용 정리 테이블 (비로그인 모드)</p></div>
+      <div class="iframe-wrap">
+        <div class="iframe-bar">
+          <i class="ti ti-world" style="font-size:14px;color:var(--muted)"></i>
+          <span>https://santar7021-ux.github.io/budget/</span>
+          <a href="https://santar7021-ux.github.io/budget/" target="_blank" class="btn sm"><i class="ti ti-external-link"></i> 새 탭</a>
         </div>
-        <div class="launch-btn"><i class="ti ti-external-link"></i> 새 탭에서 열기</div>
+        <iframe src="https://santar7021-ux.github.io/budget/" title="마케팅 예산 현황"></iframe>
       </div>
     </div>
     <div id="pg-ad-homepage" class="page">
