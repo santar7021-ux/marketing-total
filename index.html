@@ -49,6 +49,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
   background: linear-gradient(135deg, var(--accent-dk) 0%, var(--accent) 100%);
 }
 .rail-logo .brand { font-size: 16.2px; font-weight: 700; color: #fff; letter-spacing: .2px; }
+.rail-logo .brand-logo { display: block; height: 26px; width: auto; margin-bottom: 4px; }
 .rail-logo .sub   { font-size: 13.8px; color: rgba(255,255,255,.78); margin-top: 2px; }
 
 .nav-group { padding: 8px 0; border-bottom: 1px solid var(--border); }
@@ -683,7 +684,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
   <!-- ── 레일 ── -->
   <nav class="rail">
     <div class="rail-logo">
-      <div class="brand">㈜ 소프트힐스</div>
+      <img class="brand-logo" src="data:image/png;base64,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" alt="소프트힐스">
       <div class="sub">마케팅 운영 대시보드</div>
     </div>
 
@@ -778,6 +779,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
         <div class="metric"><div class="metric-label">수상</div><div class="metric-val" id="m-award">—</div><span class="metric-badge badge-amber">건</span></div>
         <div class="metric"><div class="metric-label">특허</div><div class="metric-val" id="m-patent">—</div><span class="metric-badge badge-blue">건</span></div>
         <div class="metric"><div class="metric-label">상표</div><div class="metric-val" id="m-brand">—</div><span class="metric-badge badge-green">건</span></div>
+        <div class="metric"><div class="metric-label">프로그램 저작</div><div class="metric-val" id="m-copyright">—</div><span class="metric-badge badge-green">건</span></div>
       </div>
       <!-- 활성화된 연혁 (최근 3년) -->
       <div class="card">
@@ -897,8 +899,17 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
             <button class="btn sm primary" onclick="openModal('youtube')"><i class="ti ti-plus"></i> 항목 추가</button>
           </div>
         </div>
+        <div class="history-filter-bar">
+          <select id="yf-category" onchange="applyYoutubeFilter()">
+            <option value="">구분 전체</option>
+          </select>
+          <input type="text" id="yf-solution" placeholder="솔루션명 검색" oninput="applyYoutubeFilter()">
+          <input type="text" id="yf-title" placeholder="제목 검색" oninput="applyYoutubeFilter()">
+          <button class="btn sm" onclick="resetYoutubeFilter()"><i class="ti ti-x"></i> 필터 초기화</button>
+        </div>
+        <div id="yf-info" style="font-size:13.5px;color:var(--muted);padding:6px 16px;display:none"></div>
         <table class="tbl">
-          <thead><tr><th>게시일</th><th>솔루션명</th><th>제목 / 내용</th><th>링크</th><th></th></tr></thead>
+          <thead><tr><th>구분</th><th>게시일</th><th>솔루션명</th><th>제목 / 내용</th><th>링크</th><th></th></tr></thead>
           <tbody id="youtube-list"></tbody>
         </table>
       </div>
@@ -1600,6 +1611,7 @@ function renderMetrics(m) {
   set('m-award',   '수상');
   set('m-patent',  '특허');
   set('m-brand',   '상표');
+  set('m-copyright', '프로그램저작');
   set('m-history', '활성연혁');
   set('m-budget',  '예산집행률');
   set('m-traffic', '월유입');
@@ -1693,7 +1705,7 @@ function downloadBoardFiltered(key) {
   const sorted = [...rows].sort((a,b) => parseDateNum(b['날짜']) - parseDateNum(a['날짜']));
   const csv = BOM + headers.join(',') + '\n' + sorted.map(r => dataKeys.map((k,i) => esc(headers[i]==='일자'?normalizeDate(r[k]):r[k])).join(',')).join('\n');
 
-  const labels = { cert:'인증', award:'수상', patent:'특허', brand:'상표' };
+  const labels = { cert:'인증', award:'수상', patent:'특허', brand:'상표', copyright:'프로그램저작' };
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
   const url  = URL.createObjectURL(blob);
   const a    = document.createElement('a');
@@ -2053,16 +2065,71 @@ async function moveIntroRow(elId, idx, dir) {
     el.querySelectorAll('button').forEach(b => b.disabled = false);
   }
 }
+// ── 유튜브 영상: 원본 저장 + 필터 ──────────────────────
+let _youtubeAllRows = [];
+
 function renderYoutube(rows) {
+  _youtubeAllRows = rows || [];
+  // 구분 드롭다운 옵션 채우기 (기존 선택값 유지)
+  const sel = document.getElementById('yf-category');
+  if (sel) {
+    const prevVal = sel.value;
+    const cats = [...new Set(_youtubeAllRows.map(r => r['구분']).filter(Boolean))].sort();
+    sel.innerHTML = `<option value="">구분 전체</option>` + cats.map(c => `<option value="${c}">${c}</option>`).join('');
+    if (cats.includes(prevVal)) sel.value = prevVal;
+  }
+  applyYoutubeFilter();
+}
+
+function applyYoutubeFilter() {
+  const category = document.getElementById('yf-category')?.value || '';
+  const solution = document.getElementById('yf-solution')?.value.trim().toLowerCase() || '';
+  const title    = document.getElementById('yf-title')?.value.trim().toLowerCase() || '';
+
+  const filtered = _youtubeAllRows.filter(r => {
+    if (category && r['구분'] !== category) return false;
+    if (solution && !String(r['솔루션명'] || '').toLowerCase().includes(solution)) return false;
+    if (title && !String(r['제목'] || '').toLowerCase().includes(title)) return false;
+    return true;
+  });
+
+  const info = document.getElementById('yf-info');
+  const hasFilter = category || solution || title;
+  if (info) {
+    if (hasFilter) {
+      info.style.display = 'block';
+      info.textContent = `필터 적용 중 — ${filtered.length}건 / 전체 ${_youtubeAllRows.length}건`;
+    } else {
+      info.style.display = 'none';
+    }
+  }
+
+  renderYoutubeRows(filtered);
+}
+
+function resetYoutubeFilter() {
+  ['yf-category', 'yf-solution', 'yf-title'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  const info = document.getElementById('yf-info');
+  if (info) info.style.display = 'none';
+  renderYoutubeRows(_youtubeAllRows);
+}
+
+function renderYoutubeRows(rows) {
   const el = document.getElementById('youtube-list');
-  if (!rows || !rows.length) { el.innerHTML = '<tr><td colspan="5"><div class="empty"><i class="ti ti-brand-youtube"></i><p>영상이 없습니다.</p></div></td></tr>'; return; }
-  rows.forEach((r, idx) => {
+  if (!el) return;
+  if (!rows || !rows.length) { el.innerHTML = '<tr><td colspan="6"><div class="empty"><i class="ti ti-brand-youtube"></i><p>영상이 없습니다.</p></div></td></tr>'; return; }
+  const sorted = [...rows].sort((a,b) => parseDateNum(b['게시일']) - parseDateNum(a['게시일']));
+  sorted.forEach((r, idx) => {
     const cKey = 'youtube_' + (r._row !== undefined && r._row !== null ? String(r._row) : 'i' + idx);
     r._cacheKey = cKey;
     rowCache[cKey] = r;
   });
-  el.innerHTML = rows.map(r => `<tr>
-    <td style="color:var(--muted);white-space:nowrap">${r['게시일']}</td>
+  el.innerHTML = sorted.map(r => `<tr>
+    <td>${r['구분'] ? `<span style="background:var(--accent-lt);color:var(--accent-dk);padding:2px 8px;border-radius:100px;font-size:11px">${r['구분']}</span>` : '—'}</td>
+    <td style="color:var(--muted);white-space:nowrap">${r['게시일']||''}</td>
     <td>${r['솔루션명']||''}</td>
     <td>
       <div style="font-weight:500">${r['제목']||''}</div>
@@ -2284,19 +2351,81 @@ function syncDateField() {
   if (el) el.value = y ? (m ? y + '.' + m : y) : '';
 }
 
+// ── 연/월/일 선택 (유튜브 전용 — 일자까지 입력) ─────────
+function yearMonthDaySelect(dateVal) {
+  let dateStr = '';
+  if (dateVal instanceof Date) {
+    dateStr = dateVal.getFullYear() + '.' + String(dateVal.getMonth() + 1).padStart(2, '0') + '.' + String(dateVal.getDate()).padStart(2, '0');
+  } else if (dateVal) {
+    dateStr = String(dateVal);
+    const isoMatch = dateStr.match(/^(\d{4})[-./](\d{1,2})(?:[-./](\d{1,2}))?/);
+    if (isoMatch) {
+      dateStr = isoMatch[1] + '.' + String(isoMatch[2]).padStart(2, '0') + (isoMatch[3] ? '.' + String(isoMatch[3]).padStart(2, '0') : '');
+    }
+  }
+  const parts = dateStr.split('.');
+  const selYear  = parts[0] || '';
+  const selMonth = parts[1] || '';
+  const selDay   = parts[2] || '';
+
+  const years = [];
+  for (let y = 2040; y >= 2013; y--) years.push(y);
+
+  const yearOpts = `<option value="">연도 선택</option>` +
+    years.map(y => `<option value="${y}" ${selYear == y ? 'selected' : ''}>${y}년</option>`).join('');
+
+  const monthOpts = `<option value="">월 미선택</option>` +
+    Array.from({length:12}, (_,i) => i+1)
+      .map(m => `<option value="${String(m).padStart(2,'0')}" ${selMonth == String(m).padStart(2,'0') ? 'selected' : ''}>${m}월</option>`).join('');
+
+  const dayOpts = `<option value="">일 미선택</option>` +
+    Array.from({length:31}, (_,i) => i+1)
+      .map(d => `<option value="${String(d).padStart(2,'0')}" ${selDay == String(d).padStart(2,'0') ? 'selected' : ''}>${d}일</option>`).join('');
+
+  return `
+    <div class="form-row">
+      <label>게시일</label>
+      <div style="display:flex;gap:8px;">
+        <select id="f-year" style="flex:1" onchange="syncDateFieldYMD()">
+          ${yearOpts}
+        </select>
+        <select id="f-month" style="flex:1" onchange="syncDateFieldYMD()">
+          ${monthOpts}
+        </select>
+        <select id="f-day" style="flex:1" onchange="syncDateFieldYMD()">
+          ${dayOpts}
+        </select>
+      </div>
+      <input type="hidden" id="f-date" value="${dateVal||''}">
+    </div>`;
+}
+
+function syncDateFieldYMD() {
+  const y = document.getElementById('f-year')?.value || '';
+  const m = document.getElementById('f-month')?.value || '';
+  const d = document.getElementById('f-day')?.value   || '';
+  const el = document.getElementById('f-date');
+  if (!el) return;
+  if (!y) { el.value = ''; return; }
+  let v = y;
+  if (m) { v += '.' + m; if (d) v += '.' + d; }
+  el.value = v;
+}
+
 // ── 날짜 파싱: "2025.06" → 정렬용 숫자 202506 ──────────
 function parseDateNum(str) {
   if (!str) return 0;
   let s = String(str);
   // ISO 날짜 처리 ("2025-06-15T..." 또는 "2025-06-15")
-  const isoMatch = s.match(/^(\d{4})[-./](\d{1,2})/);
+  const isoMatch = s.match(/^(\d{4})[-./](\d{1,2})(?:[-./](\d{1,2}))?/);
   if (isoMatch) {
-    return parseInt(isoMatch[1]) * 100 + parseInt(isoMatch[2]);
+    return parseInt(isoMatch[1]) * 10000 + parseInt(isoMatch[2]) * 100 + (parseInt(isoMatch[3]) || 0);
   }
   const p = s.split('.');
   const y = parseInt(p[0]) || 0;
   const m = parseInt(p[1]) || 0;
-  return y * 100 + m;
+  const d = parseInt(p[2]) || 0;
+  return y * 10000 + m * 100 + d;
 }
 
 const MODAL_FORMS = {
@@ -2311,8 +2440,8 @@ const MODAL_FORMS = {
 
   cert: (d) => boardForm(d),
   award: (d) => boardForm(d),
-  patent: (d) => boardForm(d),
   brand: (d) => boardForm(d),
+  copyright: (d) => boardForm(d),
   patent: (d) => `
     ${yearMonthSelect(d['날짜']||'')}
     <div class="form-row"><label>상태</label>
@@ -2382,7 +2511,8 @@ const MODAL_FORMS = {
   },
 
   youtube: (d) => `
-    ${yearMonthSelect(d['게시일']||'')}
+    ${yearMonthDaySelect(d['게시일']||'')}
+    <div class="form-row"><label>구분 <span style="font-size:11px;color:var(--muted)">(예: 솔루션 소개, 사용법, 인터뷰 등)</span></label><input type="text" id="f-category" placeholder="구분 직접 입력" value="${d['구분']||''}"></div>
     <div class="form-row"><label>솔루션명</label><input type="text" id="f-solution" value="${d['솔루션명']||''}"></div>
     <div class="form-row"><label>제목</label><input type="text" id="f-title" value="${d['제목']||''}"></div>
     <div class="form-row"><label>내용</label><textarea id="f-content" placeholder="영상 설명 (선택)">${d['내용']||''}</textarea></div>
@@ -2431,12 +2561,13 @@ const EXCEL_COLS = {
   award:   ['날짜','제목','내용','비고','이미지명'],
   patent:  ['날짜','제목','내용','비고','이미지명'],
   brand:   ['날짜','제목','내용','비고','이미지명'],
+  copyright: ['날짜','제목','내용','비고','이미지명'],
   history: ['날짜','내용','첨부파일명','상태'],
   intro:   ['게시일','분류','제목','내용','비고','파일명','형식'],
-  youtube: ['게시일','솔루션명','제목','유튜브URL'],
+  youtube: ['게시일','구분','솔루션명','제목','유튜브URL'],
 };
 const EXCEL_LABELS = {
-  cert:'인증', award:'수상', patent:'특허', brand:'상표',
+  cert:'인증', award:'수상', patent:'특허', brand:'상표', copyright:'프로그램저작',
   history:'연혁', intro:'소개자료', youtube:'유튜브영상'
 };
 
@@ -2489,15 +2620,15 @@ function openModalCached(type, cacheKey) {
 function openModal(type, data = {}) {
   currentModal = type;
   editRow = data._row || null;
-  document.getElementById('modal-title').textContent = (editRow ? '항목 수정' : '항목 추가') + ' — ' + ({ cert:'인증', award:'수상', patent:'특허', brand:'상표', history:'연혁', intro:'소개자료', youtube:'유튜브' }[type] || type);
+  document.getElementById('modal-title').textContent = (editRow ? '항목 수정' : '항목 추가') + ' — ' + ({ cert:'인증', award:'수상', patent:'특허', brand:'상표', copyright:'프로그램저작', history:'연혁', intro:'소개자료', youtube:'유튜브' }[type] || type);
   document.getElementById('modal-body').innerHTML = MODAL_FORMS[type](data);
   document.getElementById('modal-bg').classList.add('open');
-  // 연/월 드롭다운 초기 동기화
-  setTimeout(() => { syncDateField(); initDropzone(); }, 0);
+  // 연/월(/일) 드롭다운 초기 동기화
+  setTimeout(() => { (type === 'youtube' ? syncDateFieldYMD : syncDateField)(); initDropzone(); }, 0);
   currentUploadFile = null;
   // 모달 타입 → 시트명 매핑
   const MODAL_TO_SHEET = {
-    cert: '인증', award: '수상', patent: '특허', brand: '상표',
+    cert: '인증', award: '수상', patent: '특허', brand: '상표', copyright: '프로그램저작',
     intro: '소개자료', youtube: '유튜브', history: '연혁'
   };
   currentUploadSheet = MODAL_TO_SHEET[type] || '';
@@ -2532,13 +2663,13 @@ async function submitModal() {
     data = { '날짜': v('f-date'), '구분': v('f-category'), '내용': v('f-content'), '내용(영문)': v('f-content-en'), '첨부파일ID': v('f-fileid'), '첨부파일명': v('f-filename'), '상태': v('f-status') };
   } else if (t === 'patent') {
     data = { '날짜': v('f-date'), '상태': v('f-patent-status') || '출원', '제목': v('f-title'), '내용': v('f-content'), '비고': v('f-note'), '이미지ID': v('f-imgid'), '이미지명': v('f-imgname') };
-  } else if (['cert','award','brand'].includes(t)) {
+  } else if (['cert','award','brand','copyright'].includes(t)) {
     data = { '날짜': v('f-date'), '제목': v('f-title'), '내용': v('f-content'), '비고': v('f-note'), '이미지ID': v('f-imgid'), '이미지명': v('f-imgname') };
   } else if (t === 'intro') {
     const fmt = v('f-filename').split('.').pop().toLowerCase();
     data = { '게시일': v('f-date'), '분류': v('f-category'), '제목': v('f-title'), '내용': v('f-content'), '비고': v('f-note'), '공유폴더URL': v('f-folderurl'), '파일ID': v('f-fileid'), '파일명': v('f-filename'), '형식': fmt };
   } else if (t === 'youtube') {
-    data = { '게시일': v('f-date'), '솔루션명': v('f-solution'), '제목': v('f-title'), '내용': v('f-content'), '유튜브URL': v('f-url') };
+    data = { '게시일': v('f-date'), '구분': v('f-category'), '솔루션명': v('f-solution'), '제목': v('f-title'), '내용': v('f-content'), '유튜브URL': v('f-url') };
   }
 
   const sheetName = SHEET_MAP[t];
@@ -2767,7 +2898,7 @@ function renderCustomNavItems() {
 const CUSTOM_TYPE_HEADERS = {
   board:   ['날짜','제목','내용','비고','이미지ID','이미지명'],
   history: ['날짜','내용','첨부파일ID','첨부파일명','상태'],
-  youtube: ['게시일','솔루션명','제목','유튜브URL'],
+  youtube: ['게시일','구분','솔루션명','제목','유튜브URL'],
 };
 
 function createCustomResPage(res) {
