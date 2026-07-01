@@ -3090,6 +3090,10 @@ async function submitModal() {
   const t = currentModal;
   let data = {};
 
+  // 저장 직전 날짜 필드 강제 동기화 (월 선택 후 연도 변경 순서 이슈 방지)
+  if (['youtube','press','blog'].includes(t)) syncDateFieldYMD();
+  else syncDateField();
+
   // 파일이 선택된 경우 먼저 업로드
   if (currentUploadFile) {
     try {
