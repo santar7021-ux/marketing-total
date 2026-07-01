@@ -88,9 +88,49 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
 .page-hd p  { font-size: 16.2px; color: var(--muted); margin-top: 3px; }
 
 /* ── 상단 로딩/에러 배너 ── */
-#banner { display: none; padding: 10px 16px; border-radius: var(--r-md); margin-bottom: 16px; font-size: 16.2px; }
-#banner.loading { background: #E6F1FB; color: #185FA5; display: flex; align-items: center; gap: 8px; }
-#banner.error   { background: #FCEBEB; color: #A32D2D; display: flex; align-items: center; gap: 8px; }
+/* ── 토스트 팝업 (중앙 고정) ── */
+#banner {
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 9999;
+  min-width: 280px;
+  max-width: 420px;
+  padding: 18px 24px;
+  border-radius: 14px;
+  font-size: 16.2px;
+  font-weight: 500;
+  box-shadow: 0 12px 40px rgba(0,0,0,.22);
+  align-items: center;
+  gap: 10px;
+  line-height: 1.5;
+  text-align: left;
+  pointer-events: none;
+}
+#banner.loading {
+  background: #fff;
+  color: #185FA5;
+  border: 1.5px solid #C7DEFA;
+  display: flex;
+}
+#banner.error {
+  background: #fff;
+  color: #A32D2D;
+  border: 1.5px solid #F7C1C1;
+  display: flex;
+}
+/* 배너 뒤 흐림 오버레이 */
+#banner-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  background: rgba(0,0,0,.08);
+  backdrop-filter: blur(1.5px);
+  pointer-events: none;
+}
 
 /* ── AI 검색 패널 ── */
 
@@ -781,6 +821,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
 
   <!-- ── 콘텐츠 ── -->
   <main class="content">
+    <div id="banner-backdrop"></div>
     <div id="banner"></div>
 
     <!-- ══ 메인 ══ -->
@@ -1574,13 +1615,21 @@ function goSub(pageId, el, navId) {
 
 // ── 배너 ────────────────────────────────────────────────
 function banner(msg, type) {
-  const b = document.getElementById('banner');
+  const b  = document.getElementById('banner');
+  const bd = document.getElementById('banner-backdrop');
   b.className = type;
-  b.innerHTML = (type === 'loading' ? '<i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i>' : '<i class="ti ti-alert-circle"></i>') + msg;
+  b.innerHTML = (type === 'loading'
+    ? '<i class="ti ti-loader-2" style="animation:spin 1s linear infinite;font-size:22px;flex-shrink:0"></i>'
+    : '<i class="ti ti-alert-circle" style="font-size:22px;flex-shrink:0"></i>') + msg;
   b.style.display = 'flex';
-  if (type !== 'loading') setTimeout(() => b.style.display = 'none', 4000);
+  if (bd) bd.style.display = 'block';
+  if (type !== 'loading') setTimeout(() => bannerClear(), 4000);
 }
-function bannerClear() { document.getElementById('banner').style.display = 'none'; }
+function bannerClear() {
+  document.getElementById('banner').style.display = 'none';
+  const bd = document.getElementById('banner-backdrop');
+  if (bd) bd.style.display = 'none';
+}
 
 // ── API 호출 ─────────────────────────────────────────────
 async function apiFetch(params = {}) {
