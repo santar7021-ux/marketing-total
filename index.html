@@ -3731,7 +3731,15 @@ window.addEventListener('DOMContentLoaded', () => {
 
   // ESC 모달 닫기
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
-  document.getElementById('modal-bg').addEventListener('click', e => { if (e.target === document.getElementById('modal-bg')) closeModal(); });
+  // 모달 외부 클릭 시 닫기 — mousedown이 modal-bg에서 시작된 경우에만 닫음
+  // (textarea 드래그 후 modal-bg 위에서 mouseup 해도 닫히지 않도록)
+  const modalBg = document.getElementById('modal-bg');
+  let modalBgMousedownTarget = null;
+  modalBg.addEventListener('mousedown', e => { modalBgMousedownTarget = e.target; });
+  modalBg.addEventListener('click', e => {
+    if (e.target === modalBg && modalBgMousedownTarget === modalBg) closeModal();
+    modalBgMousedownTarget = null;
+  });
 
 });
 
