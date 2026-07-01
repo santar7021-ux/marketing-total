@@ -2759,9 +2759,13 @@ function syncDateField() {
 
 // ── 날짜 최종값을 select에서 직접 읽어 반환 ──────────────
 function getDateFromSelects() {
-  const y = document.getElementById('f-year')?.value  || '';
-  const m = document.getElementById('f-month')?.value || '';
-  const d = document.getElementById('f-day')?.value   || '';
+  const yEl = document.getElementById('f-year');
+  const mEl = document.getElementById('f-month');
+  const dEl = document.getElementById('f-day');
+  const y = yEl?.value || '';
+  const m = mEl?.value || '';
+  const d = dEl?.value || '';
+  console.log('[날짜 디버그] f-year:', y, 'f-month:', m, 'f-day:', d, '| yEl:', yEl, 'mEl:', mEl);
   if (!y) return '';
   if (d) return y + '.' + m + '.' + d;
   if (m) return y + '.' + m;
