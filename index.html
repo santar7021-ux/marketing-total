@@ -82,8 +82,9 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
 .page { display: none; }
 .page.active { display: block; }
 
-.page-hd { margin-bottom: 20px; display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
-.page-hd > div { flex:1; }
+.page-hd { margin-bottom: 20px; }
+.page-hd-with-btn { margin-bottom: 20px; display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
+.page-hd-with-btn > div { flex:1; }
 .page-hd h1 { font-size: 25px; font-weight: 600; }
 .page-hd p  { font-size: 16.2px; color: var(--muted); margin-top: 3px; }
 
@@ -920,7 +921,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
 
     <!-- ══ 소개 자료 ══ -->
     <div id="pg-res-intro" class="page">
-      <div class="page-hd">
+      <div class="page-hd-with-btn">
         <div>
           <h1>소개 자료</h1><p>(주)소프트힐스의 소개 자료를 제공합니다.</p>
         </div>
