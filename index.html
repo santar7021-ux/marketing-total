@@ -248,6 +248,15 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
 }
 .ais-ai-thinking i { animation: spin 1s linear infinite; }
 
+.ais-more-btn {
+  display: flex; align-items: center; gap: 5px;
+  padding: 7px 18px; font-size: 13.5px;
+  color: var(--accent); cursor: pointer;
+  transition: background .1s; border-radius: 0;
+  font-weight: 500;
+}
+.ais-more-btn:hover { background: var(--accent-lt); }
+
 /* 푸터 힌트 */
 .ais-footer {
   padding: 8px 18px; border-top: 1px solid var(--border);
@@ -3840,11 +3849,55 @@ function renderAisResults(hits, q = '') {
       </div>`;
     });
     if (items.length > 5) {
-      html += `<div style="padding:4px 18px 8px;font-size:12px;color:var(--muted)">외 ${items.length - 5}건 더…</div>`;
+      html += `<div class="ais-more-btn" onclick="showAisMore(this,'${key}','${encodeURIComponent(q)}')">
+        <i class="ti ti-chevrons-down" style="font-size:13px"></i> 외 ${items.length - 5}건 더 보기
+      </div>`;
     }
   });
   el.innerHTML = html;
 }
+
+function showAisMore(btn, key, qEncoded) {
+  const q    = decodeURIComponent(qEncoded);
+  const meta = AIS_CAT[key];
+  if (!meta) return;
+
+  const lower  = q.toLowerCase();
+  const allHits = (DATA[key] || []).filter(r => {
+    const title   = String(r[meta.titleKey] || '');
+    const content = String(r['내용'] || '');
+    const date    = String(r[meta.dateKey] || '');
+    const extra   = String(r['비고']||'') + String(r['분류']||'') + String(r['상태']||'') + String(r['구분']||'') + String(r['솔루션명']||'');
+    return (title + content + date + extra).toLowerCase().includes(lower);
+  });
+
+  const hl = (str) => {
+    if (!q) return str;
+    const re = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+    return str.replace(re, m => `<mark>${m}</mark>`);
+  };
+
+  // 5건 이후 나머지 항목 렌더
+  const rest = allHits.slice(5);
+  let restHtml = rest.map(h => {
+    const title   = String(h[meta.titleKey] || '(제목 없음)');
+    const date    = String(h[meta.dateKey] || '');
+    const content = String(h['내용'] || '').slice(0, 40);
+    const metaText = [date, content].filter(Boolean).join(' · ');
+    return `<div class="ais-result-item" onclick="aisGo('${key}','${h._row}')">
+      <div class="ais-result-icon"><i class="ti ${meta.icon}"></i></div>
+      <div class="ais-result-body">
+        <div class="ais-result-title">${hl(title)}</div>
+        <div class="ais-result-meta">${metaText}</div>
+      </div>
+      <span class="ais-result-badge">${meta.label}</span>
+    </div>`;
+  }).join('');
+
+  // 버튼을 나머지 항목으로 교체
+  const container = document.createElement('div');
+  container.innerHTML = restHtml;
+  btn.replaceWith(container);
 
 function renderAisEmpty() {
   document.getElementById('ais-results').innerHTML = `
