@@ -352,8 +352,31 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
   display: flex; align-items: center; justify-content: space-between;
   margin-bottom: 14px;
 }
-.card-hd h2 { font-size: 17.5px; font-weight: 600; display: flex; align-items: center; gap: 6px; color: var(--text); }
+.card-hd h2 { font-size: 17.5px; font-weight: 600; display: flex; align-items: center; gap: 6px; color: var(--text); margin: 0; }
 .card-hd h2 i { color: var(--accent); }
+
+/* ── 자원관리 Sticky 카드 ── */
+.card-sticky {
+  padding: 0;
+  overflow: hidden;
+}
+.card-sticky .card-hd {
+  position: sticky; top: 0; z-index: 10;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 18px; margin-bottom: 0;
+}
+.card-sticky .history-filter-bar {
+  position: sticky; top: 53px; z-index: 9;
+}
+/* 카드 내부 info 줄, post-list, tbl 여백 */
+.card-sticky [id$="-info"] { padding: 6px 18px; }
+.card-sticky .post-list    { padding: 0; }
+.card-sticky .tbl th,
+.card-sticky .tbl td       { padding-left: 18px; padding-right: 18px; }
+
+/* 메인페이지용 (sticky 없는 기존 card-hd) */
+.card-plain .card-hd { position: static; }
 
 /* ── 알림 목록 ── */
 .alert-list { display: flex; flex-direction: column; gap: 8px; }
@@ -372,8 +395,9 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
 /* ── 연혁 필터 바 ── */
 .history-filter-bar {
   display: flex; gap: 8px; align-items: center;
-  padding: 12px 16px; border-bottom: 1px solid var(--border);
-  flex-wrap: wrap; background: var(--bg); border-radius: var(--r-md) var(--r-md) 0 0;
+  padding: 10px 16px; border-bottom: 1px solid var(--border);
+  flex-wrap: wrap; background: var(--bg);
+  position: sticky; top: 53px; z-index: 9;
 }
 .history-filter-bar select,
 .history-filter-bar input[type=text] {
@@ -937,21 +961,21 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
         <button class="btn sm primary" onclick="openModal('intro')" style="align-self:flex-start;margin-top:4px"><i class="ti ti-plus"></i> 항목 추가</button>
       </div>
       <!-- 회사소개서 및 공용 -->
-      <div class="card">
+      <div class="card card-sticky">
         <div class="card-hd">
           <h2><i class="ti ti-files"></i> 회사소개서 및 공용</h2>
         </div>
         <div class="post-list" id="intro-list"></div>
       </div>
       <!-- 제품별 소개서 -->
-      <div class="card" style="margin-top:20px">
+      <div class="card card-sticky" style="margin-top:20px">
         <div class="card-hd">
           <h2><i class="ti ti-package"></i> 제품별 소개서</h2>
         </div>
         <div class="post-list" id="intro-product-list"></div>
       </div>
       <!-- 브로슈어 -->
-      <div class="card" style="margin-top:20px">
+      <div class="card card-sticky" style="margin-top:20px">
         <div class="card-hd">
           <h2><i class="ti ti-bookmarks"></i> 브로슈어</h2>
         </div>
@@ -962,7 +986,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
     <!-- ══ 유튜브 영상 ══ -->
     <div id="pg-res-youtube" class="page">
       <div class="page-hd"><h1>유튜브 영상</h1><p>(주)소프트힐스의 영상 자료를 제공합니다.</p></div>
-      <div class="card">
+      <div class="card card-sticky">
         <div class="card-hd">
           <h2><i class="ti ti-brand-youtube"></i> 영상 목록</h2>
           <div style="display:flex;gap:6px">
@@ -989,7 +1013,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
     <!-- ══ 언론보도 및 칼럼 ══ -->
     <div id="pg-content-press" class="page">
       <div class="page-hd"><h1>언론보도 및 칼럼</h1><p>해당 페이지는 (주)소프트힐스 언론보도 및 칼럼 자료 현황을 제공합니다.</p></div>
-      <div class="card">
+      <div class="card card-sticky">
         <div class="card-hd">
           <h2><i class="ti ti-news"></i> 언론보도 및 칼럼 목록</h2>
           <div style="display:flex;gap:6px">
@@ -1016,7 +1040,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
     <!-- ══ 블로그 ══ -->
     <div id="pg-content-blog" class="page">
       <div class="page-hd"><h1>블로그</h1><p>해당 페이지는 (주)소프트힐스 대표 블로그 컨텐츠 현황을 제공합니다.</p></div>
-      <div class="card">
+      <div class="card card-sticky">
         <div class="card-hd">
           <h2><i class="ti ti-pencil"></i> 블로그 목록</h2>
           <div style="display:flex;gap:6px">
@@ -1043,7 +1067,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
     <!-- ══ 연혁 관리 ══ -->
     <div id="pg-res-history" class="page">
       <div class="page-hd"><h1>연혁 관리</h1><p>(주)소프트힐스의 연혁을 관리합니다.</p></div>
-      <div class="card">
+      <div class="card card-sticky">
         <div class="card-hd">
           <h2><i class="ti ti-timeline"></i> 연혁 목록</h2>
           <div style="display:flex;gap:6px">
@@ -1147,7 +1171,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
     <!-- ══ 인증·수상·특허·상표 (공통 구조) ══ -->
     <div id="pg-res-cert" class="page">
       <div class="page-hd"><h1>인증 관리</h1><p>(주)소프트힐스의 인증 사항을 관리합니다.</p></div>
-      <div class="card">
+      <div class="card card-sticky">
         <div class="card-hd">
           <h2><i class="ti ti-certificate"></i> 인증 목록</h2>
           <div style="display:flex;gap:6px">
@@ -1230,7 +1254,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
     </div>
     <div id="pg-res-award" class="page">
       <div class="page-hd"><h1>수상 관리</h1><p>(주)소프트힐스의 수상 사항을 관리합니다.</p></div>
-      <div class="card">
+      <div class="card card-sticky">
         <div class="card-hd">
           <h2><i class="ti ti-trophy"></i> 수상 목록</h2>
           <div style="display:flex;gap:6px">
@@ -1313,7 +1337,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
     </div>
     <div id="pg-res-patent" class="page">
       <div class="page-hd"><h1>특허 관리</h1><p>(주)소프트힐스의 특허 사항을 관리합니다.</p></div>
-      <div class="card">
+      <div class="card card-sticky">
         <div class="card-hd">
           <h2><i class="ti ti-shield-check"></i> 특허 목록</h2>
           <div style="display:flex;gap:6px">
@@ -1401,7 +1425,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
     </div>
     <div id="pg-res-brand" class="page">
       <div class="page-hd"><h1>상표 관리</h1><p>(주)소프트힐스의 상표 사항을 관리합니다.</p></div>
-      <div class="card">
+      <div class="card card-sticky">
         <div class="card-hd">
           <h2><i class="ti ti-registered"></i> 상표 목록</h2>
           <div style="display:flex;gap:6px">
@@ -1494,7 +1518,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
       </div>
 
       <!-- 프로그램 등록 -->
-      <div class="card">
+      <div class="card card-sticky">
         <div class="card-hd">
           <h2><i class="ti ti-file-certificate"></i> 프로그램 등록</h2>
         </div>
@@ -1518,7 +1542,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
       </div>
 
       <!-- 저작권 -->
-      <div class="card" style="margin-top:20px">
+      <div class="card card-sticky" style="margin-top:20px">
         <div class="card-hd">
           <h2><i class="ti ti-copyright"></i> 저작권</h2>
         </div>
