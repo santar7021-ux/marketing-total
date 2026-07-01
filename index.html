@@ -2071,8 +2071,11 @@ function _renderIntroList(elId, rows, emptyMsg) {
     el.innerHTML = `<div class="empty"><i class="ti ti-files"></i><p>${emptyMsg}</p></div>`;
     return;
   }
-  // 시트 행 번호(_row) 순서 그대로 표시 (사용자가 순서 직접 관리)
-  const sorted = [...rows].sort((a,b) => (a._row||0) - (b._row||0));
+  // 게시일 최신순 정렬 (같은 게시일이면 _row 오름차순 유지)
+  const sorted = [...rows].sort((a,b) => {
+    const dDiff = parseDateNum(b['게시일']) - parseDateNum(a['게시일']);
+    return dDiff !== 0 ? dDiff : (a._row||0) - (b._row||0);
+  });
   sorted.forEach((r, idx) => {
     const cKey = 'intro_' + (r._row !== undefined && r._row !== null ? String(r._row) : 'i' + idx);
     r._cacheKey = cKey;
