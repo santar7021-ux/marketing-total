@@ -2757,6 +2757,17 @@ function syncDateField() {
   if (el) el.value = y ? (m ? y + '.' + m : y) : '';
 }
 
+// ── 날짜 최종값을 select에서 직접 읽어 반환 ──────────────
+function getDateFromSelects() {
+  const y = document.getElementById('f-year')?.value  || '';
+  const m = document.getElementById('f-month')?.value || '';
+  const d = document.getElementById('f-day')?.value   || '';
+  if (!y) return '';
+  if (d) return y + '.' + m + '.' + d;
+  if (m) return y + '.' + m;
+  return y;
+}
+
 // ── 연/월/일 선택 (유튜브 전용 — 일자까지 입력) ─────────
 function yearMonthDaySelect(dateVal) {
   let dateStr = '';
@@ -3109,20 +3120,20 @@ async function submitModal() {
   }
 
   if (t === 'history') {
-    data = { '날짜': v('f-date'), '구분': v('f-category'), '내용': v('f-content'), '내용2': v('f-content-en'), '첨부파일ID': v('f-fileid'), '첨부파일명': v('f-filename'), '상태': v('f-status') };
+    data = { '날짜': getDateFromSelects(), '구분': v('f-category'), '내용': v('f-content'), '내용2': v('f-content-en'), '첨부파일ID': v('f-fileid'), '첨부파일명': v('f-filename'), '상태': v('f-status') };
   } else if (t === 'patent') {
-    data = { '날짜': v('f-date'), '상태': v('f-patent-status') || '출원', '제목': v('f-title'), '내용': v('f-content'), '비고': v('f-note'), '이미지ID': v('f-imgid'), '이미지명': v('f-imgname') };
+    data = { '날짜': getDateFromSelects(), '상태': v('f-patent-status') || '출원', '제목': v('f-title'), '내용': v('f-content'), '비고': v('f-note'), '이미지ID': v('f-imgid'), '이미지명': v('f-imgname') };
   } else if (['cert','award','brand'].includes(t)) {
-    data = { '날짜': v('f-date'), '제목': v('f-title'), '내용': v('f-content'), '비고': v('f-note'), '이미지ID': v('f-imgid'), '이미지명': v('f-imgname') };
+    data = { '날짜': getDateFromSelects(), '제목': v('f-title'), '내용': v('f-content'), '비고': v('f-note'), '이미지ID': v('f-imgid'), '이미지명': v('f-imgname') };
   } else if (t === 'copyright') {
-    data = { '날짜': v('f-date'), '분류': v('f-copyright-type') || '프로그램 등록', '제목': v('f-title'), '내용': v('f-content'), '비고': v('f-note'), '이미지ID': v('f-imgid'), '이미지명': v('f-imgname') };
+    data = { '날짜': getDateFromSelects(), '분류': v('f-copyright-type') || '프로그램 등록', '제목': v('f-title'), '내용': v('f-content'), '비고': v('f-note'), '이미지ID': v('f-imgid'), '이미지명': v('f-imgname') };
   } else if (t === 'intro') {
     const fmt = v('f-filename').split('.').pop().toLowerCase();
-    data = { '게시일': v('f-date'), '분류': v('f-category'), '제목': v('f-title'), '내용': v('f-content'), '비고': v('f-note'), '공유폴더URL': v('f-folderurl'), '파일ID': v('f-fileid'), '파일명': v('f-filename'), '형식': fmt };
+    data = { '게시일': getDateFromSelects(), '분류': v('f-category'), '제목': v('f-title'), '내용': v('f-content'), '비고': v('f-note'), '공유폴더URL': v('f-folderurl'), '파일ID': v('f-fileid'), '파일명': v('f-filename'), '형식': fmt };
   } else if (t === 'youtube') {
-    data = { '게시일': v('f-date'), '구분': v('f-category'), '솔루션명': v('f-solution'), '제목': v('f-title'), '내용': v('f-content'), '유튜브URL': v('f-url') };
+    data = { '게시일': getDateFromSelects(), '구분': v('f-category'), '솔루션명': v('f-solution'), '제목': v('f-title'), '내용': v('f-content'), '유튜브URL': v('f-url') };
   } else if (t === 'press' || t === 'blog') {
-    data = { '게시일': v('f-date'), '구분': v('f-category'), '솔루션명': v('f-solution'), '제목': v('f-title'), '내용': v('f-content'), 'URL': v('f-url') };
+    data = { '게시일': getDateFromSelects(), '구분': v('f-category'), '솔루션명': v('f-solution'), '제목': v('f-title'), '내용': v('f-content'), 'URL': v('f-url') };
   }
 
   const sheetName = SHEET_MAP[t];
