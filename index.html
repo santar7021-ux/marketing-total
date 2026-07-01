@@ -336,13 +336,14 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
 .history-filter-bar input[type=text]:focus { border-color: var(--accent); }
 
 .tbl { width: 100%; border-collapse: collapse; font-size: 16.2px; }
+.tbl td { word-break: keep-all; overflow-wrap: break-word; vertical-align: middle; }
 .tbl th { padding: 8px 10px; text-align: left; font-weight: 500; color: var(--muted); border-bottom: 1px solid var(--border); font-size: 15px; }
 .tbl td { padding: 10px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; }
 .tbl tr:last-child td { border-bottom: none; }
 .tbl tr:hover td { background: var(--bg); }
 
 /* ── 상태 칩 ── */
-.chip { display: inline-block; font-size: 13.8px; padding: 3px 9px; border-radius: 100px; cursor: pointer; }
+.chip { display: inline-block; font-size: 13.8px; padding: 3px 9px; border-radius: 100px; cursor: pointer; white-space: nowrap; }
 .chip-on  { background: var(--accent-lt); color: #004386; }
 .chip-off { background: #F1EFE8; color: #5F5E5A; }
 
@@ -1077,6 +1078,15 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
         </div>
         <div id="history-filter-info" style="font-size:13.5px;color:var(--muted);padding:6px 16px;display:none"></div>
         <table class="tbl">
+          <colgroup>
+            <col style="width:62px">  <!-- 상태 -->
+            <col style="width:54px">  <!-- 일자 -->
+            <col style="width:64px">  <!-- 구분 -->
+            <col style="width:32%">   <!-- 내용(국문) -->
+            <col style="width:32%">   <!-- 내용(영문) -->
+            <col style="width:90px">  <!-- 첨부 -->
+            <col style="width:72px">  <!-- 수정/삭제 -->
+          </colgroup>
           <thead><tr><th>상태</th><th>일자</th><th>구분</th><th>내용</th><th>내용(영문)</th><th>첨부</th><th></th></tr></thead>
           <tbody id="history-list"></tbody>
         </table>
@@ -2044,7 +2054,7 @@ function renderHistoryRows(rows) {
       <td>${r['내용'] || ''}</td>
       <td style="color:var(--muted)">${r['내용2'] || '—'}</td>
       <td>${r['첨부파일명'] ? `<a href="https://drive.google.com/file/d/${r['첨부파일ID']}/view" target="_blank" class="btn sm"><i class="ti ti-paperclip"></i> ${r['첨부파일명']}</a>` : '—'}</td>
-      <td style="text-align:right">
+      <td style="text-align:right;white-space:nowrap">
         <button class="btn sm edit-btn" data-type="history" data-key="${r._cacheKey}"><i class="ti ti-edit"></i></button>
         <button class="btn sm danger del-btn" data-type="history" data-row="${r._row}"><i class="ti ti-trash"></i></button>
       </td>
