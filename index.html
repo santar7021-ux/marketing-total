@@ -2003,13 +2003,11 @@ function downloadBoardFiltered(key) {
 
   if (!rows.length) { banner('다운로드할 데이터가 없습니다.', 'error'); return; }
 
-  const colMap  = EXCEL_COLS[key];
-  const headers = Object.keys(colMap);
-  const dataKeys = Object.values(colMap);
+  const cols = EXCEL_COLS[key] || ['날짜','제목','내용','비고'];
   const BOM = '\uFEFF';
   const esc = v => { const s = String(v==null?'':v); return s.includes(',')||s.includes('"')||s.includes('\n')?'"'+s.replace(/"/g,'""')+'"':s; };
   const sorted = [...rows].sort((a,b) => parseDateNum(b['날짜']) - parseDateNum(a['날짜']));
-  const csv = BOM + headers.join(',') + '\n' + sorted.map(r => dataKeys.map((k,i) => esc(headers[i]==='일자'?normalizeDate(r[k]):r[k])).join(',')).join('\n');
+  const csv = BOM + cols.join(',') + '\n' + sorted.map(r => cols.map(c => esc(r[c])).join(',')).join('\n');
 
   const labels = { cert:'인증', award:'수상', patent:'특허', brand:'상표', copyright:'프로그램저작등록' };
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -2217,9 +2215,7 @@ function downloadHistoryFiltered() {
 
   if (!rows.length) { banner('다운로드할 데이터가 없습니다.', 'error'); return; }
 
-  const colMap  = EXCEL_COLS['history'];
-  const headers = Object.keys(colMap);
-  const dataKeys = Object.values(colMap);
+  const cols = EXCEL_COLS['history'];
 
   const BOM = '\uFEFF';
   const escape = v => {
@@ -2228,12 +2224,8 @@ function downloadHistoryFiltered() {
   };
 
   const sorted = [...rows].sort((a,b) => parseDateNum(b['날짜']) - parseDateNum(a['날짜']));
-  const csv = BOM + headers.join(',') + '\n' +
-    sorted.map(r => dataKeys.map((k,i) => {
-      let val = r[k];
-      if (headers[i] === '일자') val = normalizeDate(val);
-      return escape(val);
-    }).join(',')).join('\n');
+  const csv = BOM + cols.join(',') + '\n' +
+    sorted.map(r => cols.map(c => escape(r[c])).join(',')).join('\n');
 
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
   const url  = URL.createObjectURL(blob);
