@@ -2004,21 +2004,10 @@ function downloadBoardFiltered(key) {
   if (!rows.length) { banner('다운로드할 데이터가 없습니다.', 'error'); return; }
 
   const cols = EXCEL_COLS[key] || ['날짜','제목','내용','비고'];
-  const BOM = '\uFEFF';
-  const esc = v => { const s = String(v==null?'':v); return s.includes(',')||s.includes('"')||s.includes('\n')?'"'+s.replace(/"/g,'""')+'"':s; };
   const sorted = [...rows].sort((a,b) => parseDateNum(b['날짜']) - parseDateNum(a['날짜']));
-  const csv = BOM + cols.join(',') + '\n' + sorted.map(r => cols.map(c => esc(r[c])).join(',')).join('\n');
-
   const labels = { cert:'인증', award:'수상', patent:'특허', brand:'상표', copyright:'프로그램저작등록' };
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a');
-  a.href = url;
-  a.download = `소프트힐스_${labels[key]||key}${hasFilter?'_필터링':''}_${new Date().toISOString().slice(0,10)}.csv`;
-  document.body.appendChild(a); a.click(); document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-  banner(`✅ 엑셀 다운로드 완료 (${rows.length}건)`, 'loading');
-  setTimeout(() => bannerClear(), 2000);
+  const suffix = hasFilter ? '_필터링' : '';
+  downloadAsXls(cols, sorted, `소프트힐스_${labels[key]||key}${suffix}_${new Date().toISOString().slice(0,10)}.xls`);
 }
 
 function downloadIntroProduct() {
@@ -2193,6 +2182,27 @@ function resetHistoryFilter() {
   renderHistoryRows(_historyAllRows);
 }
 
+// ── 엑셀 다운로드 공통 헬퍼 (HTML 테이블 → .xls, 열 너비 자동) ──
+function downloadAsXls(cols, rows, filename) {
+  const esc = v => String(v == null ? '' : v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const headerRow = cols.map(c => `<th style="background:#0075C2;color:#fff;font-weight:bold;padding:6px 10px;white-space:nowrap;border:1px solid #004386">${esc(c)}</th>`).join('');
+  const bodyRows  = rows.map((r, i) => {
+    const bg = i % 2 === 0 ? '#ffffff' : '#E8F2FA';
+    return '<tr>' + cols.map(c => `<td style="padding:5px 10px;border:1px solid #C7DEFA;background:${bg};white-space:nowrap">${esc(r[c])}</td>`).join('') + '</tr>';
+  }).join('');
+  const html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+<head><meta charset="UTF-8"><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>데이터</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head>
+<body><table border="1">${'<tr>' + headerRow + '</tr>'}${bodyRows}</table></body></html>`;
+  const blob = new Blob(['\uFEFF' + html], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  banner(`✅ 엑셀 다운로드 완료 (${rows.length}건)`, 'loading');
+  setTimeout(() => bannerClear(), 2000);
+}
+
 function downloadHistoryFiltered() {
   const status   = document.getElementById('hf-status')?.value   || '';
   const yearFrom = parseInt(document.getElementById('hf-year-from')?.value || '0') || 0;
@@ -2216,27 +2226,9 @@ function downloadHistoryFiltered() {
   if (!rows.length) { banner('다운로드할 데이터가 없습니다.', 'error'); return; }
 
   const cols = EXCEL_COLS['history'];
-
-  const BOM = '\uFEFF';
-  const escape = v => {
-    const s = String(v == null ? '' : v);
-    return s.includes(',') || s.includes('"') || s.includes('\n') ? '"' + s.replace(/"/g, '""') + '"' : s;
-  };
-
   const sorted = [...rows].sort((a,b) => parseDateNum(b['날짜']) - parseDateNum(a['날짜']));
-  const csv = BOM + cols.join(',') + '\n' +
-    sorted.map(r => cols.map(c => escape(r[c])).join(',')).join('\n');
-
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a');
-  a.href = url;
   const suffix = hasFilter ? '_필터링' : '';
-  a.download = `소프트힐스_연혁${suffix}_${new Date().toISOString().slice(0,10)}.csv`;
-  document.body.appendChild(a); a.click(); document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-  banner(`✅ 엑셀 다운로드 완료 (${rows.length}건)`, 'loading');
-  setTimeout(() => bannerClear(), 2000);
+  downloadAsXls(cols, sorted, `소프트힐스_연혁${suffix}_${new Date().toISOString().slice(0,10)}.xls`);
 }
 
 function renderHistory(rows) {
@@ -3027,37 +3019,13 @@ const EXCEL_LABELS = {
 
 function downloadExcel(key) {
   const rows = DATA[key] || [];
-
   if (!rows.length) { banner('다운로드할 데이터가 없습니다.', 'error'); return; }
 
-  const cols = EXCEL_COLS[key] || Object.keys(rows[0]).filter(k => !k.startsWith('_'));
+  const cols   = EXCEL_COLS[key] || Object.keys(rows[0]).filter(k => !k.startsWith('_'));
   const sorted = [...rows].sort((a,b) =>
     parseDateNum(b['날짜'] || b['게시일']) - parseDateNum(a['날짜'] || a['게시일'])
   );
-
-  // CSV 생성 (Excel UTF-8 BOM 포함)
-  const BOM = '﻿';
-  const escape = (v) => {
-    const s = String(v === null || v === undefined ? '' : v);
-    return s.includes(',') || s.includes('"') || s.includes('\n')
-      ? '"' + s.replace(/"/g, '""') + '"' : s;
-  };
-  const header = cols.join(',');
-  const body   = sorted.map(r => cols.map(c => escape(r[c] || '')).join(',')).join('\n');
-  const csv    = BOM + header + '\n' + body;
-
-  // 다운로드 트리거
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a');
-  a.href     = url;
-  a.download = `소프트힐스_${EXCEL_LABELS[key]}_${new Date().toISOString().slice(0,10)}.csv`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-  banner('엑셀 파일 다운로드 완료!', 'loading');
-  setTimeout(() => bannerClear(), 2000);
+  downloadAsXls(cols, sorted, `소프트힐스_${EXCEL_LABELS[key]||key}_${new Date().toISOString().slice(0,10)}.xls`);
 }
 
 function openModalCached(type, cacheKey) {
