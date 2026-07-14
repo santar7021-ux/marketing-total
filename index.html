@@ -3070,7 +3070,15 @@ const v = (id) => { const el = document.getElementById(id); return el ? el.value
 async function submitModal() {
   const t = currentModal;
   console.log('🚀 submitModal 시작, currentModal:', t);
+
+  // 중복 실행 방지
+  const saveBtn = document.querySelector('#modal-bg .btn.primary');
+  if (saveBtn && saveBtn.disabled) return;
+  if (saveBtn) saveBtn.disabled = true;
+
   let data = {};
+
+  try {
 
   // 저장 직전 날짜 필드 강제 동기화 (월 선택 후 연도 변경 순서 이슈 방지)
   if (['youtube','press','blog'].includes(t)) syncDateFieldYMD();
@@ -3111,6 +3119,7 @@ async function submitModal() {
   }
 
   const sheetName = SHEET_MAP[t];
+  console.log('[저장 디버그] type:', t, 'sheet:', sheetName, 'data keys:', Object.keys(data));
   let res;
   if (editRow) {
     res = await apiPost({ action: 'update', sheet: sheetName, row: editRow, data });
@@ -3118,6 +3127,13 @@ async function submitModal() {
     res = await apiPost({ action: 'append', sheet: sheetName, data });
   }
   if (res) { closeModal(); await refreshSheet(t); }
+
+  } catch(submitErr) {
+    console.error('❌ submitModal 오류:', submitErr.message);
+    banner('저장 중 오류: ' + submitErr.message, 'error');
+  } finally {
+    if (saveBtn) saveBtn.disabled = false;
+  }
 }
 
 // ── 특정 시트만 재로드 (저장 후 빠른 갱신) ───────────────
