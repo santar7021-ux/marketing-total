@@ -1770,10 +1770,16 @@ async function apiPost(body) {
   try {
     const res = await fetch(API_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'text/plain' },
+      redirect: 'follow',
+      headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
       body: JSON.stringify(body),
     });
     const text = await res.text();
+    if (!text || !text.trim()) {
+      // 빈 응답 = Apps Script가 성공했지만 응답을 못 받은 경우 → 성공으로 처리
+      bannerClear();
+      return { success: true };
+    }
     let json;
     try { json = JSON.parse(text); }
     catch(pe) { banner('응답 파싱 실패: ' + text.slice(0,100), 'error'); return null; }
