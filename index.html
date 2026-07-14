@@ -1751,7 +1751,10 @@ async function apiFetch(params = {}) {
       redirect: 'follow',
       mode: 'cors',
     });
-    const json = await res.json();
+    const text = await res.text();
+    let json;
+    try { json = JSON.parse(text); }
+    catch(pe) { banner('응답 파싱 실패: ' + text.slice(0,100), 'error'); return null; }
     bannerClear();
     if (json && json.error) { banner(json.error, 'error'); return null; }
     return json;
@@ -1765,19 +1768,19 @@ async function apiPost(body) {
   if (!API_URL) { banner('API URL이 설정되지 않았습니다.', 'error'); return null; }
   banner('저장 중…', 'loading');
   try {
-    // fetch POST + text/plain → CORS preflight 우회 (단순 요청)
     const res = await fetch(API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain' },
       body: JSON.stringify(body),
     });
-    const json = await res.json();
-    console.log('📡 apiPost 응답:', JSON.stringify(json), '| action:', body.action, 'sheet:', body.sheet);
+    const text = await res.text();
+    let json;
+    try { json = JSON.parse(text); }
+    catch(pe) { banner('응답 파싱 실패: ' + text.slice(0,100), 'error'); return null; }
     bannerClear();
     if (json && json.error) { banner(json.error, 'error'); return null; }
     return json;
   } catch (e) {
-    console.error('📡 apiPost fetch 오류:', e.message);
     banner('저장 실패: ' + e.message, 'error');
     return null;
   }
