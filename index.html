@@ -3069,6 +3069,7 @@ const v = (id) => { const el = document.getElementById(id); return el ? el.value
 
 async function submitModal() {
   const t = currentModal;
+  console.log('🚀 submitModal 시작, currentModal:', t);
   let data = {};
 
   // 저장 직전 날짜 필드 강제 동기화 (월 선택 후 연도 변경 순서 이슈 방지)
