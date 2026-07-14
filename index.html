@@ -3079,13 +3079,16 @@ async function submitModal() {
   if (currentUploadFile) {
     try {
       const uploaded = await uploadFileViaForm(currentUploadFile);
+      console.log('📎 업로드 결과:', JSON.stringify(uploaded));
       const imgIdEl   = document.getElementById('f-imgid')   || document.getElementById('f-fileid');
       const imgNameEl = document.getElementById('f-imgname') || document.getElementById('f-filename');
-      if (imgIdEl)   imgIdEl.value   = uploaded.fileId;
+      console.log('📎 imgIdEl:', imgIdEl, 'imgNameEl:', imgNameEl);
+      if (imgIdEl)   imgIdEl.value   = uploaded.fileId || '';
       if (imgNameEl) imgNameEl.value = currentUploadFile.name;
       currentUploadFile = null;
     } catch(e) {
-      return; // 업로드 실패 시 저장 중단
+      console.error('❌ 업로드 예외:', e.message);
+      return;
     }
   }
 
@@ -3671,6 +3674,11 @@ async function uploadFileViaForm(file) {
     if (msg) { msg.textContent = '업로드 실패: ' + (result?.error || '오류'); msg.className = 'upload-msg err'; }
     if (prog) prog.classList.remove('show');
     throw new Error(result?.error || '저장 실패');
+  }
+
+  // fileId 정규화 (응답 구조가 다를 수 있음)
+  if (!result.fileId && result.success) {
+    console.warn('⚠️ fileId 없음, 응답 구조:', JSON.stringify(result));
   }
 
   if (bar) bar.style.width = '100%';
