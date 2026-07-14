@@ -1796,19 +1796,34 @@ async function apiPost(body) {
 async function refreshAll() {
   const d = await apiFetch({ action: 'all' });
   if (!d) return;
+
+  // copyright, press, blog가 누락된 구버전 응답 대비 fallback
+  if (!d.copyright) {
+    const r = await apiFetch({ action: 'copyright' });
+    d.copyright = r || [];
+  }
+  if (!d.press) {
+    const r = await apiFetch({ action: 'press' });
+    d.press = r || [];
+  }
+  if (!d.blog) {
+    const r = await apiFetch({ action: 'blog' });
+    d.blog = r || [];
+  }
+
   DATA = d;
   renderMetrics(d.metrics);
-  renderResMain(d.history, d.metrics);   // 메인: 활성화 연혁 (최근 3년)
-  renderMainYoutube(d.youtube);          // 메인: 최근 영상 5개
-  renderMainIntro(d.intro);              // 메인: 소개 자료
-  renderMainPatent(d.patent);            // 메인: 등록 특허
+  renderResMain(d.history, d.metrics);
+  renderMainYoutube(d.youtube);
+  renderMainIntro(d.intro);
+  renderMainPatent(d.patent);
   renderHistory(d.history);
   renderIntro(d.intro);
   renderYoutube(d.youtube);
   renderBoard('cert',   d.cert);
   renderBoard('award',  d.award);
   renderBoard('patent', d.patent);
-  renderBoard('brand',      d.brand);
+  renderBoard('brand',  d.brand);
   renderCopyright(d.copyright);
   renderContentTable('press', d.press);
   renderContentTable('blog',  d.blog);
