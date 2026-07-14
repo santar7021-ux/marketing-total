@@ -9,15 +9,14 @@
 /* ── 리셋 & 기반 ── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
-  --bg:        #F4F6F9;
+  --bg:        #F7F8FA;
   --surface:   #FFFFFF;
-  --border:    rgba(62,58,57,0.10);
-  --border-md: rgba(62,58,57,0.18);
-  --text:      #3E3A39;
-  --muted:     #595757;
-  --accent:    #0075C2;
-  --accent-dk: #004386;
-  --accent-lt: #E8F2FA;
+  --border:    rgba(0,0,0,0.08);
+  --border-md: rgba(0,0,0,0.14);
+  --text:      #1A1A1A;
+  --muted:     #6B7280;
+  --accent:    #1D9E75;
+  --accent-lt: #E1F5EE;
   --rail-w:    220px;
   --r-md:      8px;
   --r-lg:      12px;
@@ -25,12 +24,6 @@
 }
 
 body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height: 1.6; }
-
-/* 스크롤바 */
-::-webkit-scrollbar { width: 9px; height: 9px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(0,67,134,.18); border-radius: 100px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(0,67,134,.32); }
 
 /* ── 레이아웃 ── */
 .shell { display: flex; height: 100vh; overflow: hidden; }
@@ -44,13 +37,11 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
   overflow-y: auto; overflow-x: hidden;
 }
 .rail-logo {
-  padding: 18px 16px 16px;
+  padding: 18px 16px 14px;
   border-bottom: 1px solid var(--border);
-  background: linear-gradient(135deg, var(--accent-dk) 0%, var(--accent) 100%);
 }
-.rail-logo .brand { font-size: 16.2px; font-weight: 700; color: #fff; letter-spacing: .2px; }
-.rail-logo .brand-logo { display: block; height: 26px; width: auto; margin-bottom: 4px; }
-.rail-logo .sub   { font-size: 13.8px; color: rgba(255,255,255,.78); margin-top: 2px; }
+.rail-logo .brand { font-size: 16.2px; font-weight: 600; color: var(--text); }
+.rail-logo .sub   { font-size: 13.8px; color: var(--muted); margin-top: 2px; }
 
 .nav-group { padding: 8px 0; border-bottom: 1px solid var(--border); }
 .nav-item { position: relative; }
@@ -61,20 +52,19 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
   border-left: 2px solid transparent; user-select: none;
 }
 .nav-main:hover { background: var(--bg); color: var(--text); }
-.nav-main.active { color: var(--accent); background: var(--accent-lt); border-left-color: var(--accent); font-weight: 600; }
+.nav-main.active { color: var(--accent); background: var(--accent-lt); border-left-color: var(--accent); font-weight: 500; }
 .nav-main i { font-size: 21.2px; flex-shrink: 0; }
 .nav-arrow { margin-left: auto; font-size: 16.2px; transition: transform .2s; }
 .nav-item.open .nav-arrow { transform: rotate(180deg); }
-.nav-sub { display: none; background: #FAFBFC; }
+.nav-sub { display: none; background: #FAFAFA; }
 .nav-item.open .nav-sub { display: block; }
 .nav-sub-item {
   display: flex; align-items: center; gap: 6px;
   padding: 7px 16px 7px 38px; font-size: 15px;
   color: var(--muted); cursor: pointer; transition: background .12s;
-  border-left: 2px solid transparent;
 }
 .nav-sub-item:hover { background: var(--bg); color: var(--text); }
-.nav-sub-item.active { color: var(--accent); font-weight: 600; background: var(--accent-lt); border-left-color: var(--accent); }
+.nav-sub-item.active { color: var(--accent); font-weight: 500; }
 .nav-sub-item i { font-size: 17.5px; }
 
 /* ── 콘텐츠 영역 ── */
@@ -83,215 +73,13 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
 .page.active { display: block; }
 
 .page-hd { margin-bottom: 20px; }
-.page-hd-with-btn { margin-bottom: 20px; display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
-.page-hd-with-btn > div { flex:1; }
-.page-hd h1, .page-hd-with-btn h1 { font-size: 25px; font-weight: 600; }
-.page-hd p,  .page-hd-with-btn p  { font-size: 16.2px; color: var(--muted); margin-top: 3px; }
+.page-hd h1 { font-size: 25px; font-weight: 600; }
+.page-hd p  { font-size: 16.2px; color: var(--muted); margin-top: 3px; }
 
 /* ── 상단 로딩/에러 배너 ── */
-/* ── 토스트 팝업 (중앙 고정) ── */
-#banner {
-  display: none;
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 9999;
-  min-width: 280px;
-  max-width: 420px;
-  padding: 18px 24px;
-  border-radius: 14px;
-  font-size: 16.2px;
-  font-weight: 500;
-  box-shadow: 0 12px 40px rgba(0,0,0,.22);
-  align-items: center;
-  gap: 10px;
-  line-height: 1.5;
-  text-align: left;
-  pointer-events: none;
-}
-#banner.loading {
-  background: #fff;
-  color: #185FA5;
-  border: 1.5px solid #C7DEFA;
-  display: flex;
-}
-#banner.error {
-  background: #fff;
-  color: #A32D2D;
-  border: 1.5px solid #F7C1C1;
-  display: flex;
-}
-/* 배너 뒤 흐림 오버레이 */
-#banner-backdrop {
-  display: none;
-  position: fixed;
-  inset: 0;
-  z-index: 9998;
-  background: rgba(0,0,0,.08);
-  backdrop-filter: blur(1.5px);
-  pointer-events: none;
-}
-
-/* ── AI 검색 패널 ── */
-
-/* 검색 오버레이 */
-#ai-search-overlay {
-  display: none; position: fixed; inset: 0; z-index: 2000;
-  background: rgba(0,0,0,.45); backdrop-filter: blur(2px);
-  align-items: flex-start; justify-content: center; padding-top: 80px;
-}
-#ai-search-overlay.open { display: flex; }
-
-#ai-search-box {
-  width: 640px; max-width: calc(100vw - 32px);
-  background: var(--surface); border-radius: 16px;
-  box-shadow: 0 20px 60px rgba(0,0,0,.22);
-  display: flex; flex-direction: column; overflow: hidden;
-  max-height: calc(100vh - 120px);
-}
-
-/* 입력 영역 */
-.ais-input-row {
-  display: flex; align-items: center; gap: 10px;
-  padding: 14px 18px; border-bottom: 1px solid var(--border);
-}
-.ais-input-row i { font-size: 22px; color: var(--accent); flex-shrink: 0; }
-#ais-input {
-  flex: 1; border: none; outline: none; font-size: 17.5px;
-  color: var(--text); background: transparent;
-  font-family: inherit;
-}
-#ais-input::placeholder { color: var(--muted); }
-.ais-close-btn {
-  cursor: pointer; font-size: 21px; color: var(--muted);
-  line-height: 1; padding: 2px 4px; border-radius: 4px;
-  transition: color .12s;
-}
-.ais-close-btn:hover { color: var(--text); }
-
-/* 모드 탭 */
-.ais-tabs {
-  display: flex; padding: 0 18px; gap: 0;
-  border-bottom: 1px solid var(--border); background: var(--bg);
-}
-.ais-tab {
-  padding: 8px 14px; font-size: 14px; color: var(--muted);
-  cursor: pointer; border-bottom: 2px solid transparent;
-  transition: color .12s, border-color .12s; user-select: none;
-  display: flex; align-items: center; gap: 5px;
-}
-.ais-tab.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 500; }
-
-/* 결과 영역 */
-.ais-results {
-  overflow-y: auto; padding: 12px 0; min-height: 120px; max-height: 460px;
-}
-.ais-empty {
-  text-align: center; padding: 40px 20px; color: var(--muted);
-  font-size: 15px; display: flex; flex-direction: column; align-items: center; gap: 8px;
-}
-.ais-empty i { font-size: 36px; opacity: .4; }
-
-.ais-section-label {
-  padding: 6px 18px 4px; font-size: 12px; font-weight: 600;
-  color: var(--muted); letter-spacing: .5px; text-transform: uppercase;
-}
-
-.ais-result-item {
-  display: flex; align-items: flex-start; gap: 12px;
-  padding: 10px 18px; cursor: pointer;
-  transition: background .1s; border-radius: 0;
-}
-.ais-result-item:hover { background: var(--accent-lt); }
-.ais-result-icon {
-  width: 34px; height: 34px; border-radius: 8px;
-  background: var(--bg); display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0; font-size: 18px; color: var(--accent);
-  border: 1px solid var(--border);
-}
-.ais-result-body { flex: 1; min-width: 0; }
-.ais-result-title {
-  font-size: 15px; font-weight: 500; color: var(--text);
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-.ais-result-title mark {
-  background: transparent; color: var(--accent); font-weight: 700; padding: 0;
-}
-.ais-result-meta {
-  font-size: 13px; color: var(--muted); margin-top: 2px;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-.ais-result-badge {
-  font-size: 11px; padding: 2px 8px; border-radius: 100px;
-  background: var(--accent-lt); color: #004386; flex-shrink: 0;
-  align-self: center;
-}
-
-/* AI 응답 영역 */
-.ais-ai-section {
-  padding: 16px 18px; border-top: 1px solid var(--border);
-  background: linear-gradient(to bottom, var(--accent-lt), var(--surface));
-}
-.ais-ai-header {
-  display: flex; align-items: center; gap: 7px;
-  font-size: 13px; font-weight: 600; color: var(--accent);
-  margin-bottom: 8px;
-}
-.ais-ai-text {
-  font-size: 15px; line-height: 1.65; color: var(--text);
-  white-space: pre-wrap;
-}
-.ais-ai-thinking {
-  display: flex; align-items: center; gap: 8px;
-  font-size: 14px; color: var(--muted);
-}
-.ais-ai-thinking i { animation: spin 1s linear infinite; }
-
-.ais-more-btn {
-  display: flex; align-items: center; gap: 5px;
-  padding: 7px 18px; font-size: 13.5px;
-  color: var(--accent); cursor: pointer;
-  transition: background .1s; border-radius: 0;
-  font-weight: 500;
-}
-.ais-more-btn:hover { background: var(--accent-lt); }
-
-/* 푸터 힌트 */
-.ais-footer {
-  padding: 8px 18px; border-top: 1px solid var(--border);
-  display: flex; gap: 14px; align-items: center;
-}
-.ais-hint { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 4px; }
-.ais-hint kbd {
-  background: var(--bg); border: 1px solid var(--border-md);
-  border-radius: 4px; padding: 1px 5px; font-size: 11px;
-  font-family: inherit;
-}
-
-/* 하이라이트 애니메이션 */
-@keyframes ais-hl {
-  0%   { box-shadow: 0 0 0 0 rgba(29,158,117,.6); }
-  70%  { box-shadow: 0 0 0 8px rgba(29,158,117,0); }
-  100% { box-shadow: 0 0 0 0 rgba(29,158,117,0); }
-}
-.ais-highlighted { animation: ais-hl 1.2s ease-out 2; border-color: var(--accent) !important; }
-
-.search-trigger-bottom {
-  width: 100%; display: flex; align-items: center; gap: 8px;
-  padding: 8px 12px; font-size: 15px; color: var(--muted);
-  cursor: pointer; border: 1px solid var(--border-md);
-  border-radius: var(--r-md); background: var(--bg);
-  transition: background .12s, color .12s, border-color .12s;
-  font-family: inherit;
-}
-.search-trigger-bottom:hover { background: var(--accent-lt); color: var(--accent); border-color: var(--accent); }
-.search-trigger-bottom i { font-size: 17px; }
-.search-trigger-bottom .search-shortcut {
-  margin-left: auto; font-size: 11px; background: var(--surface);
-  border: 1px solid var(--border-md); border-radius: 4px;
-  padding: 1px 5px; color: var(--muted);
-}
+#banner { display: none; padding: 10px 16px; border-radius: var(--r-md); margin-bottom: 16px; font-size: 16.2px; }
+#banner.loading { background: #E6F1FB; color: #185FA5; display: flex; align-items: center; gap: 8px; }
+#banner.error   { background: #FCEBEB; color: #A32D2D; display: flex; align-items: center; gap: 8px; }
 
 /* ── API 설정 패널 ── */
 .setup-card {
@@ -317,7 +105,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
 }
 .btn:hover { background: var(--bg); }
 .btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
-.btn.primary:hover { background: #005A99; }
+.btn.primary:hover { background: #178a64; }
 .btn.danger  { color: #A32D2D; border-color: #F7C1C1; }
 .btn.danger:hover { background: #FCEBEB; }
 .btn.sm { padding: 4px 10px; font-size: 15px; }
@@ -326,19 +114,16 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
 .metric-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px,1fr)); gap: 10px; margin-bottom: 20px; }
 .metric {
   background: var(--surface); border: 1px solid var(--border);
-  border-left: 3px solid var(--accent);
   border-radius: var(--r-lg); padding: 14px 16px;
-  transition: box-shadow .15s, transform .15s;
 }
-.metric:hover { box-shadow: 0 4px 14px rgba(0,67,134,.10); transform: translateY(-1px); }
 .metric-label { font-size: 13.8px; color: var(--muted); margin-bottom: 4px; }
-.metric-val   { font-size: 32.5px; font-weight: 700; color: var(--accent-dk); }
+.metric-val   { font-size: 32.5px; font-weight: 600; color: var(--text); }
 .metric-unit  { font-size: 15px; color: var(--muted); margin-left: 2px; }
 .metric-badge {
   display: inline-block; font-size: 13.8px; padding: 2px 8px;
   border-radius: 100px; margin-top: 4px;
 }
-.badge-green  { background: var(--accent-lt); color: #004386; }
+.badge-green  { background: var(--accent-lt); color: #0F6E56; }
 .badge-blue   { background: #E6F1FB; color: #185FA5; }
 .badge-amber  { background: #FAEEDA; color: #854F0B; }
 
@@ -346,80 +131,12 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
 .card {
   background: var(--surface); border: 1px solid var(--border);
   border-radius: var(--r-lg); padding: 18px; margin-bottom: 16px;
-  box-shadow: 0 1px 3px rgba(62,58,57,.04);
 }
 .card-hd {
   display: flex; align-items: center; justify-content: space-between;
   margin-bottom: 14px;
 }
-.card-hd h2 { font-size: 17.5px; font-weight: 600; display: flex; align-items: center; gap: 6px; color: var(--text); margin: 0; }
-.card-hd h2 i { color: var(--accent); }
-
-/* ── 자원관리 Sticky 헤더 ── */
-/* 카드 자체는 그대로, 헤더+필터만 고정 */
-.card-res {
-  padding: 0;
-  border-radius: var(--r-lg);
-}
-.card-res .card-hd {
-  padding: 14px 18px;
-  margin-bottom: 0;
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  border-radius: var(--r-lg) var(--r-lg) 0 0;
-  box-shadow: 0 2px 4px rgba(62,58,57,.06);
-}
-.card-res .history-filter-bar {
-  position: sticky;
-  top: 53px;
-  z-index: 9;
-  border-radius: 0;
-  box-shadow: 0 2px 4px rgba(62,58,57,.04);
-}
-.card-res .post-list,
-.card-res [id$="-list"] { padding: 0; }
-.card-res [id$="-info"] { padding: 6px 18px; }
-.card-res table.tbl { margin: 0; }
-.card-res .tbl th,
-.card-res .tbl td { padding-left: 18px; padding-right: 18px; }
-.card-res .empty { padding: 40px 20px; }
-
-/* 메인페이지용 */
-.card-plain .card-hd { position: static; }
-
-/* ── C방식: 카드 내부 목록만 스크롤 ── */
-.card-scroll {
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  max-height: calc(100vh - 160px);
-}
-.card-scroll .card-hd {
-  flex-shrink: 0;
-  padding: 14px 18px;
-  margin-bottom: 0;
-  border-bottom: 1px solid var(--border);
-  background: var(--surface);
-  border-radius: var(--r-lg) var(--r-lg) 0 0;
-}
-.card-scroll .history-filter-bar {
-  flex-shrink: 0;
-  border-radius: 0;
-}
-.card-scroll [id$="-info"] { flex-shrink: 0; padding: 5px 18px; font-size:13.5px; color:var(--muted); border-bottom: 1px solid var(--border); }
-.card-scroll .scroll-body {
-  flex: 1;
-  overflow-y: auto;
-  min-height: 0;
-}
-.card-scroll .scroll-body .post-list { padding: 0; }
-.card-scroll .scroll-body table.tbl { margin: 0; }
-.card-scroll .scroll-body .tbl th,
-.card-scroll .scroll-body .tbl td { padding-left: 18px; padding-right: 18px; }
-.card-scroll .scroll-body .empty { padding: 40px 20px; }
+.card-hd h2 { font-size: 17.5px; font-weight: 600; display: flex; align-items: center; gap: 6px; }
 
 /* ── 알림 목록 ── */
 .alert-list { display: flex; flex-direction: column; gap: 8px; }
@@ -428,7 +145,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
   padding: 10px 12px; border-radius: var(--r-md); font-size: 16.2px;
 }
 .alert-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; margin-top: 4px; flex-shrink: 0; }
-.a-green { background: var(--accent-lt); color: #004386; }
+.a-green { background: var(--accent-lt); color: #0F6E56; }
 .a-blue  { background: #E6F1FB; color: #185FA5; }
 .a-amber { background: #FAEEDA; color: #854F0B; }
 .a-red   { background: #FCEBEB; color: #A32D2D; }
@@ -452,15 +169,14 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
 .history-filter-bar input[type=text]:focus { border-color: var(--accent); }
 
 .tbl { width: 100%; border-collapse: collapse; font-size: 16.2px; }
-.tbl td { word-break: keep-all; overflow-wrap: break-word; vertical-align: middle; }
 .tbl th { padding: 8px 10px; text-align: left; font-weight: 500; color: var(--muted); border-bottom: 1px solid var(--border); font-size: 15px; }
 .tbl td { padding: 10px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; }
 .tbl tr:last-child td { border-bottom: none; }
 .tbl tr:hover td { background: var(--bg); }
 
 /* ── 상태 칩 ── */
-.chip { display: inline-block; font-size: 13.8px; padding: 3px 9px; border-radius: 100px; cursor: pointer; white-space: nowrap; }
-.chip-on  { background: var(--accent-lt); color: #004386; }
+.chip { display: inline-block; font-size: 13.8px; padding: 3px 9px; border-radius: 100px; cursor: pointer; }
+.chip-on  { background: var(--accent-lt); color: #0F6E56; }
 .chip-off { background: #F1EFE8; color: #5F5E5A; }
 
 /* ── 게시글 카드 ── */
@@ -554,7 +270,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
   background: var(--accent); color: #fff; font-size: 16.2px; font-weight: 500;
   white-space: nowrap; flex-shrink: 0;
 }
-.launch-card:hover .launch-btn { background: #005A99; }
+.launch-card:hover .launch-btn { background: #178a64; }
 
 /* ── 모달 ── */
 /* ── 이미지 미리보기 모달 ── */
@@ -667,7 +383,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
 .upload-progress.show { display: block; }
 .upload-progress-bar { height: 100%; background: var(--accent); border-radius: 99px; width: 0; transition: width .3s; }
 .upload-msg { font-size: 15px; margin-top: 6px; min-height: 18px; }
-.upload-msg.ok  { color: #004386; }
+.upload-msg.ok  { color: #0F6E56; }
 .upload-msg.err { color: #A32D2D; }
 
 /* ── 스크롤바 ── */
@@ -729,43 +445,6 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
   </div>
 </div>
 
-<!-- ── AI 자원 검색 오버레이 ── -->
-<div id="ai-search-overlay" onclick="handleAisOverlayClick(event)">
-  <div id="ai-search-box">
-    <!-- 입력 -->
-    <div class="ais-input-row">
-      <i class="ti ti-search"></i>
-      <input id="ais-input" type="text" placeholder="제목, 내용, 날짜로 검색하거나 질문하세요…" autocomplete="off"
-             oninput="onAisInput()" onkeydown="onAisKey(event)">
-      <span class="ais-close-btn" onclick="closeAiSearch()">×</span>
-    </div>
-    <!-- 모드 탭 -->
-    <div class="ais-tabs">
-      <div class="ais-tab active" id="ais-tab-search" onclick="setAisMode('search')">
-        <i class="ti ti-list-search"></i> 빠른 검색
-      </div>
-      <div class="ais-tab" id="ais-tab-ai" onclick="setAisMode('ai')">
-        <i class="ti ti-sparkles"></i> AI 질문
-      </div>
-    </div>
-    <!-- 결과 -->
-    <div class="ais-results" id="ais-results">
-      <div class="ais-empty">
-        <i class="ti ti-search"></i>
-        <span>검색어를 입력하세요</span>
-        <span style="font-size:12px">인증, 수상, 특허, 상표, 연혁, 소개 자료, 유튜브 영상, 프로그램 저작/등록 전체 검색</span>
-      </div>
-    </div>
-    <!-- 푸터 -->
-    <div class="ais-footer">
-      <span class="ais-hint"><kbd>↑</kbd><kbd>↓</kbd> 이동</span>
-      <span class="ais-hint"><kbd>Enter</kbd> 이동</span>
-      <span class="ais-hint"><kbd>Esc</kbd> 닫기</span>
-      <span class="ais-hint" style="margin-left:auto;color:var(--accent)"><i class="ti ti-sparkles" style="font-size:13px"></i> AI 질문 탭에서 자연어 검색</span>
-    </div>
-  </div>
-</div>
-
 <!-- ── 이미지 미리보기 모달 ── -->
 <div class="img-preview-bg" id="img-preview-bg" onclick="closeImagePreview(event)">
   <div class="img-preview-box">
@@ -802,7 +481,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
   <!-- ── 레일 ── -->
   <nav class="rail">
     <div class="rail-logo">
-      <img class="brand-logo" src="data:image/png;base64,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" alt="소프트힐스">
+      <div class="brand">㈜ 소프트힐스</div>
       <div class="sub">마케팅 운영 대시보드</div>
     </div>
 
@@ -856,7 +535,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
           <div class="nav-sub-item" data-page="res-award"   onclick="goSub('res-award',this,'ni-res')"><i class="ti ti-trophy"></i> 수상 관리</div>
           <div class="nav-sub-item" data-page="res-patent"  onclick="goSub('res-patent',this,'ni-res')"><i class="ti ti-shield-check"></i> 특허 관리</div>
           <div class="nav-sub-item" data-page="res-brand"   onclick="goSub('res-brand',this,'ni-res')"><i class="ti ti-registered"></i> 상표 관리</div>
-          <div class="nav-sub-item" data-page="res-copyright" onclick="goSub('res-copyright',this,'ni-res')"><i class="ti ti-copyright"></i> 프로그램 저작/등록</div>
+          <div class="nav-sub-item" data-page="res-copyright" onclick="goSub('res-copyright',this,'ni-res')"><i class="ti ti-copyright"></i> 프로그램 저작</div>
           <div id="custom-nav-items"></div>
           <div class="nav-sub-item" style="color:var(--accent);border-top:1px solid var(--border);margin-top:4px;padding-top:8px" onclick="openAddResourceModal()">
             <i class="ti ti-plus"></i> 자원 관리 추가
@@ -865,27 +544,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
       </div>
     </div>
 
-    <div class="nav-group">
-      <div class="nav-item" id="ni-content">
-        <div class="nav-main" onclick="toggle('ni-content','content-press')">
-          <i class="ti ti-news"></i> 콘텐츠 관리
-          <i class="ti ti-chevron-down nav-arrow"></i>
-        </div>
-        <div class="nav-sub">
-          <div class="nav-sub-item" data-page="content-press" onclick="goSub('content-press',this,'ni-content')"><i class="ti ti-news"></i> 언론보도 및 칼럼</div>
-          <div class="nav-sub-item" data-page="content-blog"  onclick="goSub('content-blog',this,'ni-content')"><i class="ti ti-pencil"></i> 블로그</div>
-        </div>
-      </div>
-    </div>
-
-    <div style="padding: 10px 12px; border-top: 1px solid var(--border); margin-top: auto;">
-      <button class="search-trigger-bottom" onclick="openAiSearch()" title="자원 검색 (/)">
-        <i class="ti ti-search"></i>
-        <span>자원 검색</span>
-        <span class="search-shortcut">/</span>
-      </button>
-    </div>
-    <div style="padding: 8px 12px 12px; display:flex; flex-direction:column; gap:6px; border-top: 1px solid var(--border)">
+    <div style="padding: 12px 16px; margin-top: auto; border-top: 1px solid var(--border); display:flex; flex-direction:column; gap:6px">
       <button class="btn sm" style="width:100%;" onclick="go('changelog',document.querySelector('[data-page=changelog]'))">
         <i class="ti ti-history"></i> 변경 기록
       </button>
@@ -897,7 +556,6 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
 
   <!-- ── 콘텐츠 ── -->
   <main class="content">
-    <div id="banner-backdrop"></div>
     <div id="banner"></div>
 
     <!-- ══ 메인 ══ -->
@@ -911,7 +569,6 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
         <div class="metric"><div class="metric-label">수상</div><div class="metric-val" id="m-award">—</div><span class="metric-badge badge-amber">건</span></div>
         <div class="metric"><div class="metric-label">특허</div><div class="metric-val" id="m-patent">—</div><span class="metric-badge badge-blue">건</span></div>
         <div class="metric"><div class="metric-label">상표</div><div class="metric-val" id="m-brand">—</div><span class="metric-badge badge-green">건</span></div>
-        <div class="metric"><div class="metric-label">프로그램 저작/등록</div><div class="metric-val" id="m-copyright">—</div><span class="metric-badge badge-green">건</span></div>
       </div>
       <!-- 활성화된 연혁 (최근 3년) -->
       <div class="card">
@@ -957,14 +614,15 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
 
     <!-- ══ iframe 탭 공용 ══ -->
     <div id="pg-budget" class="page">
-      <div class="page-hd"><h1>마케팅 예산 현황</h1><p>해당 페이지는 마케팅 운영에 대한 비용을 관리합니다.</p></div>
-      <div class="iframe-wrap">
-        <div class="iframe-bar">
-          <i class="ti ti-world" style="font-size:14px;color:var(--muted)"></i>
-          <span>https://santar7021-ux.github.io/budget/</span>
-          <a href="https://santar7021-ux.github.io/budget/" target="_blank" class="btn sm"><i class="ti ti-external-link"></i> 새 탭</a>
+      <div class="page-hd"><h1>마케팅 예산 현황</h1><p>아래 버튼을 클릭하면 새 탭에서 열립니다.</p></div>
+      <div class="launch-card" onclick="window.open('https://santar7021-ux.github.io/budget/','_blank')">
+        <div class="launch-icon"><i class="ti ti-wallet"></i></div>
+        <div class="launch-info">
+          <div class="launch-title">마케팅 워크오더 (예산 관리)</div>
+          <div class="launch-url">https://santar7021-ux.github.io/budget/</div>
+          <div class="launch-desc">마케팅 운영 비용 정리 테이블 — 로그인 후 전체 기능 이용 가능합니다.</div>
         </div>
-        <iframe src="https://santar7021-ux.github.io/budget/" title="마케팅 예산 현황"></iframe>
+        <div class="launch-btn"><i class="ti ti-external-link"></i> 새 탭에서 열기</div>
       </div>
     </div>
     <div id="pg-ad-homepage" class="page">
@@ -996,39 +654,35 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
 
     <!-- ══ 소개 자료 ══ -->
     <div id="pg-res-intro" class="page">
-      <div class="page-hd">
-        <h1>소개 자료</h1><p>(주)소프트힐스의 소개 자료를 제공합니다.</p>
-      </div>
-      <!-- 회사소개서 및 공용 -->
-      <div class="card card-res">
+      <div class="page-hd"><h1>소개 자료</h1><p>회사소개서 · 제품별 소개서 · 공용 PPT 템플릿</p></div>
+      <!-- 일반 소개자료 (회사소개서 + 공용 PPT 템플릿) -->
+      <div class="card">
         <div class="card-hd">
-          <h2><i class="ti ti-files"></i> 회사소개서 및 공용</h2>
-          <button class="btn sm primary" onclick="openModalFixed('intro','회사소개서')"><i class="ti ti-plus"></i> 항목 추가</button>
+          <h2><i class="ti ti-files"></i> 파일 목록</h2>
+          <div style="display:flex;gap:6px">
+            <button class="btn sm" onclick="downloadExcel('intro')"><i class="ti ti-file-spreadsheet"></i> 엑셀 다운로드</button>
+            <button class="btn sm primary" onclick="openModal('intro')"><i class="ti ti-plus"></i> 항목 추가</button>
+          </div>
         </div>
         <div class="post-list" id="intro-list"></div>
       </div>
-      <!-- 제품별 소개서 -->
-      <div class="card card-res" style="margin-top:20px">
+      <!-- 제품별 소개서 별도 목록 -->
+      <div class="card" style="margin-top:20px">
         <div class="card-hd">
           <h2><i class="ti ti-package"></i> 제품별 소개서</h2>
-          <button class="btn sm primary" onclick="openModalFixed('intro','제품별 소개서')"><i class="ti ti-plus"></i> 항목 추가</button>
+          <div style="display:flex;gap:6px">
+            <button class="btn sm" onclick="downloadIntroProduct()"><i class="ti ti-file-spreadsheet"></i> 엑셀 다운로드</button>
+            <button class="btn sm primary" onclick="openModal('intro')"><i class="ti ti-plus"></i> 항목 추가</button>
+          </div>
         </div>
         <div class="post-list" id="intro-product-list"></div>
-      </div>
-      <!-- 브로슈어 -->
-      <div class="card card-res" style="margin-top:20px">
-        <div class="card-hd">
-          <h2><i class="ti ti-bookmarks"></i> 브로슈어</h2>
-          <button class="btn sm primary" onclick="openModalFixed('intro','브로슈어')"><i class="ti ti-plus"></i> 항목 추가</button>
-        </div>
-        <div class="post-list" id="intro-brochure-list"></div>
       </div>
     </div>
 
     <!-- ══ 유튜브 영상 ══ -->
     <div id="pg-res-youtube" class="page">
-      <div class="page-hd"><h1>유튜브 영상</h1><p>(주)소프트힐스의 영상 자료를 제공합니다.</p></div>
-      <div class="card card-scroll">
+      <div class="page-hd"><h1>유튜브 영상</h1><p>솔루션별 유튜브 영상 목록</p></div>
+      <div class="card">
         <div class="card-hd">
           <h2><i class="ti ti-brand-youtube"></i> 영상 목록</h2>
           <div style="display:flex;gap:6px">
@@ -1036,82 +690,17 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
             <button class="btn sm primary" onclick="openModal('youtube')"><i class="ti ti-plus"></i> 항목 추가</button>
           </div>
         </div>
-        <div class="history-filter-bar">
-          <select id="yf-category" onchange="applyYoutubeFilter()">
-            <option value="">구분 전체</option>
-          </select>
-          <input type="text" id="yf-solution" placeholder="솔루션명 검색" oninput="applyYoutubeFilter()">
-          <input type="text" id="yf-title" placeholder="제목 검색" oninput="applyYoutubeFilter()">
-          <button class="btn sm" onclick="resetYoutubeFilter()"><i class="ti ti-x"></i> 필터 초기화</button>
-        </div>
-        <div id="yf-info" style="font-size:13.5px;color:var(--muted);padding:6px 16px;display:none"></div>
-        <div class="scroll-body">
-          <table class="tbl">
-            <thead><tr><th>구분</th><th>게시일</th><th>솔루션명</th><th>제목 / 내용</th><th>링크</th><th></th></tr></thead>
-            <tbody id="youtube-list"></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- ══ 언론보도 및 칼럼 ══ -->
-    <div id="pg-content-press" class="page">
-      <div class="page-hd"><h1>언론보도 및 칼럼</h1><p>해당 페이지는 (주)소프트힐스 언론보도 및 칼럼 자료 현황을 제공합니다.</p></div>
-      <div class="card card-res">
-        <div class="card-hd">
-          <h2><i class="ti ti-news"></i> 언론보도 및 칼럼 목록</h2>
-          <div style="display:flex;gap:6px">
-            <button class="btn sm" onclick="downloadExcel('press')"><i class="ti ti-file-spreadsheet"></i> 엑셀 다운로드</button>
-            <button class="btn sm primary" onclick="openModal('press')"><i class="ti ti-plus"></i> 항목 추가</button>
-          </div>
-        </div>
-        <div class="history-filter-bar">
-          <select id="pf-category" onchange="applyPressFilter()">
-            <option value="">구분 전체</option>
-          </select>
-          <input type="text" id="pf-solution" placeholder="솔루션명 검색" oninput="applyPressFilter()">
-          <input type="text" id="pf-title" placeholder="제목 검색" oninput="applyPressFilter()">
-          <button class="btn sm" onclick="resetPressFilter()"><i class="ti ti-x"></i> 필터 초기화</button>
-        </div>
-        <div id="pf-info" style="font-size:13.5px;color:var(--muted);padding:6px 16px;display:none"></div>
         <table class="tbl">
-          <thead><tr><th>구분</th><th>게시일</th><th>솔루션명</th><th>제목 / 내용</th><th>링크</th><th></th></tr></thead>
-          <tbody id="press-list"></tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- ══ 블로그 ══ -->
-    <div id="pg-content-blog" class="page">
-      <div class="page-hd"><h1>블로그</h1><p>해당 페이지는 (주)소프트힐스 대표 블로그 컨텐츠 현황을 제공합니다.</p></div>
-      <div class="card card-res">
-        <div class="card-hd">
-          <h2><i class="ti ti-pencil"></i> 블로그 목록</h2>
-          <div style="display:flex;gap:6px">
-            <button class="btn sm" onclick="downloadExcel('blog')"><i class="ti ti-file-spreadsheet"></i> 엑셀 다운로드</button>
-            <button class="btn sm primary" onclick="openModal('blog')"><i class="ti ti-plus"></i> 항목 추가</button>
-          </div>
-        </div>
-        <div class="history-filter-bar">
-          <select id="blf-category" onchange="applyBlogFilter()">
-            <option value="">구분 전체</option>
-          </select>
-          <input type="text" id="blf-solution" placeholder="솔루션명 검색" oninput="applyBlogFilter()">
-          <input type="text" id="blf-title" placeholder="제목 검색" oninput="applyBlogFilter()">
-          <button class="btn sm" onclick="resetBlogFilter()"><i class="ti ti-x"></i> 필터 초기화</button>
-        </div>
-        <div id="blf-info" style="font-size:13.5px;color:var(--muted);padding:6px 16px;display:none"></div>
-        <table class="tbl">
-          <thead><tr><th>구분</th><th>게시일</th><th>솔루션명</th><th>제목 / 내용</th><th>링크</th><th></th></tr></thead>
-          <tbody id="blog-list"></tbody>
+          <thead><tr><th>게시일</th><th>솔루션명</th><th>제목 / 내용</th><th>링크</th><th></th></tr></thead>
+          <tbody id="youtube-list"></tbody>
         </table>
       </div>
     </div>
 
     <!-- ══ 연혁 관리 ══ -->
     <div id="pg-res-history" class="page">
-      <div class="page-hd"><h1>연혁 관리</h1><p>(주)소프트힐스의 연혁을 관리합니다.</p></div>
-      <div class="card card-scroll">
+      <div class="page-hd"><h1>연혁 관리</h1><p>활성화 항목은 메인 페이지에 노출됩니다.</p></div>
+      <div class="card">
         <div class="card-hd">
           <h2><i class="ti ti-timeline"></i> 연혁 목록</h2>
           <div style="display:flex;gap:6px">
@@ -1196,28 +785,17 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
           <button class="btn sm" onclick="resetHistoryFilter()"><i class="ti ti-x"></i> 필터 초기화</button>
         </div>
         <div id="history-filter-info" style="font-size:13.5px;color:var(--muted);padding:6px 16px;display:none"></div>
-        <div class="scroll-body">
         <table class="tbl">
-          <colgroup>
-            <col style="width:62px">  <!-- 상태 -->
-            <col style="width:54px">  <!-- 일자 -->
-            <col style="width:64px">  <!-- 구분 -->
-            <col style="width:32%">   <!-- 내용(국문) -->
-            <col style="width:32%">   <!-- 내용(영문) -->
-            <col style="width:90px">  <!-- 첨부 -->
-            <col style="width:72px">  <!-- 수정/삭제 -->
-          </colgroup>
-          <thead><tr><th>상태</th><th>일자</th><th>구분</th><th>내용</th><th>내용(영문)</th><th>첨부</th><th></th></tr></thead>
+          <thead><tr><th>상태</th><th>일자</th><th>구분</th><th>내용</th><th>첨부</th><th></th></tr></thead>
           <tbody id="history-list"></tbody>
         </table>
-        </div>
       </div>
     </div>
 
     <!-- ══ 인증·수상·특허·상표 (공통 구조) ══ -->
     <div id="pg-res-cert" class="page">
-      <div class="page-hd"><h1>인증 관리</h1><p>(주)소프트힐스의 인증 사항을 관리합니다.</p></div>
-      <div class="card card-scroll">
+      <div class="page-hd"><h1>인증 관리</h1><p>왼쪽 파일·이미지 미리보기 / 오른쪽 제목·내용·비고</p></div>
+      <div class="card">
         <div class="card-hd">
           <h2><i class="ti ti-certificate"></i> 인증 목록</h2>
           <div style="display:flex;gap:6px">
@@ -1295,12 +873,12 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
           <button class="btn sm" onclick="resetBoardFilter('cert')"><i class="ti ti-x"></i> 필터 초기화</button>
         </div>
         <div id="bf-cert-info" style="font-size:13.5px;color:var(--muted);padding:6px 16px;display:none"></div>
-        <div class="scroll-body"><div class="post-list" id="cert-list"></div></div>
+        <div class="post-list" id="cert-list"></div>
       </div>
     </div>
     <div id="pg-res-award" class="page">
-      <div class="page-hd"><h1>수상 관리</h1><p>(주)소프트힐스의 수상 사항을 관리합니다.</p></div>
-      <div class="card card-scroll">
+      <div class="page-hd"><h1>수상 관리</h1><p>왼쪽 파일·이미지 미리보기 / 오른쪽 제목·내용·비고</p></div>
+      <div class="card">
         <div class="card-hd">
           <h2><i class="ti ti-trophy"></i> 수상 목록</h2>
           <div style="display:flex;gap:6px">
@@ -1378,12 +956,12 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
           <button class="btn sm" onclick="resetBoardFilter('award')"><i class="ti ti-x"></i> 필터 초기화</button>
         </div>
         <div id="bf-award-info" style="font-size:13.5px;color:var(--muted);padding:6px 16px;display:none"></div>
-        <div class="scroll-body"><div class="post-list" id="award-list"></div></div>
+        <div class="post-list" id="award-list"></div>
       </div>
     </div>
     <div id="pg-res-patent" class="page">
-      <div class="page-hd"><h1>특허 관리</h1><p>(주)소프트힐스의 특허 사항을 관리합니다.</p></div>
-      <div class="card card-scroll">
+      <div class="page-hd"><h1>특허 관리</h1><p>왼쪽 파일·이미지 미리보기 / 오른쪽 제목·내용·비고</p></div>
+      <div class="card">
         <div class="card-hd">
           <h2><i class="ti ti-shield-check"></i> 특허 목록</h2>
           <div style="display:flex;gap:6px">
@@ -1466,12 +1044,15 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
           <button class="btn sm" onclick="resetBoardFilter('patent')"><i class="ti ti-x"></i> 필터 초기화</button>
         </div>
         <div id="bf-patent-info" style="font-size:13.5px;color:var(--muted);padding:6px 16px;display:none"></div>
-        <div class="scroll-body"><div class="post-list" id="patent-list"></div></div>
+        <table class="tbl">
+          <thead><tr><th>상태</th><th>일자</th><th>제목</th><th>내용</th><th>비고</th><th>파일</th><th></th></tr></thead>
+          <tbody id="patent-list"></tbody>
+        </table>
       </div>
     </div>
     <div id="pg-res-brand" class="page">
-      <div class="page-hd"><h1>상표 관리</h1><p>(주)소프트힐스의 상표 사항을 관리합니다.</p></div>
-      <div class="card card-scroll">
+      <div class="page-hd"><h1>상표 관리</h1><p>왼쪽 파일·이미지 미리보기 / 오른쪽 제목·내용·비고</p></div>
+      <div class="card">
         <div class="card-hd">
           <h2><i class="ti ti-registered"></i> 상표 목록</h2>
           <div style="display:flex;gap:6px">
@@ -1549,65 +1130,38 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
           <button class="btn sm" onclick="resetBoardFilter('brand')"><i class="ti ti-x"></i> 필터 초기화</button>
         </div>
         <div id="bf-brand-info" style="font-size:13.5px;color:var(--muted);padding:6px 16px;display:none"></div>
-        <div class="scroll-body"><div class="post-list" id="brand-list"></div></div>
+        <div class="post-list" id="brand-list"></div>
       </div>
     </div>
 
-    <!-- ══ 프로그램 저작/등록 ══ -->
+    <!-- ══ 프로그램 저작 ══ -->
     <div id="pg-res-copyright" class="page">
-      <div class="page-hd">
-        <h1>프로그램 저작/등록</h1>
-        <p>(주)소프트힐스의 프로그램 등록 및 저작권 사항을 관리합니다.</p>
-      </div>
-
-      <!-- 프로그램 등록 -->
-      <div class="card card-res">
+      <div class="page-hd"><h1>프로그램 저작</h1><p>왼쪽 파일·이미지 미리보기 / 오른쪽 제목·내용·비고</p></div>
+      <div class="card">
         <div class="card-hd">
-          <h2><i class="ti ti-file-certificate"></i> 프로그램 등록</h2>
-          <button class="btn sm primary" onclick="openModalFixed('copyright','프로그램 등록')"><i class="ti ti-plus"></i> 항목 추가</button>
+          <h2><i class="ti ti-copyright"></i> 프로그램 저작 목록</h2>
+          <div style="display:flex;gap:6px">
+            <button class="btn sm" onclick="downloadBoardFiltered('copyright')"><i class="ti ti-file-spreadsheet"></i> 엑셀 다운로드</button>
+            <button class="btn sm primary" onclick="openModal('copyright')"><i class="ti ti-plus"></i> 항목 추가</button>
+          </div>
         </div>
         <div class="history-filter-bar">
           <div style="display:flex;align-items:center;gap:4px">
-            <select id="bf-cpyreg-from" onchange="applyCopyrightFilter()">
+            <select id="bf-copyright-from" onchange="applyBoardFilter('copyright')">
               <option value="">시작년도</option>
               <option value="2040">2040년</option><option value="2039">2039년</option><option value="2038">2038년</option><option value="2037">2037년</option><option value="2036">2036년</option><option value="2035">2035년</option><option value="2034">2034년</option><option value="2033">2033년</option><option value="2032">2032년</option><option value="2031">2031년</option><option value="2030">2030년</option><option value="2029">2029년</option><option value="2028">2028년</option><option value="2027">2027년</option><option value="2026">2026년</option><option value="2025">2025년</option><option value="2024">2024년</option><option value="2023">2023년</option><option value="2022">2022년</option><option value="2021">2021년</option><option value="2020">2020년</option><option value="2019">2019년</option><option value="2018">2018년</option><option value="2017">2017년</option><option value="2016">2016년</option><option value="2015">2015년</option><option value="2014">2014년</option><option value="2013">2013년</option>
             </select>
             <span style="color:var(--muted);font-size:13px">~</span>
-            <select id="bf-cpyreg-to" onchange="applyCopyrightFilter()">
+            <select id="bf-copyright-to" onchange="applyBoardFilter('copyright')">
               <option value="">끝년도</option>
               <option value="2040">2040년</option><option value="2039">2039년</option><option value="2038">2038년</option><option value="2037">2037년</option><option value="2036">2036년</option><option value="2035">2035년</option><option value="2034">2034년</option><option value="2033">2033년</option><option value="2032">2032년</option><option value="2031">2031년</option><option value="2030">2030년</option><option value="2029">2029년</option><option value="2028">2028년</option><option value="2027">2027년</option><option value="2026">2026년</option><option value="2025">2025년</option><option value="2024">2024년</option><option value="2023">2023년</option><option value="2022">2022년</option><option value="2021">2021년</option><option value="2020">2020년</option><option value="2019">2019년</option><option value="2018">2018년</option><option value="2017">2017년</option><option value="2016">2016년</option><option value="2015">2015년</option><option value="2014">2014년</option><option value="2013">2013년</option>
             </select>
           </div>
-          <input type="text" id="bf-cpyreg-title" placeholder="제목 검색" oninput="applyCopyrightFilter()">
-          <button class="btn sm" onclick="resetCopyrightFilter()"><i class="ti ti-x"></i> 필터 초기화</button>
+          <input type="text" id="bf-copyright-title" placeholder="제목 검색" oninput="applyBoardFilter('copyright')">
+          <button class="btn sm" onclick="resetBoardFilter('copyright')"><i class="ti ti-x"></i> 필터 초기화</button>
         </div>
-        <div id="bf-cpyreg-info" style="font-size:13.5px;color:var(--muted);padding:6px 16px;display:none"></div>
-        <div class="post-list" id="copyright-reg-list"></div>
-      </div>
-
-      <!-- 저작권 -->
-      <div class="card card-res" style="margin-top:20px">
-        <div class="card-hd">
-          <h2><i class="ti ti-copyright"></i> 저작권</h2>
-          <button class="btn sm primary" onclick="openModalFixed('copyright','저작권')"><i class="ti ti-plus"></i> 항목 추가</button>
-        </div>
-        <div class="history-filter-bar">
-          <div style="display:flex;align-items:center;gap:4px">
-            <select id="bf-cpyright-from" onchange="applyCopyrightFilter()">
-              <option value="">시작년도</option>
-              <option value="2040">2040년</option><option value="2039">2039년</option><option value="2038">2038년</option><option value="2037">2037년</option><option value="2036">2036년</option><option value="2035">2035년</option><option value="2034">2034년</option><option value="2033">2033년</option><option value="2032">2032년</option><option value="2031">2031년</option><option value="2030">2030년</option><option value="2029">2029년</option><option value="2028">2028년</option><option value="2027">2027년</option><option value="2026">2026년</option><option value="2025">2025년</option><option value="2024">2024년</option><option value="2023">2023년</option><option value="2022">2022년</option><option value="2021">2021년</option><option value="2020">2020년</option><option value="2019">2019년</option><option value="2018">2018년</option><option value="2017">2017년</option><option value="2016">2016년</option><option value="2015">2015년</option><option value="2014">2014년</option><option value="2013">2013년</option>
-            </select>
-            <span style="color:var(--muted);font-size:13px">~</span>
-            <select id="bf-cpyright-to" onchange="applyCopyrightFilter()">
-              <option value="">끝년도</option>
-              <option value="2040">2040년</option><option value="2039">2039년</option><option value="2038">2038년</option><option value="2037">2037년</option><option value="2036">2036년</option><option value="2035">2035년</option><option value="2034">2034년</option><option value="2033">2033년</option><option value="2032">2032년</option><option value="2031">2031년</option><option value="2030">2030년</option><option value="2029">2029년</option><option value="2028">2028년</option><option value="2027">2027년</option><option value="2026">2026년</option><option value="2025">2025년</option><option value="2024">2024년</option><option value="2023">2023년</option><option value="2022">2022년</option><option value="2021">2021년</option><option value="2020">2020년</option><option value="2019">2019년</option><option value="2018">2018년</option><option value="2017">2017년</option><option value="2016">2016년</option><option value="2015">2015년</option><option value="2014">2014년</option><option value="2013">2013년</option>
-            </select>
-          </div>
-          <input type="text" id="bf-cpyright-title" placeholder="제목 검색" oninput="applyCopyrightFilter()">
-          <button class="btn sm" onclick="resetCopyrightFilter()"><i class="ti ti-x"></i> 필터 초기화</button>
-        </div>
-        <div id="bf-cpyright-info" style="font-size:13.5px;color:var(--muted);padding:6px 16px;display:none"></div>
-        <div class="post-list" id="copyright-right-list"></div>
+        <div id="bf-copyright-info" style="font-size:13.5px;color:var(--muted);padding:6px 16px;display:none"></div>
+        <div class="post-list" id="copyright-list"></div>
       </div>
     </div>
 
@@ -1722,21 +1276,13 @@ function goSub(pageId, el, navId) {
 
 // ── 배너 ────────────────────────────────────────────────
 function banner(msg, type) {
-  const b  = document.getElementById('banner');
-  const bd = document.getElementById('banner-backdrop');
+  const b = document.getElementById('banner');
   b.className = type;
-  b.innerHTML = (type === 'loading'
-    ? '<i class="ti ti-loader-2" style="animation:spin 1s linear infinite;font-size:22px;flex-shrink:0"></i>'
-    : '<i class="ti ti-alert-circle" style="font-size:22px;flex-shrink:0"></i>') + msg;
+  b.innerHTML = (type === 'loading' ? '<i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i>' : '<i class="ti ti-alert-circle"></i>') + msg;
   b.style.display = 'flex';
-  if (bd) bd.style.display = 'block';
-  if (type !== 'loading') setTimeout(() => bannerClear(), 4000);
+  if (type !== 'loading') setTimeout(() => b.style.display = 'none', 4000);
 }
-function bannerClear() {
-  document.getElementById('banner').style.display = 'none';
-  const bd = document.getElementById('banner-backdrop');
-  if (bd) bd.style.display = 'none';
-}
+function bannerClear() { document.getElementById('banner').style.display = 'none'; }
 
 // ── API 호출 ─────────────────────────────────────────────
 async function apiFetch(params = {}) {
@@ -1798,9 +1344,7 @@ async function refreshAll() {
   renderBoard('award',  d.award);
   renderBoard('patent', d.patent);
   renderBoard('brand',      d.brand);
-  renderCopyright(d.copyright);
-  renderContentTable('press', d.press);
-  renderContentTable('blog',  d.blog);
+  renderBoard('copyright',  d.copyright);
   if (document.getElementById('pg-changelog')?.classList.contains('active')) {
     renderAlerts(d.alerts);
   }
@@ -1827,9 +1371,7 @@ function renderPage(pageId) {
     case 'res-award':   renderBoard('award',  DATA.award);  break;
     case 'res-patent':  renderBoard('patent', DATA.patent); break;
     case 'res-brand':      renderBoard('brand',     DATA.brand);     break;
-    case 'res-copyright':  renderCopyright(DATA.copyright); break;
-    case 'content-press':  renderContentTable('press', DATA.press); break;
-    case 'content-blog':   renderContentTable('blog',  DATA.blog); break;
+    case 'res-copyright':  renderBoard('copyright', DATA.copyright); break;
     default:
       // 커스텀 자원 관리 탭
       if (pageId.startsWith('res-custom_')) {
@@ -1854,7 +1396,6 @@ function renderMetrics(m) {
   set('m-award',   '수상');
   set('m-patent',  '특허');
   set('m-brand',   '상표');
-  set('m-copyright', '프로그램저작');
   set('m-history', '활성연혁');
   set('m-budget',  '예산집행률');
   set('m-traffic', '월유입');
@@ -1880,69 +1421,6 @@ function renderAlerts(rows) {
 // ── 인증/수상/특허/상표 연도 필터 ──────────────────────────
 const _boardAllRows = {}; // key별 원본 저장
 
-// ── 프로그램 저작/등록 분류별 렌더 ─────────────────────
-let _copyrightAllRows = [];
-
-function renderCopyright(rows) {
-  _copyrightAllRows = rows || [];
-  applyCopyrightFilter();
-}
-
-function applyCopyrightFilter() {
-  const allRows = _copyrightAllRows;
-  const regRows  = allRows.filter(r => (r['분류'] || '프로그램 등록') !== '저작권');
-  const rightRows = allRows.filter(r => r['분류'] === '저작권');
-
-  // 프로그램 등록 필터
-  const fromReg  = document.getElementById('bf-cpyreg-from')?.value || '';
-  const toReg    = document.getElementById('bf-cpyreg-to')?.value   || '';
-  const titleReg = document.getElementById('bf-cpyreg-title')?.value.toLowerCase() || '';
-  const filteredReg = regRows.filter(r => {
-    const y = parseInt(String(r['날짜']||'').split('.')[0]) || 0;
-    if (fromReg && y < parseInt(fromReg)) return false;
-    if (toReg   && y > parseInt(toReg))   return false;
-    if (titleReg && !String(r['제목']||'').toLowerCase().includes(titleReg)) return false;
-    return true;
-  });
-
-  // 저작권 필터
-  const fromRight  = document.getElementById('bf-cpyright-from')?.value || '';
-  const toRight    = document.getElementById('bf-cpyright-to')?.value   || '';
-  const titleRight = document.getElementById('bf-cpyright-title')?.value.toLowerCase() || '';
-  const filteredRight = rightRows.filter(r => {
-    const y = parseInt(String(r['날짜']||'').split('.')[0]) || 0;
-    if (fromRight && y < parseInt(fromRight)) return false;
-    if (toRight   && y > parseInt(toRight))   return false;
-    if (titleRight && !String(r['제목']||'').toLowerCase().includes(titleRight)) return false;
-    return true;
-  });
-
-  // info 표시
-  const infoReg = document.getElementById('bf-cpyreg-info');
-  if (infoReg) {
-    const hasF = fromReg || toReg || titleReg;
-    infoReg.style.display = hasF ? 'block' : 'none';
-    if (hasF) infoReg.textContent = `필터 적용 중 — ${filteredReg.length}건 / 전체 ${regRows.length}건`;
-  }
-  const infoRight = document.getElementById('bf-cpyright-info');
-  if (infoRight) {
-    const hasF = fromRight || toRight || titleRight;
-    infoRight.style.display = hasF ? 'block' : 'none';
-    if (hasF) infoRight.textContent = `필터 적용 중 — ${filteredRight.length}건 / 전체 ${rightRows.length}건`;
-  }
-
-  renderBoardRows('copyright', filteredReg,  'copyright-reg-list',   '등록된 프로그램 등록이 없습니다.');
-  renderBoardRows('copyright', filteredRight, 'copyright-right-list', '등록된 저작권이 없습니다.');
-}
-
-function resetCopyrightFilter() {
-  ['bf-cpyreg-from','bf-cpyreg-to','bf-cpyreg-title','bf-cpyright-from','bf-cpyright-to','bf-cpyright-title'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.value = '';
-  });
-  applyCopyrightFilter();
-}
-
 function applyBoardFilter(key) {
   const from   = parseInt(document.getElementById('bf-' + key + '-from')?.value || '0') || 0;
   const to     = parseInt(document.getElementById('bf-' + key + '-to')?.value   || '0') || 0;
@@ -1961,7 +1439,7 @@ function applyBoardFilter(key) {
   });
 
   const info = document.getElementById('bf-' + key + '-info');
-  const hasFilter = from || to || title || status;
+  const hasFilter = from || to || title;
   if (info) {
     if (hasFilter) {
       info.style.display = 'block';
@@ -2003,11 +1481,24 @@ function downloadBoardFiltered(key) {
 
   if (!rows.length) { banner('다운로드할 데이터가 없습니다.', 'error'); return; }
 
-  const cols = EXCEL_COLS[key] || ['날짜','제목','내용','비고'];
+  const colMap  = EXCEL_COLS[key];
+  const headers = Object.keys(colMap);
+  const dataKeys = Object.values(colMap);
+  const BOM = '\uFEFF';
+  const esc = v => { const s = String(v==null?'':v); return s.includes(',')||s.includes('"')||s.includes('\n')?'"'+s.replace(/"/g,'""')+'"':s; };
   const sorted = [...rows].sort((a,b) => parseDateNum(b['날짜']) - parseDateNum(a['날짜']));
-  const labels = { cert:'인증', award:'수상', patent:'특허', brand:'상표', copyright:'프로그램저작등록' };
-  const suffix = hasFilter ? '_필터링' : '';
-  downloadAsXls(cols, sorted, `소프트힐스_${labels[key]||key}${suffix}_${new Date().toISOString().slice(0,10)}.xls`);
+  const csv = BOM + headers.join(',') + '\n' + sorted.map(r => dataKeys.map((k,i) => esc(headers[i]==='일자'?normalizeDate(r[k]):r[k])).join(',')).join('\n');
+
+  const labels = { cert:'인증', award:'수상', patent:'특허', brand:'상표' };
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url;
+  a.download = `소프트힐스_${labels[key]||key}${hasFilter?'_필터링':''}_${new Date().toISOString().slice(0,10)}.csv`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  banner(`✅ 엑셀 다운로드 완료 (${rows.length}건)`, 'loading');
+  setTimeout(() => bannerClear(), 2000);
 }
 
 function downloadIntroProduct() {
@@ -2049,12 +1540,14 @@ function renderResMain(history) {
     el.innerHTML = '<div class="empty"><i class="ti ti-timeline"></i><p>최근 3년 활성화된 연혁이 없습니다.</p></div>';
     return;
   }
-  el.innerHTML = `<table class="tbl"><thead><tr><th>일자</th><th>구분</th><th>내용</th><th>내용(영문)</th><th>첨부</th></tr></thead><tbody>
+  el.innerHTML = `<table class="tbl"><thead><tr><th>일자</th><th>구분</th><th>내용</th><th>첨부</th></tr></thead><tbody>
     ${active.map(r => `<tr>
-      <td style="color:var(--muted);white-space:nowrap">${fmtDate(r['날짜'])}</td>
+      <td style="color:var(--muted);white-space:nowrap">${r['날짜']}</td>
       <td>${r['구분'] ? `<span style="background:var(--accent-lt);color:var(--accent);padding:2px 8px;border-radius:100px;font-size:11px;font-weight:500">${r['구분']}</span>` : '—'}</td>
-      <td>${r['내용'] || ''}</td>
-      <td style="color:var(--muted)">${r['내용2'] || '—'}</td>
+      <td>
+        <div>${r['내용']}</div>
+        ${r['내용(영문)'] ? `<div style="font-size:11px;color:var(--muted);margin-top:2px">${r['내용(영문)']}</div>` : ''}
+      </td>
       <td style="color:var(--muted)">${r['첨부파일명'] || '—'}</td>
     </tr>`).join('')}
   </tbody></table>`;
@@ -2071,7 +1564,7 @@ function renderMainYoutube(rows) {
   const sorted = [...rows].sort((a,b) => parseDateNum(b['게시일']) - parseDateNum(a['게시일']));
   const top5 = sorted.slice(0, 5);
   el.innerHTML = top5.map(r => `<tr>
-    <td style="white-space:nowrap;color:var(--muted)">${fmtDate(r['게시일'])}</td>
+    <td style="white-space:nowrap;color:var(--muted)">${r['게시일'] || ''}</td>
     <td>${r['솔루션명'] ? `<span style="background:var(--accent-lt);color:var(--accent);padding:2px 8px;border-radius:100px;font-size:11px">${r['솔루션명']}</span>` : '—'}</td>
     <td>${r['제목'] || ''}</td>
     <td>${r['유튜브URL'] ? `<a href="${r['유튜브URL']}" target="_blank" class="btn sm"><i class="ti ti-external-link"></i> 보기</a>` : '—'}</td>
@@ -2092,7 +1585,7 @@ function renderMainPatent(rows) {
     const fileId = r['이미지ID'] || '';
     const driveUrl = fileId ? `https://drive.google.com/file/d/${fileId}/view` : '';
     return `<tr>
-      <td style="white-space:nowrap;color:var(--muted)">${fmtDate(r['날짜'])}</td>
+      <td style="white-space:nowrap;color:var(--muted)">${r['날짜']||''}</td>
       <td style="font-weight:500">${r['제목']||''}</td>
       <td style="font-size:13px;color:var(--muted)">${r['내용']||''}</td>
       <td>${driveUrl ? `<a href="${driveUrl}" target="_blank" class="btn sm"><i class="ti ti-paperclip"></i></a>` : '—'}</td>
@@ -2103,9 +1596,9 @@ function renderMainPatent(rows) {
 function renderMainIntro(rows) {
   const el = document.getElementById('main-intro-list');
   if (!el) return;
-  // 제품별 소개서, 브로슈어 제외한 일반 목록
+  // 제품별 소개서 제외한 일반 목록
   const list = (rows || [])
-    .filter(r => r['분류'] !== '제품별 소개서' && r['분류'] !== '브로슈어')
+    .filter(r => r['분류'] !== '제품별 소개서')
     .sort((a,b) => parseDateNum(b['게시일']) - parseDateNum(a['게시일']));
   if (!list.length) {
     el.innerHTML = '<div class="empty"><i class="ti ti-files"></i><p>소개 자료가 없습니다.</p></div>';
@@ -2119,8 +1612,8 @@ function renderMainIntro(rows) {
     <div class="post-card post-card-simple">
       <div class="post-body">
         <div class="post-date">
-          ${fmtDate(r['게시일'])}
-          ${r['분류'] ? `<span style="margin-left:6px;background:var(--accent-lt);color:#004386;padding:1px 8px;border-radius:100px;font-size:11px">${r['분류']}</span>` : ''}
+          ${r['게시일'] || ''}
+          ${r['분류'] ? `<span style="margin-left:6px;background:var(--accent-lt);color:#0F6E56;padding:1px 8px;border-radius:100px;font-size:11px">${r['분류']}</span>` : ''}
           ${folderUrl ? `<a href="${folderUrl}" target="_blank" style="margin-left:8px;font-size:11px;color:var(--accent);text-decoration:none;display:inline-flex;align-items:center;gap:3px;padding:1px 8px;border:1px solid var(--accent);border-radius:100px"><i class="ti ti-folder-open" style="font-size:12px"></i> 공유 폴더</a>` : ''}
         </div>
         <div class="post-title">${r['제목'] || '(제목 없음)'}</div>
@@ -2182,26 +1675,6 @@ function resetHistoryFilter() {
   renderHistoryRows(_historyAllRows);
 }
 
-// ── 엑셀 다운로드 공통 헬퍼 (HTML 테이블 → .xls, 열 너비 자동) ──
-function downloadAsXls(cols, rows, filename) {
-  const esc = v => String(v == null ? '' : v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  const headerRow = cols.map(c => `<th style="background:#0075C2;color:#fff;font-weight:bold;padding:6px 10px;white-space:nowrap;border:1px solid #004386">${esc(c)}</th>`).join('');
-    const bodyRows  = rows.map((r, i) => {
-    return '<tr>' + cols.map(c => `<td style="padding:5px 10px;border:1px solid #C7DEFA;background:#ffffff;white-space:nowrap">${esc(r[c])}</td>`).join('') + '</tr>';
-  }).join('');
-  const html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
-<head><meta charset="UTF-8"><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>데이터</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head>
-<body><table border="1">${'<tr>' + headerRow + '</tr>'}${bodyRows}</table></body></html>`;
-  const blob = new Blob(['\uFEFF' + html], { type: 'application/vnd.ms-excel;charset=utf-8;' });
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a');
-  a.href = url; a.download = filename;
-  document.body.appendChild(a); a.click(); document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-  banner(`✅ 엑셀 다운로드 완료 (${rows.length}건)`, 'loading');
-  setTimeout(() => bannerClear(), 2000);
-}
-
 function downloadHistoryFiltered() {
   const status   = document.getElementById('hf-status')?.value   || '';
   const yearFrom = parseInt(document.getElementById('hf-year-from')?.value || '0') || 0;
@@ -2224,10 +1697,34 @@ function downloadHistoryFiltered() {
 
   if (!rows.length) { banner('다운로드할 데이터가 없습니다.', 'error'); return; }
 
-  const cols = EXCEL_COLS['history'];
+  const colMap  = EXCEL_COLS['history'];
+  const headers = Object.keys(colMap);
+  const dataKeys = Object.values(colMap);
+
+  const BOM = '\uFEFF';
+  const escape = v => {
+    const s = String(v == null ? '' : v);
+    return s.includes(',') || s.includes('"') || s.includes('\n') ? '"' + s.replace(/"/g, '""') + '"' : s;
+  };
+
   const sorted = [...rows].sort((a,b) => parseDateNum(b['날짜']) - parseDateNum(a['날짜']));
+  const csv = BOM + headers.join(',') + '\n' +
+    sorted.map(r => dataKeys.map((k,i) => {
+      let val = r[k];
+      if (headers[i] === '일자') val = normalizeDate(val);
+      return escape(val);
+    }).join(',')).join('\n');
+
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url;
   const suffix = hasFilter ? '_필터링' : '';
-  downloadAsXls(cols, sorted, `소프트힐스_연혁${suffix}_${new Date().toISOString().slice(0,10)}.xls`);
+  a.download = `소프트힐스_연혁${suffix}_${new Date().toISOString().slice(0,10)}.csv`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  banner(`✅ 엑셀 다운로드 완료 (${rows.length}건)`, 'loading');
+  setTimeout(() => bannerClear(), 2000);
 }
 
 function renderHistory(rows) {
@@ -2239,7 +1736,7 @@ function renderHistoryRows(rows) {
   const el = document.getElementById('history-list');
   if (!el) return;
   if (!rows || !rows.length) {
-    el.innerHTML = '<tr><td colspan="7"><div class="empty"><i class="ti ti-timeline"></i><p>연혁이 없습니다.</p></div></td></tr>';
+    el.innerHTML = '<tr><td colspan="6"><div class="empty"><i class="ti ti-timeline"></i><p>연혁이 없습니다.</p></div></td></tr>';
     return;
   }
   const sorted = [...rows].sort((a,b) => parseDateNum(b['날짜']) - parseDateNum(a['날짜']));
@@ -2251,12 +1748,14 @@ function renderHistoryRows(rows) {
   el.innerHTML = sorted.map(r => `
     <tr>
       <td><span class="chip ${r['상태'] === '활성' ? 'chip-on' : 'chip-off'}" onclick="toggleStatus(${r._row})">${r['상태'] || '비활성'}</span></td>
-      <td style="white-space:nowrap;color:var(--muted)">${fmtDate(r['날짜'])}</td>
+      <td style="white-space:nowrap;color:var(--muted)">${r['날짜']}</td>
       <td style="white-space:nowrap">${r['구분'] ? `<span style="background:var(--accent-lt);color:var(--accent);padding:2px 8px;border-radius:100px;font-size:11px;font-weight:500">${r['구분']}</span>` : '—'}</td>
-      <td>${r['내용'] || ''}</td>
-      <td style="color:var(--muted)">${r['내용2'] || '—'}</td>
+      <td>
+        <div>${r['내용']}</div>
+        ${r['내용(영문)'] ? `<div style="font-size:11px;color:var(--muted);margin-top:3px">${r['내용(영문)']}</div>` : ''}
+      </td>
       <td>${r['첨부파일명'] ? `<a href="https://drive.google.com/file/d/${r['첨부파일ID']}/view" target="_blank" class="btn sm"><i class="ti ti-paperclip"></i> ${r['첨부파일명']}</a>` : '—'}</td>
-      <td style="text-align:right;white-space:nowrap">
+      <td style="text-align:right">
         <button class="btn sm edit-btn" data-type="history" data-key="${r._cacheKey}"><i class="ti ti-edit"></i></button>
         <button class="btn sm danger del-btn" data-type="history" data-row="${r._row}"><i class="ti ti-trash"></i></button>
       </td>
@@ -2266,14 +1765,12 @@ function renderHistoryRows(rows) {
 // ── 소개 자료 렌더 (post-list 방식) ─────────────────────
 function renderIntro(rows) {
   const allRows = rows || [];
-  // 분류별 분리: 회사소개서 및 공용 / 제품별 소개서 / 브로슈어
-  const general  = allRows.filter(r => r['분류'] !== '제품별 소개서' && r['분류'] !== '브로슈어');
-  const product  = allRows.filter(r => r['분류'] === '제품별 소개서');
-  const brochure = allRows.filter(r => r['분류'] === '브로슈어');
+  // 제품별 소개서와 일반 구분
+  const general = allRows.filter(r => r['분류'] !== '제품별 소개서');
+  const product = allRows.filter(r => r['분류'] === '제품별 소개서');
 
-  _renderIntroList('intro-list',          general,   '소개 자료가 없습니다.');
-  _renderIntroList('intro-product-list',  product,   '제품별 소개서가 없습니다.');
-  _renderIntroList('intro-brochure-list', brochure,  '브로슈어가 없습니다.');
+  _renderIntroList('intro-list', general, '소개 자료가 없습니다.');
+  _renderIntroList('intro-product-list', product, '제품별 소개서가 없습니다.');
 }
 
 function _renderIntroList(elId, rows, emptyMsg) {
@@ -2283,28 +1780,22 @@ function _renderIntroList(elId, rows, emptyMsg) {
     el.innerHTML = `<div class="empty"><i class="ti ti-files"></i><p>${emptyMsg}</p></div>`;
     return;
   }
-  // 게시일 최신순 정렬 (같은 게시일이면 _row 오름차순 유지)
-  const sorted = [...rows].sort((a,b) => {
-    const dDiff = parseDateNum(b['게시일']) - parseDateNum(a['게시일']);
-    return dDiff !== 0 ? dDiff : (a._row||0) - (b._row||0);
-  });
+  const sorted = [...rows].sort((a,b) => parseDateNum(b['게시일']) - parseDateNum(a['게시일']));
   sorted.forEach((r, idx) => {
     const cKey = 'intro_' + (r._row !== undefined && r._row !== null ? String(r._row) : 'i' + idx);
     r._cacheKey = cKey;
     rowCache[cKey] = r;
   });
-  el.innerHTML = sorted.map((r, idx) => {
+  el.innerHTML = sorted.map(r => {
     const fileId = r['파일ID'] || '';
     const driveUrl = fileId ? `https://drive.google.com/file/d/${fileId}/view` : '';
     const folderUrl = r['공유폴더URL'] || '';
-    const isFirst = idx === 0;
-    const isLast  = idx === sorted.length - 1;
     return `
     <div class="post-card post-card-simple">
       <div class="post-body">
         <div class="post-date">
-          ${fmtDate(r['게시일'])}
-          ${r['분류'] ? `<span style="margin-left:6px;background:var(--accent-lt);color:#004386;padding:1px 8px;border-radius:100px;font-size:11px">${r['분류']}</span>` : ''}
+          ${r['게시일'] || ''}
+          ${r['분류'] ? `<span style="margin-left:6px;background:var(--accent-lt);color:#0F6E56;padding:1px 8px;border-radius:100px;font-size:11px">${r['분류']}</span>` : ''}
           ${folderUrl ? `<a href="${folderUrl}" target="_blank" style="margin-left:8px;font-size:11px;color:var(--accent);text-decoration:none;display:inline-flex;align-items:center;gap:3px;padding:1px 8px;border:1px solid var(--accent);border-radius:100px" title="공유 폴더 열기"><i class="ti ti-folder-open" style="font-size:12px"></i> 공유 폴더</a>` : ''}
         </div>
         <div class="post-title">${r['제목'] || '(제목 없음)'}</div>
@@ -2312,8 +1803,6 @@ function _renderIntroList(elId, rows, emptyMsg) {
         ${r['비고'] ? `<div class="post-note"><span>비고</span> ${r['비고']}</div>` : ''}
         <div class="post-actions">
           ${driveUrl ? `<a href="${driveUrl}" target="_blank" class="post-file-btn"><i class="ti ti-download"></i> ${r['파일명'] || '파일 열기'}</a>` : ''}
-          <button class="btn sm" onclick="moveIntroRow('${elId}',${idx},-1)" ${isFirst?'disabled':''} title="위로"><i class="ti ti-arrow-up"></i></button>
-          <button class="btn sm" onclick="moveIntroRow('${elId}',${idx},+1)" ${isLast?'disabled':''} title="아래로"><i class="ti ti-arrow-down"></i></button>
           <button class="btn sm edit-btn" data-type="intro" data-key="${r._cacheKey}"><i class="ti ti-edit"></i> 수정</button>
           <button class="btn sm danger del-btn" data-type="intro" data-row="${r._row}"><i class="ti ti-trash"></i> 삭제</button>
         </div>
@@ -2322,104 +1811,17 @@ function _renderIntroList(elId, rows, emptyMsg) {
   }).join('');
 }
 
-// ── 소개 자료 순서 변경 ──────────────────────────────────────
-// elId: 'intro-list' | 'intro-product-list', idx: 현재 인덱스, dir: -1(위) / +1(아래)
-async function moveIntroRow(elId, idx, dir) {
-  // 현재 렌더된 카드들에서 _row 값 추출
-  const el = document.getElementById(elId);
-  if (!el) return;
-
-  // 각 카드의 del-btn data-row 속성으로 _row 수집
-  const cards  = el.querySelectorAll('.post-card');
-  const rowNums = Array.from(cards).map(c => {
-    const btn = c.querySelector('.del-btn');
-    return btn ? parseInt(btn.dataset.row) : null;
-  }).filter(v => v !== null);
-
-  const targetIdx = idx + dir;
-  if (targetIdx < 0 || targetIdx >= rowNums.length) return;
-
-  const rowA = rowNums[idx];
-  const rowB = rowNums[targetIdx];
-
-  // 버튼 비활성화 (중복 클릭 방지)
-  el.querySelectorAll('button').forEach(b => b.disabled = true);
-  banner('순서 변경 중…', 'loading');
-
-  const res = await apiPost({ action: 'swapRows', sheet: '소개자료', rowA, rowB });
-  if (res && res.ok) {
-    await refreshAll();
-    bannerClear();
-  } else {
-    banner('순서 변경 실패: ' + (res?.error || '오류'), 'error');
-    el.querySelectorAll('button').forEach(b => b.disabled = false);
-  }
-}
-// ── 유튜브 영상: 원본 저장 + 필터 ──────────────────────
-let _youtubeAllRows = [];
-
+// ── 유튜브 렌더 ──────────────────────────────────────────
 function renderYoutube(rows) {
-  _youtubeAllRows = rows || [];
-  // 구분 드롭다운 옵션 채우기 (기존 선택값 유지)
-  const sel = document.getElementById('yf-category');
-  if (sel) {
-    const prevVal = sel.value;
-    const cats = [...new Set(_youtubeAllRows.map(r => r['구분']).filter(Boolean))].sort();
-    sel.innerHTML = `<option value="">구분 전체</option>` + cats.map(c => `<option value="${c}">${c}</option>`).join('');
-    if (cats.includes(prevVal)) sel.value = prevVal;
-  }
-  applyYoutubeFilter();
-}
-
-function applyYoutubeFilter() {
-  const category = document.getElementById('yf-category')?.value || '';
-  const solution = document.getElementById('yf-solution')?.value.trim().toLowerCase() || '';
-  const title    = document.getElementById('yf-title')?.value.trim().toLowerCase() || '';
-
-  const filtered = _youtubeAllRows.filter(r => {
-    if (category && r['구분'] !== category) return false;
-    if (solution && !String(r['솔루션명'] || '').toLowerCase().includes(solution)) return false;
-    if (title && !String(r['제목'] || '').toLowerCase().includes(title)) return false;
-    return true;
-  });
-
-  const info = document.getElementById('yf-info');
-  const hasFilter = category || solution || title;
-  if (info) {
-    if (hasFilter) {
-      info.style.display = 'block';
-      info.textContent = `필터 적용 중 — ${filtered.length}건 / 전체 ${_youtubeAllRows.length}건`;
-    } else {
-      info.style.display = 'none';
-    }
-  }
-
-  renderYoutubeRows(filtered);
-}
-
-function resetYoutubeFilter() {
-  ['yf-category', 'yf-solution', 'yf-title'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.value = '';
-  });
-  const info = document.getElementById('yf-info');
-  if (info) info.style.display = 'none';
-  renderYoutubeRows(_youtubeAllRows);
-}
-
-function renderYoutubeRows(rows) {
   const el = document.getElementById('youtube-list');
-  if (!el) return;
-  if (!rows || !rows.length) { el.innerHTML = '<tr><td colspan="6"><div class="empty"><i class="ti ti-brand-youtube"></i><p>영상이 없습니다.</p></div></td></tr>'; return; }
-  const sorted = [...rows].sort((a,b) => parseDateNum(b['게시일']) - parseDateNum(a['게시일']));
-  sorted.forEach((r, idx) => {
+  if (!rows || !rows.length) { el.innerHTML = '<tr><td colspan="5"><div class="empty"><i class="ti ti-brand-youtube"></i><p>영상이 없습니다.</p></div></td></tr>'; return; }
+  rows.forEach((r, idx) => {
     const cKey = 'youtube_' + (r._row !== undefined && r._row !== null ? String(r._row) : 'i' + idx);
     r._cacheKey = cKey;
     rowCache[cKey] = r;
   });
-  el.innerHTML = sorted.map(r => `<tr>
-    <td>${r['구분'] ? `<span style="background:var(--accent-lt);color:var(--accent-dk);padding:2px 8px;border-radius:100px;font-size:11px">${r['구분']}</span>` : '—'}</td>
-    <td style="color:var(--muted);white-space:nowrap">${fmtDate(r['게시일'])}</td>
+  el.innerHTML = rows.map(r => `<tr>
+    <td style="color:var(--muted);white-space:nowrap">${r['게시일']}</td>
     <td>${r['솔루션명']||''}</td>
     <td>
       <div style="font-weight:500">${r['제목']||''}</div>
@@ -2432,107 +1834,6 @@ function renderYoutubeRows(rows) {
     </td>
   </tr>`).join('');
 }
-
-// ── 언론보도/블로그 공통 (유튜브와 동일 패턴, URL 필드/버튼 라벨만 다름) ──
-const CONTENT_TABLE_CFG = {
-  press: { listId: 'press-list', prefix: 'pf', emptyIcon: 'ti-news', emptyMsg: '등록된 언론보도/칼럼이 없습니다.', urlKey: 'URL', linkLabel: '바로가기', linkIcon: 'ti-external-link' },
-  blog:  { listId: 'blog-list',  prefix: 'blf', emptyIcon: 'ti-pencil', emptyMsg: '등록된 블로그 글이 없습니다.', urlKey: 'URL', linkLabel: '바로가기', linkIcon: 'ti-external-link' },
-};
-
-let _contentAllRows = { press: [], blog: [] };
-
-function renderContentTable(key, rows) {
-  const cfg = CONTENT_TABLE_CFG[key];
-  if (!cfg) return;
-  _contentAllRows[key] = rows || [];
-  const sel = document.getElementById(cfg.prefix + '-category');
-  if (sel) {
-    const prevVal = sel.value;
-    const cats = [...new Set(_contentAllRows[key].map(r => r['구분']).filter(Boolean))].sort();
-    sel.innerHTML = `<option value="">구분 전체</option>` + cats.map(c => `<option value="${c}">${c}</option>`).join('');
-    if (cats.includes(prevVal)) sel.value = prevVal;
-  }
-  applyContentFilter(key);
-}
-
-function applyContentFilter(key) {
-  const cfg = CONTENT_TABLE_CFG[key];
-  if (!cfg) return;
-  const p = cfg.prefix;
-  const category = document.getElementById(p + '-category')?.value || '';
-  const solution = document.getElementById(p + '-solution')?.value.trim().toLowerCase() || '';
-  const title    = document.getElementById(p + '-title')?.value.trim().toLowerCase() || '';
-
-  const all = _contentAllRows[key] || [];
-  const filtered = all.filter(r => {
-    if (category && r['구분'] !== category) return false;
-    if (solution && !String(r['솔루션명'] || '').toLowerCase().includes(solution)) return false;
-    if (title && !String(r['제목'] || '').toLowerCase().includes(title)) return false;
-    return true;
-  });
-
-  const info = document.getElementById(p + '-info');
-  const hasFilter = category || solution || title;
-  if (info) {
-    if (hasFilter) {
-      info.style.display = 'block';
-      info.textContent = `필터 적용 중 — ${filtered.length}건 / 전체 ${all.length}건`;
-    } else {
-      info.style.display = 'none';
-    }
-  }
-
-  renderContentRows(key, filtered);
-}
-
-function resetContentFilter(key) {
-  const cfg = CONTENT_TABLE_CFG[key];
-  if (!cfg) return;
-  const p = cfg.prefix;
-  [p + '-category', p + '-solution', p + '-title'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.value = '';
-  });
-  const info = document.getElementById(p + '-info');
-  if (info) info.style.display = 'none';
-  renderContentRows(key, _contentAllRows[key] || []);
-}
-
-function renderContentRows(key, rows) {
-  const cfg = CONTENT_TABLE_CFG[key];
-  if (!cfg) return;
-  const el = document.getElementById(cfg.listId);
-  if (!el) return;
-  if (!rows || !rows.length) {
-    el.innerHTML = `<tr><td colspan="6"><div class="empty"><i class="ti ${cfg.emptyIcon}"></i><p>${cfg.emptyMsg}</p></div></td></tr>`;
-    return;
-  }
-  const sorted = [...rows].sort((a,b) => parseDateNum(b['게시일']) - parseDateNum(a['게시일']));
-  sorted.forEach((r, idx) => {
-    const cKey = key + '_' + (r._row !== undefined && r._row !== null ? String(r._row) : 'i' + idx);
-    r._cacheKey = cKey;
-    rowCache[cKey] = r;
-  });
-  el.innerHTML = sorted.map(r => `<tr>
-    <td>${r['구분'] ? `<span style="background:var(--accent-lt);color:var(--accent-dk);padding:2px 8px;border-radius:100px;font-size:11px">${r['구분']}</span>` : '—'}</td>
-    <td style="color:var(--muted);white-space:nowrap">${fmtDate(r['게시일'])}</td>
-    <td>${r['솔루션명']||''}</td>
-    <td>
-      <div style="font-weight:500">${r['제목']||''}</div>
-      ${r['내용'] ? `<div style="font-size:12.5px;color:var(--muted);margin-top:3px">${r['내용']}</div>` : ''}
-    </td>
-    <td>${r[cfg.urlKey] ? `<a href="${r[cfg.urlKey]}" target="_blank" class="btn sm"><i class="ti ${cfg.linkIcon}"></i> ${cfg.linkLabel}</a>` : '—'}</td>
-    <td style="text-align:right">
-      <button class="btn sm edit-btn" data-type="${key}" data-key="${r._cacheKey}"><i class="ti ti-edit"></i></button>
-      <button class="btn sm danger del-btn" data-type="${key}" data-row="${r._row}"><i class="ti ti-trash"></i></button>
-    </td>
-  </tr>`).join('');
-}
-
-function applyPressFilter() { applyContentFilter('press'); }
-function resetPressFilter() { resetContentFilter('press'); }
-function applyBlogFilter()  { applyContentFilter('blog'); }
-function resetBlogFilter()  { resetContentFilter('blog'); }
 
 // ── 특허 카드 렌더 헬퍼 ────────────────────────────────
 function _renderPatentCards(sorted) {
@@ -2557,7 +1858,7 @@ function _renderPatentCards(sorted) {
       </div>
       <div class="post-body">
         <div class="post-date">
-          ${fmtDate(r['날짜'])}
+          ${r['날짜']||''}
           <span class="chip ${st === '등록' ? 'chip-on' : 'chip-pending'}" style="margin-left:8px;font-size:12px">${st}</span>
         </div>
         <div class="post-title">${r['제목']||'(제목 없음)'}</div>
@@ -2609,18 +1910,12 @@ function previewBlock(fileId, imgId, format) {
 }
 
 function renderBoard(key, rows) {
-  // 원본 저장 (필터링용)
-  _boardAllRows[key] = rows || [];
-  renderBoardRows(key, rows || []);
-}
-
-function renderBoardRows(key, rows, listId, emptyMsg) {
-  let el = document.getElementById(listId || (key + '-list'));
-  if (!el) return;
+  const el = document.getElementById(key + '-list');
   const ico = BOARD_ICON[key] || 'ti-file';
 
   if (!rows || !rows.length) {
-    el.innerHTML = `<div class="empty"><i class="ti ${ico}"></i><p>${emptyMsg || '등록된 항목이 없습니다.'}</p></div>`;
+    const emptyDiv = `<div class="empty"><i class="ti ${ico}"></i><p>등록된 항목이 없습니다.</p></div>`;
+    el.innerHTML = key === 'patent' ? `<tr><td colspan="7">${emptyDiv}</td></tr>` : emptyDiv;
     return;
   }
 
@@ -2631,12 +1926,25 @@ function renderBoardRows(key, rows, listId, emptyMsg) {
     rowCache[cKey] = r;
   });
 
-  // 특허: post-list 카드 형식
+  // ── 특허: 수상과 동일한 카드 형식 (미리보기 포함) ──
   if (key === 'patent') {
-    el.innerHTML = _renderPatentCards(sorted);
+    // tbody → post-list div로 전환
+    const container = el.closest('.card');
+    // tbody를 post-list div로 교체 (최초 1회)
+    if (el.tagName === 'TBODY') {
+      const div = document.createElement('div');
+      div.className = 'post-list';
+      div.id = 'patent-list';
+      el.parentElement.parentElement.replaceWith(div); // table 전체 교체
+      // 새 엘리먼트 참조
+      const newEl = document.getElementById('patent-list');
+      if (!newEl) return;
+      newEl.innerHTML = _renderPatentCards(sorted);
+    } else {
+      el.innerHTML = _renderPatentCards(sorted);
+    }
     return;
   }
-
   el.innerHTML = sorted.map(r => {
     const fileId = r['이미지ID'] || r['파일ID'] || '';
     const fmt    = r['이미지명'] ? r['이미지명'].split('.').pop().toLowerCase() : '';
@@ -2662,7 +1970,7 @@ function renderBoardRows(key, rows, listId, emptyMsg) {
              <span class="preview-label">미리보기 없음</span>`}
       </div>
       <div class="post-body">
-        <div class="post-date">${fmtDate(r['날짜'] || r['게시일'])}</div>
+        <div class="post-date">${r['날짜'] || r['게시일'] || ''}</div>
         <div class="post-title">${r['제목'] || '(제목 없음)'}</div>
         ${r['내용'] ? `<div class="post-content">${r['내용']}</div>` : ''}
         ${r['비고'] ? `<div class="post-note"><span>비고</span> ${r['비고']}</div>` : ''}
@@ -2686,27 +1994,29 @@ async function toggleStatus(rowNum) {
 }
 
 // ── 삭제 ─────────────────────────────────────────────────
-const SHEET_MAP = { cert:'인증', award:'수상', patent:'특허', brand:'상표', copyright:'프로그램저작', history:'연혁', intro:'소개자료', youtube:'유튜브', press:'언론보도', blog:'블로그' };
+const SHEET_MAP = { cert:'인증', award:'수상', patent:'특허', brand:'상표', copyright:'프로그램저작', history:'연혁', intro:'소개자료', youtube:'유튜브' };
 async function deleteItem(key, rowNum) {
   if (!confirm('이 항목을 삭제하시겠습니까?')) return;
   const res = await apiPost({ action: 'delete', sheet: SHEET_MAP[key], row: rowNum });
-  if (res) { await refreshSheet(key); }
+  if (res) { await refreshAll(); }
 }
 
 // ── 모달 ─────────────────────────────────────────────────
 // ── 연/월 선택 공통 함수 ────────────────────────────────
 function yearMonthSelect(dateVal) {
+  // dateVal: "2025.06" or "2025" or "" or Date object → 모두 문자열로 처리
   let dateStr = '';
   if (dateVal instanceof Date) {
-    dateStr = dateVal.getFullYear() + '.' + (dateVal.getMonth() + 1);
+    dateStr = dateVal.getFullYear() + '.' + String(dateVal.getMonth() + 1).padStart(2, '0');
   } else if (dateVal) {
     dateStr = String(dateVal);
+    // ISO 형식 처리 (예: "2025-06-15T...")
     const isoMatch = dateStr.match(/^(\d{4})[-./](\d{1,2})/);
-    if (isoMatch) dateStr = isoMatch[1] + '.' + parseInt(isoMatch[2]);
+    if (isoMatch) dateStr = isoMatch[1] + '.' + String(isoMatch[2]).padStart(2, '0');
   }
   const parts = dateStr.split('.');
   const selYear  = parts[0] || '';
-  const selMonth = parts[1] ? String(parseInt(parts[1])) : '';
+  const selMonth = parts[1] || '';
 
   const years = [];
   for (let y = 2040; y >= 2013; y--) years.push(y);
@@ -2716,7 +2026,7 @@ function yearMonthSelect(dateVal) {
 
   const monthOpts = `<option value="">월 미선택</option>` +
     Array.from({length:12}, (_,i) => i+1)
-      .map(m => `<option value="${m}" ${selMonth == m ? 'selected' : ''}>${m}월</option>`).join('');
+      .map(m => `<option value="${String(m).padStart(2,'0')}" ${selMonth == String(m).padStart(2,'0') ? 'selected' : ''}>${m}월</option>`).join('');
 
   return `
     <div class="form-row">
@@ -2740,103 +2050,19 @@ function syncDateField() {
   if (el) el.value = y ? (m ? y + '.' + m : y) : '';
 }
 
-// ── 날짜 최종값을 select에서 직접 읽어 반환 ──────────────
-function getDateFromSelects() {
-  const y = document.getElementById('f-year')?.value  || '';
-  const m = document.getElementById('f-month')?.value || '';
-  const d = document.getElementById('f-day')?.value   || '';
-  if (!y) return '';
-  if (d) return y + '.' + m + '.' + d;
-  if (m) return y + '.' + m;
-  return y;
-}
-
-// ── 연/월/일 선택 (유튜브 전용 — 일자까지 입력) ─────────
-function yearMonthDaySelect(dateVal) {
-  let dateStr = '';
-  if (dateVal instanceof Date) {
-    dateStr = dateVal.getFullYear() + '.' + (dateVal.getMonth() + 1) + '.' + dateVal.getDate();
-  } else if (dateVal) {
-    dateStr = String(dateVal);
-    const isoMatch = dateStr.match(/^(\d{4})[-./](\d{1,2})(?:[-./](\d{1,2}))?/);
-    if (isoMatch) {
-      dateStr = isoMatch[1] + '.' + parseInt(isoMatch[2]) + (isoMatch[3] ? '.' + parseInt(isoMatch[3]) : '');
-    }
-  }
-  const parts = dateStr.split('.');
-  const selYear  = parts[0] || '';
-  const selMonth = parts[1] ? String(parseInt(parts[1])) : '';
-  const selDay   = parts[2] ? String(parseInt(parts[2])) : '';
-
-  const years = [];
-  for (let y = 2040; y >= 2013; y--) years.push(y);
-
-  const yearOpts = `<option value="">연도 선택</option>` +
-    years.map(y => `<option value="${y}" ${selYear == y ? 'selected' : ''}>${y}년</option>`).join('');
-
-  const monthOpts = `<option value="">월 미선택</option>` +
-    Array.from({length:12}, (_,i) => i+1)
-      .map(m => `<option value="${m}" ${selMonth == m ? 'selected' : ''}>${m}월</option>`).join('');
-
-  const dayOpts = `<option value="">일 미선택</option>` +
-    Array.from({length:31}, (_,i) => i+1)
-      .map(d => `<option value="${d}" ${selDay == d ? 'selected' : ''}>${d}일</option>`).join('');
-
-  return `
-    <div class="form-row">
-      <label>게시일</label>
-      <div style="display:flex;gap:8px;">
-        <select id="f-year" style="flex:1" onchange="syncDateFieldYMD()">
-          ${yearOpts}
-        </select>
-        <select id="f-month" style="flex:1" onchange="syncDateFieldYMD()">
-          ${monthOpts}
-        </select>
-        <select id="f-day" style="flex:1" onchange="syncDateFieldYMD()">
-          ${dayOpts}
-        </select>
-      </div>
-      <input type="hidden" id="f-date" value="${dateVal||''}">
-    </div>`;
-}
-
-function syncDateFieldYMD() {
-  const y = document.getElementById('f-year')?.value || '';
-  const m = document.getElementById('f-month')?.value || '';
-  const d = document.getElementById('f-day')?.value   || '';
-  const el = document.getElementById('f-date');
-  if (!el) return;
-  if (!y) { el.value = ''; return; }
-  let v = y;
-  if (m) { v += '.' + m; if (d) v += '.' + d; }
-  el.value = v;
-}
-
-// ── 날짜 표시 포맷 (2026.6 → 2026.06, 2026.6.1 → 2026.06.01) ──
-function fmtDate(val) {
-  if (!val) return '';
-  const s = String(val);
-  const m = s.match(/^(\d{4})\.(\d{1,2})(?:\.(\d{1,2}))?/);
-  if (!m) return s;
-  let r = m[1] + '.' + m[2].padStart(2, '0');
-  if (m[3]) r += '.' + m[3].padStart(2, '0');
-  return r;
-}
-
 // ── 날짜 파싱: "2025.06" → 정렬용 숫자 202506 ──────────
 function parseDateNum(str) {
   if (!str) return 0;
   let s = String(str);
   // ISO 날짜 처리 ("2025-06-15T..." 또는 "2025-06-15")
-  const isoMatch = s.match(/^(\d{4})[-./](\d{1,2})(?:[-./](\d{1,2}))?/);
+  const isoMatch = s.match(/^(\d{4})[-./](\d{1,2})/);
   if (isoMatch) {
-    return parseInt(isoMatch[1]) * 10000 + parseInt(isoMatch[2]) * 100 + (parseInt(isoMatch[3]) || 0);
+    return parseInt(isoMatch[1]) * 100 + parseInt(isoMatch[2]);
   }
   const p = s.split('.');
   const y = parseInt(p[0]) || 0;
   const m = parseInt(p[1]) || 0;
-  const d = parseInt(p[2]) || 0;
-  return y * 10000 + m * 100 + d;
+  return y * 100 + m;
 }
 
 const MODAL_FORMS = {
@@ -2844,23 +2070,15 @@ const MODAL_FORMS = {
     ${yearMonthSelect(d['날짜']||'')}
     <div class="form-row"><label>구분 <span style="font-size:11px;color:var(--muted)">(예: 설립, 수상, 계약, 출시 등)</span></label><input type="text" id="f-category" placeholder="구분 직접 입력" value="${d['구분']||''}"></div>
     <div class="form-row"><label>내용 (국문)</label><input type="text" id="f-content" placeholder="연혁 내용 (한국어)" value="${d['내용']||''}"></div>
-    <div class="form-row"><label>내용 (영문)</label><input type="text" id="f-content-en" placeholder="연혁 내용 (English)" value="${d['내용2']||''}"></div>
+    <div class="form-row"><label>내용 (영문)</label><input type="text" id="f-content-en" placeholder="연혁 내용 (English)" value="${d['내용(영문)']||''}"></div>
     <div class="form-row"><label>첨부파일 구글 드라이브 ID</label><input type="text" id="f-fileid" placeholder="구글 드라이브 파일 ID" value="${d['첨부파일ID']||''}"></div>
     <div class="form-row"><label>첨부파일명</label><input type="text" id="f-filename" placeholder="예) 수상내역.pdf" value="${d['첨부파일명']||''}"></div>
     <div class="form-row"><label>상태</label><select id="f-status"><option ${d['상태']==='활성'?'selected':''}>활성</option><option ${d['상태']==='비활성'?'selected':''}>비활성</option></select></div>`,
 
   cert: (d) => boardForm(d),
   award: (d) => boardForm(d),
+  patent: (d) => boardForm(d),
   brand: (d) => boardForm(d),
-  copyright: (d) => `
-    ${yearMonthSelect(d['날짜']||'')}
-    <div class="form-row"><label>분류</label>
-      <select id="f-copyright-type">
-        <option value="프로그램 등록" ${(d['분류']||'프로그램 등록')==='프로그램 등록'?'selected':''}>프로그램 등록</option>
-        <option value="저작권" ${d['분류']==='저작권'?'selected':''}>저작권</option>
-      </select>
-    </div>
-    ${boardFormFields(d)}`,
   patent: (d) => `
     ${yearMonthSelect(d['날짜']||'')}
     <div class="form-row"><label>상태</label>
@@ -2897,7 +2115,7 @@ const MODAL_FORMS = {
     const existUrl  = existId ? 'https://drive.google.com/file/d/' + existId + '/view' : '';
     return `
     ${yearMonthSelect(d['게시일']||'')}
-    <div class="form-row"><label>분류</label><select id="f-category"><option ${d['분류']==='회사소개서'?'selected':''}>회사소개서</option><option ${d['분류']==='제품별 소개서'?'selected':''}>제품별 소개서</option><option ${d['분류']==='공용 PPT 템플릿'?'selected':''}>공용 PPT 템플릿</option><option ${d['분류']==='브로슈어'?'selected':''}>브로슈어</option></select></div>
+    <div class="form-row"><label>분류</label><select id="f-category"><option ${d['분류']==='회사소개서'?'selected':''}>회사소개서</option><option ${d['분류']==='제품별 소개서'?'selected':''}>제품별 소개서</option><option ${d['분류']==='공용 PPT 템플릿'?'selected':''}>공용 PPT 템플릿</option></select></div>
     <div class="form-row"><label>제목</label><input type="text" id="f-title" value="${d['제목']||''}"></div>
     <div class="form-row"><label>내용</label><textarea id="f-content">${d['내용']||''}</textarea></div>
     <div class="form-row">
@@ -2930,28 +2148,11 @@ const MODAL_FORMS = {
   },
 
   youtube: (d) => `
-    ${yearMonthDaySelect(d['게시일']||'')}
-    <div class="form-row"><label>구분 <span style="font-size:11px;color:var(--muted)">(예: 솔루션 소개, 사용법, 인터뷰 등)</span></label><input type="text" id="f-category" placeholder="구분 직접 입력" value="${d['구분']||''}"></div>
+    ${yearMonthSelect(d['게시일']||'')}
     <div class="form-row"><label>솔루션명</label><input type="text" id="f-solution" value="${d['솔루션명']||''}"></div>
     <div class="form-row"><label>제목</label><input type="text" id="f-title" value="${d['제목']||''}"></div>
     <div class="form-row"><label>내용</label><textarea id="f-content" placeholder="영상 설명 (선택)">${d['내용']||''}</textarea></div>
     <div class="form-row"><label>유튜브 URL</label><input type="url" id="f-url" placeholder="https://youtu.be/..." value="${d['유튜브URL']||''}"></div>`,
-
-  press: (d) => `
-    ${yearMonthDaySelect(d['게시일']||'')}
-    <div class="form-row"><label>구분 <span style="font-size:11px;color:var(--muted)">(예: 언론보도, 칼럼, 인터뷰 등)</span></label><input type="text" id="f-category" placeholder="구분 직접 입력" value="${d['구분']||''}"></div>
-    <div class="form-row"><label>솔루션명</label><input type="text" id="f-solution" value="${d['솔루션명']||''}"></div>
-    <div class="form-row"><label>제목</label><input type="text" id="f-title" value="${d['제목']||''}"></div>
-    <div class="form-row"><label>내용</label><textarea id="f-content" placeholder="설명 (선택)">${d['내용']||''}</textarea></div>
-    <div class="form-row"><label>URL</label><input type="url" id="f-url" placeholder="https://..." value="${d['URL']||''}"></div>`,
-
-  blog: (d) => `
-    ${yearMonthDaySelect(d['게시일']||'')}
-    <div class="form-row"><label>구분 <span style="font-size:11px;color:var(--muted)">(예: 기업소식, 제품소개, 이벤트 등)</span></label><input type="text" id="f-category" placeholder="구분 직접 입력" value="${d['구분']||''}"></div>
-    <div class="form-row"><label>솔루션명</label><input type="text" id="f-solution" value="${d['솔루션명']||''}"></div>
-    <div class="form-row"><label>제목</label><input type="text" id="f-title" value="${d['제목']||''}"></div>
-    <div class="form-row"><label>내용</label><textarea id="f-content" placeholder="설명 (선택)">${d['내용']||''}</textarea></div>
-    <div class="form-row"><label>URL</label><input type="url" id="f-url" placeholder="https://..." value="${d['URL']||''}"></div>`,
 };
 
 function boardForm(d) {
@@ -2960,14 +2161,6 @@ function boardForm(d) {
   const existUrl  = existId ? 'https://drive.google.com/file/d/' + existId + '/view' : '';
   return `
     ${yearMonthSelect(d['날짜']||'')}
-    ${boardFormFields(d)}`;
-}
-
-function boardFormFields(d) {
-  const existId   = d['이미지ID'] || '';
-  const existName = d['이미지명'] || '';
-  const existUrl  = existId ? 'https://drive.google.com/file/d/' + existId + '/view' : '';
-  return `
     <div class="form-row"><label>제목</label><input type="text" id="f-title" value="${d['제목']||''}"></div>
     <div class="form-row"><label>내용</label><textarea id="f-content">${d['내용']||''}</textarea></div>
     <div class="form-row">
@@ -3004,27 +2197,48 @@ const EXCEL_COLS = {
   award:   ['날짜','제목','내용','비고','이미지명'],
   patent:  ['날짜','제목','내용','비고','이미지명'],
   brand:   ['날짜','제목','내용','비고','이미지명'],
-  copyright: ['날짜','제목','내용','비고','이미지명'],
   history: ['날짜','내용','첨부파일명','상태'],
   intro:   ['게시일','분류','제목','내용','비고','파일명','형식'],
-  youtube: ['게시일','구분','솔루션명','제목','유튜브URL'],
-  press:   ['게시일','구분','솔루션명','제목','내용','URL'],
-  blog:    ['게시일','구분','솔루션명','제목','내용','URL'],
+  youtube: ['게시일','솔루션명','제목','유튜브URL'],
 };
 const EXCEL_LABELS = {
-  cert:'인증', award:'수상', patent:'특허', brand:'상표', copyright:'프로그램저작등록',
-  history:'연혁', intro:'소개자료', youtube:'유튜브영상', press:'언론보도및칼럼', blog:'블로그'
+  cert:'인증', award:'수상', patent:'특허', brand:'상표',
+  history:'연혁', intro:'소개자료', youtube:'유튜브영상'
 };
 
 function downloadExcel(key) {
   const rows = DATA[key] || [];
+
   if (!rows.length) { banner('다운로드할 데이터가 없습니다.', 'error'); return; }
 
-  const cols   = EXCEL_COLS[key] || Object.keys(rows[0]).filter(k => !k.startsWith('_'));
+  const cols = EXCEL_COLS[key] || Object.keys(rows[0]).filter(k => !k.startsWith('_'));
   const sorted = [...rows].sort((a,b) =>
     parseDateNum(b['날짜'] || b['게시일']) - parseDateNum(a['날짜'] || a['게시일'])
   );
-  downloadAsXls(cols, sorted, `소프트힐스_${EXCEL_LABELS[key]||key}_${new Date().toISOString().slice(0,10)}.xls`);
+
+  // CSV 생성 (Excel UTF-8 BOM 포함)
+  const BOM = '﻿';
+  const escape = (v) => {
+    const s = String(v === null || v === undefined ? '' : v);
+    return s.includes(',') || s.includes('"') || s.includes('\n')
+      ? '"' + s.replace(/"/g, '""') + '"' : s;
+  };
+  const header = cols.join(',');
+  const body   = sorted.map(r => cols.map(c => escape(r[c] || '')).join(',')).join('\n');
+  const csv    = BOM + header + '\n' + body;
+
+  // 다운로드 트리거
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = `소프트힐스_${EXCEL_LABELS[key]}_${new Date().toISOString().slice(0,10)}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  banner('엑셀 파일 다운로드 완료!', 'loading');
+  setTimeout(() => bannerClear(), 2000);
 }
 
 function openModalCached(type, cacheKey) {
@@ -3038,24 +2252,19 @@ function openModalCached(type, cacheKey) {
   openModal(type, data);
 }
 
-// ── 분류 고정 모달 열기 (소개자료·프로그램저작 목록별 버튼용) ──
-function openModalFixed(type, fixedCategory) {
-  openModal(type, { '분류': fixedCategory });
-}
-
 function openModal(type, data = {}) {
   currentModal = type;
   editRow = data._row || null;
-  document.getElementById('modal-title').textContent = (editRow ? '항목 수정' : '항목 추가') + ' — ' + ({ cert:'인증', award:'수상', patent:'특허', brand:'상표', copyright:'프로그램 저작/등록', history:'연혁', intro:'소개자료', youtube:'유튜브', press:'언론보도 및 칼럼', blog:'블로그' }[type] || type);
+  document.getElementById('modal-title').textContent = (editRow ? '항목 수정' : '항목 추가') + ' — ' + ({ cert:'인증', award:'수상', patent:'특허', brand:'상표', history:'연혁', intro:'소개자료', youtube:'유튜브' }[type] || type);
   document.getElementById('modal-body').innerHTML = MODAL_FORMS[type](data);
   document.getElementById('modal-bg').classList.add('open');
-  // 연/월(/일) 드롭다운 초기 동기화
-  setTimeout(() => { (['youtube','press','blog'].includes(type) ? syncDateFieldYMD : syncDateField)(); initDropzone(); }, 0);
+  // 연/월 드롭다운 초기 동기화
+  setTimeout(() => { syncDateField(); initDropzone(); }, 0);
   currentUploadFile = null;
   // 모달 타입 → 시트명 매핑
   const MODAL_TO_SHEET = {
-    cert: '인증', award: '수상', patent: '특허', brand: '상표', copyright: '프로그램저작',
-    intro: '소개자료', youtube: '유튜브', history: '연혁', press: '언론보도', blog: '블로그'
+    cert: '인증', award: '수상', patent: '특허', brand: '상표',
+    intro: '소개자료', youtube: '유튜브', history: '연혁'
   };
   currentUploadSheet = MODAL_TO_SHEET[type] || '';
 }
@@ -3070,10 +2279,6 @@ const v = (id) => { const el = document.getElementById(id); return el ? el.value
 async function submitModal() {
   const t = currentModal;
   let data = {};
-
-  // 저장 직전 날짜 필드 강제 동기화 (월 선택 후 연도 변경 순서 이슈 방지)
-  if (['youtube','press','blog'].includes(t)) syncDateFieldYMD();
-  else syncDateField();
 
   // 파일이 선택된 경우 먼저 업로드
   if (currentUploadFile) {
@@ -3090,20 +2295,16 @@ async function submitModal() {
   }
 
   if (t === 'history') {
-    data = { '날짜': getDateFromSelects(), '구분': v('f-category'), '내용': v('f-content'), '내용2': v('f-content-en'), '첨부파일ID': v('f-fileid'), '첨부파일명': v('f-filename'), '상태': v('f-status') };
+    data = { '날짜': v('f-date'), '구분': v('f-category'), '내용': v('f-content'), '내용(영문)': v('f-content-en'), '첨부파일ID': v('f-fileid'), '첨부파일명': v('f-filename'), '상태': v('f-status') };
   } else if (t === 'patent') {
-    data = { '날짜': getDateFromSelects(), '상태': v('f-patent-status') || '출원', '제목': v('f-title'), '내용': v('f-content'), '비고': v('f-note'), '이미지ID': v('f-imgid'), '이미지명': v('f-imgname') };
-  } else if (['cert','award','brand'].includes(t)) {
-    data = { '날짜': getDateFromSelects(), '제목': v('f-title'), '내용': v('f-content'), '비고': v('f-note'), '이미지ID': v('f-imgid'), '이미지명': v('f-imgname') };
-  } else if (t === 'copyright') {
-    data = { '날짜': getDateFromSelects(), '분류': v('f-copyright-type') || '프로그램 등록', '제목': v('f-title'), '내용': v('f-content'), '비고': v('f-note'), '이미지ID': v('f-imgid'), '이미지명': v('f-imgname') };
+    data = { '날짜': v('f-date'), '상태': v('f-patent-status') || '출원', '제목': v('f-title'), '내용': v('f-content'), '비고': v('f-note'), '이미지ID': v('f-imgid'), '이미지명': v('f-imgname') };
+  } else if (['cert','award','brand','copyright'].includes(t)) {
+    data = { '날짜': v('f-date'), '제목': v('f-title'), '내용': v('f-content'), '비고': v('f-note'), '이미지ID': v('f-imgid'), '이미지명': v('f-imgname') };
   } else if (t === 'intro') {
     const fmt = v('f-filename').split('.').pop().toLowerCase();
-    data = { '게시일': getDateFromSelects(), '분류': v('f-category'), '제목': v('f-title'), '내용': v('f-content'), '비고': v('f-note'), '공유폴더URL': v('f-folderurl'), '파일ID': v('f-fileid'), '파일명': v('f-filename'), '형식': fmt };
+    data = { '게시일': v('f-date'), '분류': v('f-category'), '제목': v('f-title'), '내용': v('f-content'), '비고': v('f-note'), '공유폴더URL': v('f-folderurl'), '파일ID': v('f-fileid'), '파일명': v('f-filename'), '형식': fmt };
   } else if (t === 'youtube') {
-    data = { '게시일': getDateFromSelects(), '구분': v('f-category'), '솔루션명': v('f-solution'), '제목': v('f-title'), '내용': v('f-content'), '유튜브URL': v('f-url') };
-  } else if (t === 'press' || t === 'blog') {
-    data = { '게시일': getDateFromSelects(), '구분': v('f-category'), '솔루션명': v('f-solution'), '제목': v('f-title'), '내용': v('f-content'), 'URL': v('f-url') };
+    data = { '게시일': v('f-date'), '솔루션명': v('f-solution'), '제목': v('f-title'), '내용': v('f-content'), '유튜브URL': v('f-url') };
   }
 
   const sheetName = SHEET_MAP[t];
@@ -3113,42 +2314,10 @@ async function submitModal() {
   } else {
     res = await apiPost({ action: 'append', sheet: sheetName, data });
   }
-  if (res) { closeModal(); await refreshSheet(t); }
+  if (res) { closeModal(); await refreshAll(); }
 }
 
-// ── 특정 시트만 재로드 (저장 후 빠른 갱신) ───────────────
-async function refreshSheet(type) {
-  const actionMap = {
-    history: 'history', cert: 'cert', award: 'award', patent: 'patent',
-    brand: 'brand', copyright: 'copyright', intro: 'intro',
-    youtube: 'youtube', press: 'press', blog: 'blog'
-  };
-  const action = actionMap[type];
-  if (!action) { await refreshAll(); return; }
-
-  const rows = await apiFetch({ action });
-  if (!rows) return;
-  DATA[type] = rows;
-
-  // 해당 카테고리만 렌더 + 메인 지표 업데이트
-  switch(type) {
-    case 'history':   renderHistory(rows); renderResMain(DATA.history, DATA.metrics); break;
-    case 'cert':      renderBoard('cert', rows); break;
-    case 'award':     renderBoard('award', rows); break;
-    case 'patent':    renderBoard('patent', rows); break;
-    case 'brand':     renderBoard('brand', rows); break;
-    case 'copyright': renderCopyright(rows); break;
-    case 'intro':     renderIntro(rows); renderMainIntro(rows); break;
-    case 'youtube':   renderYoutube(rows); renderMainYoutube(rows); break;
-    case 'press':     renderContentTable('press', rows); break;
-    case 'blog':      renderContentTable('blog', rows); break;
-  }
-  // 지표 카드 빠른 갱신 (메인에 영향 있는 카테고리)
-  if (['cert','award','patent','brand','copyright','history'].includes(type)) {
-    const m = await apiFetch({ action: 'metrics' });
-    if (m) { DATA.metrics = m; renderMetrics(m); }
-  }
-}
+// ── 이미지 미리보기 모달 ─────────────────────────────────
 function openImagePreview(fileId, fileName) {
   const bg     = document.getElementById('img-preview-bg');
   const img    = document.getElementById('img-preview-img');
@@ -3364,7 +2533,7 @@ function renderCustomNavItems() {
 const CUSTOM_TYPE_HEADERS = {
   board:   ['날짜','제목','내용','비고','이미지ID','이미지명'],
   history: ['날짜','내용','첨부파일ID','첨부파일명','상태'],
-  youtube: ['게시일','구분','솔루션명','제목','유튜브URL'],
+  youtube: ['게시일','솔루션명','제목','유튜브URL'],
 };
 
 function createCustomResPage(res) {
@@ -3465,7 +2634,7 @@ function renderCustomPage(key) {
               : `<i class="ti ti-file preview-icon"></i><span class="preview-label">${fileName ? fileName.split('.').pop().toUpperCase() : '없음'}</span>`}
           </div>
           <div class="post-body">
-            <div class="post-date">${fmtDate(r['날짜'])}</div>
+            <div class="post-date">${r['날짜'] || ''}</div>
             <div class="post-title">${r['제목'] || '(제목 없음)'}</div>
             ${r['내용'] ? `<div class="post-content">${r['내용']}</div>` : ''}
             ${r['비고'] ? `<div class="post-note"><span>비고</span> ${r['비고']}</div>` : ''}
@@ -3482,7 +2651,7 @@ function renderCustomPage(key) {
       // 연혁 형식 — 테이블
       el.innerHTML = `<table class="tbl"><thead><tr><th>상태</th><th>일자</th><th>구분</th><th>내용</th><th>첨부</th><th></th></tr></thead><tbody>
         ${rows.map(r => `<tr>
-          <td style="white-space:nowrap;color:var(--muted)">${fmtDate(r['날짜'])}</td>
+          <td style="white-space:nowrap;color:var(--muted)">${r['날짜']||''}</td>
           <td>${r['내용']||''}</td>
           <td>${r['첨부파일명']||'—'}</td>
           <td><span class="badge ${r['상태']==='활성'?'badge-green':'badge-gray'}">${r['상태']||'비활성'}</span></td>
@@ -3701,15 +2870,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
   // ESC 모달 닫기
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
-  // 모달 외부 클릭 시 닫기 — mousedown이 modal-bg에서 시작된 경우에만 닫음
-  // (textarea 드래그 후 modal-bg 위에서 mouseup 해도 닫히지 않도록)
-  const modalBg = document.getElementById('modal-bg');
-  let modalBgMousedownTarget = null;
-  modalBg.addEventListener('mousedown', e => { modalBgMousedownTarget = e.target; });
-  modalBg.addEventListener('click', e => {
-    if (e.target === modalBg && modalBgMousedownTarget === modalBg) closeModal();
-    modalBgMousedownTarget = null;
-  });
+  document.getElementById('modal-bg').addEventListener('click', e => { if (e.target === document.getElementById('modal-bg')) closeModal(); });
 
 });
 
@@ -3748,7 +2909,7 @@ document.addEventListener('click', function(e) {
     const row  = delBtn.dataset.row;
     if (confirm('이 항목을 삭제하시겠습니까?')) {
       apiPost({ action: 'delete', sheet: SHEET_MAP[type], row: parseInt(row) })
-        .then(res => { if (res) refreshSheet(type); });
+        .then(res => { if (res) refreshAll(); });
     }
     return;
   }
@@ -3768,370 +2929,6 @@ document.addEventListener('click', function(e) {
 const style = document.createElement('style');
 style.textContent = '@keyframes spin { to { transform: rotate(360deg); } }';
 document.head.appendChild(style);
-
-// ═══════════════════════════════════════════════════════════
-//  AI 자원 검색 시스템
-// ═══════════════════════════════════════════════════════════
-const AIS = {
-  mode: 'search',   // 'search' | 'ai'
-  query: '',
-  results: [],
-  focusIdx: -1,
-  aiTimer: null,
-  aiAbort: null,
-};
-
-// 카테고리 메타
-const AIS_CAT = {
-  cert:      { label:'인증',       icon:'ti-certificate',  page:'res-cert',      navId:'ni-res', dateKey:'날짜',  titleKey:'제목' },
-  award:     { label:'수상',       icon:'ti-trophy',       page:'res-award',     navId:'ni-res', dateKey:'날짜',  titleKey:'제목' },
-  patent:    { label:'특허',       icon:'ti-shield-check', page:'res-patent',    navId:'ni-res', dateKey:'날짜',  titleKey:'제목' },
-  brand:     { label:'상표',       icon:'ti-registered',   page:'res-brand',     navId:'ni-res', dateKey:'날짜',  titleKey:'제목' },
-  copyright: { label:'프로그램 저작/등록', icon:'ti-copyright',   page:'res-copyright', navId:'ni-res', dateKey:'날짜',  titleKey:'제목' },
-  history:   { label:'연혁',       icon:'ti-timeline',     page:'res-history',   navId:'ni-res', dateKey:'날짜',  titleKey:'내용' },
-  intro:     { label:'소개 자료',   icon:'ti-files',        page:'res-intro',     navId:'ni-res', dateKey:'게시일', titleKey:'제목' },
-  youtube:   { label:'유튜브',     icon:'ti-brand-youtube', page:'res-youtube',  navId:'ni-res', dateKey:'게시일', titleKey:'제목' },
-  press:     { label:'언론보도 및 칼럼', icon:'ti-news',     page:'content-press', navId:'ni-content', dateKey:'게시일', titleKey:'제목' },
-  blog:      { label:'블로그',     icon:'ti-pencil',       page:'content-blog',  navId:'ni-content', dateKey:'게시일', titleKey:'제목' },
-};
-
-function openAiSearch() {
-  const ov = document.getElementById('ai-search-overlay');
-  ov.classList.add('open');
-  setTimeout(() => document.getElementById('ais-input').focus(), 60);
-}
-function closeAiSearch() {
-  document.getElementById('ai-search-overlay').classList.remove('open');
-  document.getElementById('ais-input').value = '';
-  AIS.query = '';
-  AIS.focusIdx = -1;
-  renderAisEmpty();
-}
-function handleAisOverlayClick(e) {
-  if (e.target === document.getElementById('ai-search-overlay')) closeAiSearch();
-}
-
-// / 단축키로 검색창 열기
-document.addEventListener('keydown', e => {
-  if (e.key === '/' && !e.ctrlKey && !e.metaKey && !e.altKey) {
-    const tag = document.activeElement?.tagName;
-    if (tag === 'INPUT' || tag === 'TEXTAREA' || document.activeElement?.isContentEditable) return;
-    e.preventDefault();
-    openAiSearch();
-  }
-  if (e.key === 'Escape') {
-    if (document.getElementById('ai-search-overlay').classList.contains('open')) {
-      e.stopPropagation();
-      closeAiSearch();
-    }
-  }
-});
-
-function setAisMode(mode) {
-  AIS.mode = mode;
-  document.getElementById('ais-tab-search').classList.toggle('active', mode === 'search');
-  document.getElementById('ais-tab-ai').classList.toggle('active', mode === 'ai');
-  const q = document.getElementById('ais-input').value.trim();
-  if (q) {
-    if (mode === 'search') runAisSearch(q);
-    else runAisAi(q);
-  } else {
-    renderAisEmpty();
-  }
-  document.getElementById('ais-input').focus();
-}
-
-function onAisInput() {
-  const q = document.getElementById('ais-input').value;
-  AIS.query = q.trim();
-  AIS.focusIdx = -1;
-  clearTimeout(AIS.aiTimer);
-  if (!AIS.query) { renderAisEmpty(); return; }
-  if (AIS.mode === 'search') {
-    runAisSearch(AIS.query);
-  } else {
-    // AI 모드는 500ms 디바운스
-    AIS.aiTimer = setTimeout(() => runAisAi(AIS.query), 500);
-  }
-}
-
-function onAisKey(e) {
-  const items = document.querySelectorAll('.ais-result-item');
-  if (e.key === 'ArrowDown') {
-    e.preventDefault();
-    AIS.focusIdx = Math.min(AIS.focusIdx + 1, items.length - 1);
-    updateAisFocus(items);
-  } else if (e.key === 'ArrowUp') {
-    e.preventDefault();
-    AIS.focusIdx = Math.max(AIS.focusIdx - 1, 0);
-    updateAisFocus(items);
-  } else if (e.key === 'Enter') {
-    if (AIS.focusIdx >= 0 && items[AIS.focusIdx]) {
-      items[AIS.focusIdx].click();
-    }
-  }
-}
-
-function updateAisFocus(items) {
-  items.forEach((el, i) => {
-    el.style.background = i === AIS.focusIdx ? 'var(--accent-lt)' : '';
-  });
-  if (items[AIS.focusIdx]) items[AIS.focusIdx].scrollIntoView({ block: 'nearest' });
-}
-
-// ── 빠른 검색 ─────────────────────────────────────────────
-function runAisSearch(q) {
-  if (!Object.keys(DATA).length) {
-    renderAisResults([{ _ais_msg: '데이터를 불러오는 중입니다. 잠시 후 다시 시도해주세요.' }]);
-    return;
-  }
-  const lower = q.toLowerCase();
-  const hits = [];
-
-  Object.entries(AIS_CAT).forEach(([key, meta]) => {
-    const rows = DATA[key] || [];
-    rows.forEach(r => {
-      const title   = String(r[meta.titleKey] || '');
-      const content = String(r['내용'] || r['내용2'] || '');
-      const date    = String(r[meta.dateKey] || '');
-      const extra   = String(r['비고'] || '') + String(r['분류'] || '') + String(r['상태'] || '') + String(r['구분'] || '') + String(r['솔루션명'] || '');
-      const all     = (title + content + date + extra).toLowerCase();
-      if (all.includes(lower)) {
-        hits.push({ key, meta, row: r, title, date, content });
-      }
-    });
-  });
-
-  renderAisResults(hits, q);
-}
-
-function renderAisResults(hits, q = '') {
-  const el = document.getElementById('ais-results');
-  if (!hits.length) {
-    el.innerHTML = `<div class="ais-empty"><i class="ti ti-search-off"></i><span>검색 결과가 없습니다</span><span style="font-size:12px">"${q}"와 일치하는 항목이 없어요. AI 질문 탭을 이용해보세요.</span></div>`;
-    return;
-  }
-  if (hits[0]?._ais_msg) {
-    el.innerHTML = `<div class="ais-empty"><i class="ti ti-loader" style="animation:spin 1s linear infinite"></i><span>${hits[0]._ais_msg}</span></div>`;
-    return;
-  }
-
-  // 카테고리별 그룹
-  const groups = {};
-  hits.forEach(h => {
-    if (!groups[h.key]) groups[h.key] = [];
-    groups[h.key].push(h);
-  });
-
-  const hl = (str, q) => {
-    if (!q) return str;
-    const re = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
-    return str.replace(re, m => `<mark>${m}</mark>`);
-  };
-
-  let html = '';
-  Object.entries(groups).forEach(([key, items]) => {
-    const meta = AIS_CAT[key];
-    html += `<div class="ais-section-label"><i class="ti ${meta.icon}" style="margin-right:4px"></i>${meta.label} (${items.length})</div>`;
-    items.slice(0, 5).forEach(h => {
-      const titleHl   = hl(h.title || '(제목 없음)', q);
-      const metaText  = [h.date, h.content ? h.content.slice(0, 40) : ''].filter(Boolean).join(' · ');
-      html += `<div class="ais-result-item" data-key="${key}" data-row="${h.row._row}" onclick="aisGo('${key}','${h.row._row}')">
-        <div class="ais-result-icon"><i class="ti ${meta.icon}"></i></div>
-        <div class="ais-result-body">
-          <div class="ais-result-title">${titleHl}</div>
-          <div class="ais-result-meta">${metaText}</div>
-        </div>
-        <span class="ais-result-badge">${meta.label}</span>
-      </div>`;
-    });
-    if (items.length > 5) {
-      html += `<div class="ais-more-btn" onclick="showAisMore(this,'${key}','${encodeURIComponent(q)}')">
-        <i class="ti ti-chevrons-down" style="font-size:13px"></i> 외 ${items.length - 5}건 더 보기
-      </div>`;
-    }
-  });
-  el.innerHTML = html;
-}
-
-function showAisMore(btn, key, qEncoded) {
-  const q    = decodeURIComponent(qEncoded);
-  const meta = AIS_CAT[key];
-  if (!meta) return;
-
-  const lower  = q.toLowerCase();
-  const allHits = (DATA[key] || []).filter(r => {
-    const title   = String(r[meta.titleKey] || '');
-    const content = String(r['내용'] || '');
-    const date    = String(r[meta.dateKey] || '');
-    const extra   = String(r['비고']||'') + String(r['분류']||'') + String(r['상태']||'') + String(r['구분']||'') + String(r['솔루션명']||'');
-    return (title + content + date + extra).toLowerCase().includes(lower);
-  });
-
-  const hl = (str) => {
-    if (!q) return str;
-    const re = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
-    return str.replace(re, m => `<mark>${m}</mark>`);
-  };
-
-  // 5건 이후 나머지 항목 렌더
-  const rest = allHits.slice(5);
-  let restHtml = rest.map(h => {
-    const title   = String(h[meta.titleKey] || '(제목 없음)');
-    const date    = String(h[meta.dateKey] || '');
-    const content = String(h['내용'] || '').slice(0, 40);
-    const metaText = [date, content].filter(Boolean).join(' · ');
-    return `<div class="ais-result-item" onclick="aisGo('${key}','${h._row}')">
-      <div class="ais-result-icon"><i class="ti ${meta.icon}"></i></div>
-      <div class="ais-result-body">
-        <div class="ais-result-title">${hl(title)}</div>
-        <div class="ais-result-meta">${metaText}</div>
-      </div>
-      <span class="ais-result-badge">${meta.label}</span>
-    </div>`;
-  }).join('');
-
-  // 버튼을 나머지 항목으로 교체
-  const container = document.createElement('div');
-  container.innerHTML = restHtml;
-  btn.replaceWith(container);
-}
-
-function renderAisEmpty() {
-  document.getElementById('ais-results').innerHTML = `
-    <div class="ais-empty">
-      <i class="ti ti-search"></i>
-      <span>검색어를 입력하세요</span>
-      <span style="font-size:12px">인증·수상·특허·상표·연혁·소개 자료·유튜브 영상·프로그램 저작/등록 전체 검색</span>
-    </div>`;
-}
-
-// ── 결과 클릭 → 해당 페이지 이동 + 하이라이트 ────────────
-function aisGo(key, rowNum) {
-  closeAiSearch();
-  const meta = AIS_CAT[key];
-  if (!meta) return;
-
-  // 페이지 이동
-  const subEl = document.querySelector(`[data-page="${meta.page}"]`);
-  goSub(meta.page, subEl, meta.navId);
-
-  // 약간 딜레이 후 해당 항목 하이라이트
-  setTimeout(() => {
-    // del-btn data-row로 카드 찾기
-    const btn = document.querySelector(`.del-btn[data-type="${key}"][data-row="${rowNum}"]`);
-    if (btn) {
-      const card = btn.closest('.post-card, tr');
-      if (card) {
-        card.scrollIntoView({ block: 'center', behavior: 'smooth' });
-        card.classList.add('ais-highlighted');
-        setTimeout(() => card.classList.remove('ais-highlighted'), 3000);
-      }
-    }
-  }, 300);
-}
-
-// ── AI 질문 모드 ───────────────────────────────────────────
-async function runAisAi(q) {
-  if (!q) return;
-  const el = document.getElementById('ais-results');
-  el.innerHTML = `
-    <div class="ais-ai-section">
-      <div class="ais-ai-header"><i class="ti ti-sparkles"></i> AI 답변 생성 중</div>
-      <div class="ais-ai-thinking"><i class="ti ti-loader-2"></i> 자원 데이터를 분석하고 있습니다…</div>
-    </div>`;
-
-  // DATA 요약 (토큰 절약 - 핵심 필드만 추출)
-  const summary = buildDataSummary();
-
-  const systemPrompt = `당신은 소프트힐스 마케팅 운영 대시보드의 자원 검색 도우미입니다.
-아래 자원 데이터를 바탕으로 사용자의 질문에 한국어로 간결하게 답변하세요.
-관련 항목이 있으면 카테고리명과 제목을 함께 언급해주세요.
-답변은 3-5문장 이내로 짧게, 핵심만 전달하세요.
-
-## 자원 데이터 요약
-${summary}`;
-
-  try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 1000,
-        system: systemPrompt,
-        messages: [{ role: 'user', content: q }],
-      }),
-    });
-    const data = await res.json();
-    const text = data?.content?.find(c => c.type === 'text')?.text || '답변을 생성하지 못했습니다.';
-
-    // 관련 항목도 빠른 검색으로 함께 표시
-    const searchHits = runAisSearchSilent(q);
-    let html = `<div class="ais-ai-section">
-      <div class="ais-ai-header"><i class="ti ti-sparkles"></i> AI 답변</div>
-      <div class="ais-ai-text">${text}</div>
-    </div>`;
-    if (searchHits.length) {
-      html += `<div class="ais-section-label" style="margin-top:8px">관련 항목</div>`;
-      searchHits.slice(0, 6).forEach(h => {
-        const meta = AIS_CAT[h.key];
-        html += `<div class="ais-result-item" onclick="aisGo('${h.key}','${h.row._row}')">
-          <div class="ais-result-icon"><i class="ti ${meta.icon}"></i></div>
-          <div class="ais-result-body">
-            <div class="ais-result-title">${h.title || '(제목 없음)'}</div>
-            <div class="ais-result-meta">${h.date || ''}</div>
-          </div>
-          <span class="ais-result-badge">${meta.label}</span>
-        </div>`;
-      });
-    }
-    el.innerHTML = html;
-  } catch(e) {
-    el.innerHTML = `<div class="ais-ai-section">
-      <div class="ais-ai-header"><i class="ti ti-alert-circle" style="color:#A32D2D"></i> 오류</div>
-      <div class="ais-ai-text" style="color:var(--muted)">AI 응답을 가져오지 못했습니다. 빠른 검색 탭을 이용해주세요.</div>
-    </div>`;
-  }
-}
-
-// 검색 결과만 반환 (렌더 없이)
-function runAisSearchSilent(q) {
-  if (!q || !Object.keys(DATA).length) return [];
-  const lower = q.toLowerCase();
-  const hits = [];
-  Object.entries(AIS_CAT).forEach(([key, meta]) => {
-    (DATA[key] || []).forEach(r => {
-      const title   = String(r[meta.titleKey] || '');
-      const content = String(r['내용'] || '');
-      const date    = String(r[meta.dateKey] || '');
-      const all     = (title + content + date).toLowerCase();
-      if (all.includes(lower)) hits.push({ key, meta, row: r, title, date });
-    });
-  });
-  return hits;
-}
-
-// AI에게 보낼 데이터 요약 빌드 (토큰 절약)
-function buildDataSummary() {
-  if (!Object.keys(DATA).length) return '데이터가 아직 로드되지 않았습니다.';
-  let lines = [];
-  Object.entries(AIS_CAT).forEach(([key, meta]) => {
-    const rows = DATA[key] || [];
-    if (!rows.length) return;
-    lines.push(`\n### ${meta.label} (${rows.length}건)`);
-    rows.slice(0, 30).forEach(r => {
-      const date    = r[meta.dateKey] || '';
-      const title   = r[meta.titleKey] || '';
-      const content = (r['내용'] || '').slice(0, 60);
-      const extra   = r['상태'] ? ` [${r['상태']}]` : '';
-      lines.push(`- ${date} | ${title}${extra}${content ? ' | ' + content : ''}`);
-    });
-    if (rows.length > 30) lines.push(`  ... 외 ${rows.length - 30}건`);
-  });
-  return lines.join('\n');
-}
-
 </script>
 </body>
 </html>
