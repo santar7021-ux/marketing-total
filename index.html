@@ -1772,10 +1772,12 @@ async function apiPost(body) {
       body: JSON.stringify(body),
     });
     const json = await res.json();
+    console.log('📡 apiPost 응답:', JSON.stringify(json), '| action:', body.action, 'sheet:', body.sheet);
     bannerClear();
     if (json && json.error) { banner(json.error, 'error'); return null; }
     return json;
   } catch (e) {
+    console.error('📡 apiPost fetch 오류:', e.message);
     banner('저장 실패: ' + e.message, 'error');
     return null;
   }
@@ -3069,14 +3071,12 @@ const v = (id) => { const el = document.getElementById(id); return el ? el.value
 
 async function submitModal() {
   const t = currentModal;
-  console.log('🚀 submitModal 시작, currentModal:', t);
+  let data = {};
 
   // 중복 실행 방지
   const saveBtn = document.querySelector('#modal-bg .btn.primary');
   if (saveBtn && saveBtn.disabled) return;
   if (saveBtn) saveBtn.disabled = true;
-
-  let data = {};
 
   try {
 
@@ -3088,15 +3088,14 @@ async function submitModal() {
   if (currentUploadFile) {
     try {
       const uploaded = await uploadFileViaForm(currentUploadFile);
-      console.log('📎 업로드 결과:', JSON.stringify(uploaded));
       const imgIdEl   = document.getElementById('f-imgid')   || document.getElementById('f-fileid');
       const imgNameEl = document.getElementById('f-imgname') || document.getElementById('f-filename');
-      console.log('📎 imgIdEl:', imgIdEl, 'imgNameEl:', imgNameEl);
       if (imgIdEl)   imgIdEl.value   = uploaded.fileId || '';
       if (imgNameEl) imgNameEl.value = currentUploadFile.name;
       currentUploadFile = null;
     } catch(e) {
-      console.error('❌ 업로드 예외:', e.message);
+      banner('파일 업로드 실패: ' + e.message, 'error');
+      if (saveBtn) saveBtn.disabled = false;
       return;
     }
   }
@@ -3119,7 +3118,6 @@ async function submitModal() {
   }
 
   const sheetName = SHEET_MAP[t];
-  console.log('[저장 디버그] type:', t, 'sheet:', sheetName, 'data keys:', Object.keys(data));
   let res;
   if (editRow) {
     res = await apiPost({ action: 'update', sheet: sheetName, row: editRow, data });
@@ -3691,11 +3689,6 @@ async function uploadFileViaForm(file) {
     if (msg) { msg.textContent = '업로드 실패: ' + (result?.error || '오류'); msg.className = 'upload-msg err'; }
     if (prog) prog.classList.remove('show');
     throw new Error(result?.error || '저장 실패');
-  }
-
-  // fileId 정규화 (응답 구조가 다를 수 있음)
-  if (!result.fileId && result.success) {
-    console.warn('⚠️ fileId 없음, 응답 구조:', JSON.stringify(result));
   }
 
   if (bar) bar.style.width = '100%';
