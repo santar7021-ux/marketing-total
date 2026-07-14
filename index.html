@@ -3107,6 +3107,7 @@ async function submitModal() {
   }
 
   const sheetName = SHEET_MAP[t];
+  console.log('[저장 디버그] type:', t, 'sheet:', sheetName, 'data:', JSON.stringify(data));
   let res;
   if (editRow) {
     res = await apiPost({ action: 'update', sheet: sheetName, row: editRow, data });
