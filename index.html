@@ -1075,7 +1075,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
         </div>
         <div id="pf-info" style="font-size:13.5px;color:var(--muted);padding:6px 16px;display:none"></div>
         <table class="tbl">
-          <thead><tr><th>구분</th><th>게시일</th><th>발행처</th><th>제목 / 내용</th><th>링크</th><th></th></tr></thead>
+          <thead><tr><th>구분</th><th>게시일</th><th>발행처</th><th>언론사명</th><th>제목 / 내용</th><th>링크</th><th></th></tr></thead>
           <tbody id="press-list"></tbody>
         </table>
       </div>
@@ -2547,10 +2547,14 @@ function renderContentRows(key, rows) {
     const solutionVal = key === 'press'
       ? (r['발행처'] || r['솔루션명'] || '')
       : (r['솔루션명'] || '');
+    const pressExtra = key === 'press'
+      ? `<td style="color:var(--muted);font-size:13px">${r['언론사명']||''}</td>`
+      : '';
     return `<tr>
     <td>${r['구분'] ? `<span style="background:var(--accent-lt);color:var(--accent-dk);padding:2px 8px;border-radius:100px;font-size:11px">${r['구분']}</span>` : '—'}</td>
     <td style="color:var(--muted);white-space:nowrap">${fmtDate(r['게시일'])}</td>
     <td>${solutionVal}</td>
+    ${pressExtra}
     <td>
       <div style="font-weight:500">${r['제목']||''}</div>
       ${r['내용'] ? `<div style="font-size:12.5px;color:var(--muted);margin-top:3px">${r['내용']}</div>` : ''}
@@ -2975,7 +2979,8 @@ const MODAL_FORMS = {
   press: (d) => `
     ${yearMonthDaySelect(d['게시일']||'')}
     <div class="form-row"><label>구분 <span style="font-size:11px;color:var(--muted)">(예: 언론보도, 칼럼, 인터뷰 등)</span></label><input type="text" id="f-category" placeholder="구분 직접 입력" value="${d['구분']||''}"></div>
-    <div class="form-row"><label>발행처</label><input type="text" id="f-solution" placeholder="예: 한경, 아이뉴스24 등" value="${d['솔루션명']||''}"></div>
+    <div class="form-row"><label>발행처</label><input type="text" id="f-solution" placeholder="예: 한경, 아이뉴스24 등" value="${d['발행처']||d['솔루션명']||''}"></div>
+    <div class="form-row"><label>언론사명</label><input type="text" id="f-press-company" placeholder="예: 한국경제신문, 아이뉴스24" value="${d['언론사명']||''}"></div>
     <div class="form-row"><label>제목</label><input type="text" id="f-title" value="${d['제목']||''}"></div>
     <div class="form-row"><label>내용</label><textarea id="f-content" placeholder="설명 (선택)">${d['내용']||''}</textarea></div>
     <div class="form-row"><label>URL</label><input type="url" id="f-url" placeholder="https://..." value="${d['URL']||''}"></div>`,
@@ -3043,7 +3048,7 @@ const EXCEL_COLS = {
   history: ['날짜','내용','첨부파일명','상태'],
   intro:   ['게시일','분류','제목','내용','비고','파일명','형식'],
   youtube: ['게시일','구분','솔루션명','제목','유튜브URL'],
-  press:   ['게시일','구분','발행처','제목','내용','URL'],
+  press:   ['게시일','구분','발행처','언론사명','제목','내용','URL'],
   blog:    ['게시일','구분','솔루션명','제목','내용','URL'],
 };
 const EXCEL_LABELS = {
@@ -3147,7 +3152,7 @@ async function submitModal() {
   } else if (t === 'youtube') {
     data = { '게시일': getDateFromSelects(), '구분': v('f-category'), '솔루션명': v('f-solution'), '제목': v('f-title'), '내용': v('f-content'), '유튜브URL': v('f-url') };
   } else if (t === 'press') {
-    data = { '게시일': getDateFromSelects(), '구분': v('f-category'), '발행처': v('f-solution'), '제목': v('f-title'), '내용': v('f-content'), 'URL': v('f-url') };
+    data = { '게시일': getDateFromSelects(), '구분': v('f-category'), '발행처': v('f-solution'), '언론사명': v('f-press-company'), '제목': v('f-title'), '내용': v('f-content'), 'URL': v('f-url') };
   } else if (t === 'blog') {
     data = { '게시일': getDateFromSelects(), '구분': v('f-category'), '솔루션명': v('f-solution'), '제목': v('f-title'), '내용': v('f-content'), 'URL': v('f-url') };
   }
