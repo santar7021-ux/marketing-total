@@ -1002,7 +1002,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
       <!-- 회사소개서 및 공용 -->
       <div class="card card-res">
         <div class="card-hd">
-          <h2><i class="ti ti-files"></i> 회사소개서 및 공용</h2>
+          <h2><i class="ti ti-files"></i> 회사소개서 및 공용 <span id="intro-count-general" style="font-size:13px;font-weight:400;color:var(--muted);margin-left:6px"></span></h2>
           <button class="btn sm primary" onclick="openModalFixed('intro','회사소개서')"><i class="ti ti-plus"></i> 항목 추가</button>
         </div>
         <div class="post-list" id="intro-list"></div>
@@ -1010,7 +1010,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
       <!-- 제품별 소개서 -->
       <div class="card card-res" style="margin-top:20px">
         <div class="card-hd">
-          <h2><i class="ti ti-package"></i> 제품별 소개서</h2>
+          <h2><i class="ti ti-package"></i> 제품별 소개서 <span id="intro-count-product" style="font-size:13px;font-weight:400;color:var(--muted);margin-left:6px"></span></h2>
           <button class="btn sm primary" onclick="openModalFixed('intro','제품별 소개서')"><i class="ti ti-plus"></i> 항목 추가</button>
         </div>
         <div class="post-list" id="intro-product-list"></div>
@@ -1018,7 +1018,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
       <!-- 브로슈어 -->
       <div class="card card-res" style="margin-top:20px">
         <div class="card-hd">
-          <h2><i class="ti ti-bookmarks"></i> 브로슈어</h2>
+          <h2><i class="ti ti-bookmarks"></i> 브로슈어 <span id="intro-count-brochure" style="font-size:13px;font-weight:400;color:var(--muted);margin-left:6px"></span></h2>
           <button class="btn sm primary" onclick="openModalFixed('intro','브로슈어')"><i class="ti ti-plus"></i> 항목 추가</button>
         </div>
         <div class="post-list" id="intro-brochure-list"></div>
@@ -1069,7 +1069,23 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
           <select id="pf-category" onchange="applyPressFilter()">
             <option value="">구분 전체</option>
           </select>
+          <div style="display:flex;align-items:center;gap:4px">
+            <select id="pf-year-from" onchange="applyPressFilter()">
+              <option value="">시작년도</option>
+              <option>2026</option><option>2025</option><option>2024</option><option>2023</option>
+              <option>2022</option><option>2021</option><option>2020</option><option>2019</option>
+              <option>2018</option><option>2017</option><option>2016</option><option>2015</option>
+            </select>
+            <span style="color:var(--muted);font-size:13px">~</span>
+            <select id="pf-year-to" onchange="applyPressFilter()">
+              <option value="">끝년도</option>
+              <option>2026</option><option>2025</option><option>2024</option><option>2023</option>
+              <option>2022</option><option>2021</option><option>2020</option><option>2019</option>
+              <option>2018</option><option>2017</option><option>2016</option><option>2015</option>
+            </select>
+          </div>
           <input type="text" id="pf-solution" placeholder="발행처 검색" oninput="applyPressFilter()">
+          <input type="text" id="pf-company" placeholder="언론사명 검색" oninput="applyPressFilter()">
           <input type="text" id="pf-title" placeholder="제목 검색" oninput="applyPressFilter()">
           <button class="btn sm" onclick="resetPressFilter()"><i class="ti ti-x"></i> 필터 초기화</button>
         </div>
@@ -2292,10 +2308,18 @@ function renderHistoryRows(rows) {
 // ── 소개 자료 렌더 (post-list 방식) ─────────────────────
 function renderIntro(rows) {
   const allRows = rows || [];
-  // 분류별 분리: 회사소개서 및 공용 / 제품별 소개서 / 브로슈어
   const general  = allRows.filter(r => r['분류'] !== '제품별 소개서' && r['분류'] !== '브로슈어');
   const product  = allRows.filter(r => r['분류'] === '제품별 소개서');
   const brochure = allRows.filter(r => r['분류'] === '브로슈어');
+
+  // 개수 badge 업데이트
+  const setCount = (id, n) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = n > 0 ? `(${n}건)` : '';
+  };
+  setCount('intro-count-general',  general.length);
+  setCount('intro-count-product',  product.length);
+  setCount('intro-count-brochure', brochure.length);
 
   _renderIntroList('intro-list',          general,   '소개 자료가 없습니다.');
   _renderIntroList('intro-product-list',  product,   '제품별 소개서가 없습니다.');
@@ -2489,20 +2513,34 @@ function applyContentFilter(key) {
   const solution = document.getElementById(p + '-solution')?.value.trim().toLowerCase() || '';
   const title    = document.getElementById(p + '-title')?.value.trim().toLowerCase() || '';
 
+  // press 전용 필터
+  const yearFrom  = key === 'press' ? (document.getElementById('pf-year-from')?.value || '') : '';
+  const yearTo    = key === 'press' ? (document.getElementById('pf-year-to')?.value   || '') : '';
+  const company   = key === 'press' ? (document.getElementById('pf-company')?.value.trim().toLowerCase() || '') : '';
+
   const all = _contentAllRows[key] || [];
   const filtered = all.filter(r => {
     if (category && r['구분'] !== category) return false;
-    // press는 발행처, blog는 솔루션명으로 필터
+    // 연도 필터 (press 전용)
+    if (yearFrom || yearTo) {
+      const y = parseInt(String(r['게시일'] || '').split('.')[0]) || 0;
+      if (yearFrom && y < parseInt(yearFrom)) return false;
+      if (yearTo   && y > parseInt(yearTo))   return false;
+    }
+    // 발행처 검색
     const solutionField = key === 'press'
       ? (r['발행처'] || r['솔루션명'] || '')
       : (r['솔루션명'] || '');
     if (solution && !String(solutionField).toLowerCase().includes(solution)) return false;
+    // 언론사명 검색 (press 전용)
+    if (company && !String(r['언론사명'] || '').toLowerCase().includes(company)) return false;
     if (title && !String(r['제목'] || '').toLowerCase().includes(title)) return false;
     return true;
   });
 
   const info = document.getElementById(p + '-info');
-  const hasFilter = category || solution || title;
+  const hasFilter = category || solution || title ||
+    (key === 'press' && (yearFrom || yearTo || company));
   if (info) {
     if (hasFilter) {
       info.style.display = 'block';
@@ -2569,7 +2607,15 @@ function renderContentRows(key, rows) {
 }
 
 function applyPressFilter() { applyContentFilter('press'); }
-function resetPressFilter() { resetContentFilter('press'); }
+function resetPressFilter() {
+  ['pf-category','pf-year-from','pf-year-to','pf-solution','pf-company','pf-title'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  const info = document.getElementById('pf-info');
+  if (info) info.style.display = 'none';
+  renderContentRows('press', _contentAllRows['press'] || []);
+}
 function applyBlogFilter()  { applyContentFilter('blog'); }
 function resetBlogFilter()  { resetContentFilter('blog'); }
 
