@@ -1069,13 +1069,13 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
           <select id="pf-category" onchange="applyPressFilter()">
             <option value="">구분 전체</option>
           </select>
-          <input type="text" id="pf-solution" placeholder="솔루션명 검색" oninput="applyPressFilter()">
+          <input type="text" id="pf-solution" placeholder="발행처 검색" oninput="applyPressFilter()">
           <input type="text" id="pf-title" placeholder="제목 검색" oninput="applyPressFilter()">
           <button class="btn sm" onclick="resetPressFilter()"><i class="ti ti-x"></i> 필터 초기화</button>
         </div>
         <div id="pf-info" style="font-size:13.5px;color:var(--muted);padding:6px 16px;display:none"></div>
         <table class="tbl">
-          <thead><tr><th>구분</th><th>게시일</th><th>솔루션명</th><th>제목 / 내용</th><th>링크</th><th></th></tr></thead>
+          <thead><tr><th>구분</th><th>게시일</th><th>발행처</th><th>제목 / 내용</th><th>링크</th><th></th></tr></thead>
           <tbody id="press-list"></tbody>
         </table>
       </div>
@@ -2492,7 +2492,11 @@ function applyContentFilter(key) {
   const all = _contentAllRows[key] || [];
   const filtered = all.filter(r => {
     if (category && r['구분'] !== category) return false;
-    if (solution && !String(r['솔루션명'] || '').toLowerCase().includes(solution)) return false;
+    // press는 발행처, blog는 솔루션명으로 필터
+    const solutionField = key === 'press'
+      ? (r['발행처'] || r['솔루션명'] || '')
+      : (r['솔루션명'] || '');
+    if (solution && !String(solutionField).toLowerCase().includes(solution)) return false;
     if (title && !String(r['제목'] || '').toLowerCase().includes(title)) return false;
     return true;
   });
@@ -2539,10 +2543,14 @@ function renderContentRows(key, rows) {
     r._cacheKey = cKey;
     rowCache[cKey] = r;
   });
-  el.innerHTML = sorted.map(r => `<tr>
+  el.innerHTML = sorted.map(r => {
+    const solutionVal = key === 'press'
+      ? (r['발행처'] || r['솔루션명'] || '')
+      : (r['솔루션명'] || '');
+    return `<tr>
     <td>${r['구분'] ? `<span style="background:var(--accent-lt);color:var(--accent-dk);padding:2px 8px;border-radius:100px;font-size:11px">${r['구분']}</span>` : '—'}</td>
     <td style="color:var(--muted);white-space:nowrap">${fmtDate(r['게시일'])}</td>
-    <td>${r['솔루션명']||''}</td>
+    <td>${solutionVal}</td>
     <td>
       <div style="font-weight:500">${r['제목']||''}</div>
       ${r['내용'] ? `<div style="font-size:12.5px;color:var(--muted);margin-top:3px">${r['내용']}</div>` : ''}
@@ -2552,7 +2560,8 @@ function renderContentRows(key, rows) {
       <button class="btn sm edit-btn" data-type="${key}" data-key="${r._cacheKey}"><i class="ti ti-edit"></i></button>
       <button class="btn sm danger del-btn" data-type="${key}" data-row="${r._row}"><i class="ti ti-trash"></i></button>
     </td>
-  </tr>`).join('');
+  </tr>`;
+  }).join('');
 }
 
 function applyPressFilter() { applyContentFilter('press'); }
@@ -2966,7 +2975,7 @@ const MODAL_FORMS = {
   press: (d) => `
     ${yearMonthDaySelect(d['게시일']||'')}
     <div class="form-row"><label>구분 <span style="font-size:11px;color:var(--muted)">(예: 언론보도, 칼럼, 인터뷰 등)</span></label><input type="text" id="f-category" placeholder="구분 직접 입력" value="${d['구분']||''}"></div>
-    <div class="form-row"><label>솔루션명</label><input type="text" id="f-solution" value="${d['솔루션명']||''}"></div>
+    <div class="form-row"><label>발행처</label><input type="text" id="f-solution" placeholder="예: 한경, 아이뉴스24 등" value="${d['솔루션명']||''}"></div>
     <div class="form-row"><label>제목</label><input type="text" id="f-title" value="${d['제목']||''}"></div>
     <div class="form-row"><label>내용</label><textarea id="f-content" placeholder="설명 (선택)">${d['내용']||''}</textarea></div>
     <div class="form-row"><label>URL</label><input type="url" id="f-url" placeholder="https://..." value="${d['URL']||''}"></div>`,
@@ -3034,7 +3043,7 @@ const EXCEL_COLS = {
   history: ['날짜','내용','첨부파일명','상태'],
   intro:   ['게시일','분류','제목','내용','비고','파일명','형식'],
   youtube: ['게시일','구분','솔루션명','제목','유튜브URL'],
-  press:   ['게시일','구분','솔루션명','제목','내용','URL'],
+  press:   ['게시일','구분','발행처','제목','내용','URL'],
   blog:    ['게시일','구분','솔루션명','제목','내용','URL'],
 };
 const EXCEL_LABELS = {
@@ -3137,7 +3146,9 @@ async function submitModal() {
     data = { '게시일': getDateFromSelects(), '분류': v('f-category'), '제목': v('f-title'), '내용': v('f-content'), '비고': v('f-note'), '공유폴더URL': v('f-folderurl'), '파일ID': v('f-fileid'), '파일명': v('f-filename'), '형식': fmt };
   } else if (t === 'youtube') {
     data = { '게시일': getDateFromSelects(), '구분': v('f-category'), '솔루션명': v('f-solution'), '제목': v('f-title'), '내용': v('f-content'), '유튜브URL': v('f-url') };
-  } else if (t === 'press' || t === 'blog') {
+  } else if (t === 'press') {
+    data = { '게시일': getDateFromSelects(), '구분': v('f-category'), '발행처': v('f-solution'), '제목': v('f-title'), '내용': v('f-content'), 'URL': v('f-url') };
+  } else if (t === 'blog') {
     data = { '게시일': getDateFromSelects(), '구분': v('f-category'), '솔루션명': v('f-solution'), '제목': v('f-title'), '내용': v('f-content'), 'URL': v('f-url') };
   }
 
