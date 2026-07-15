@@ -1030,7 +1030,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
       <div class="page-hd"><h1>유튜브 영상</h1><p>(주)소프트힐스의 영상 자료를 제공합니다.</p></div>
       <div class="card card-scroll">
         <div class="card-hd">
-          <h2><i class="ti ti-brand-youtube"></i> 영상 목록</h2>
+          <h2><i class="ti ti-brand-youtube"></i> 영상 목록 <span id="count-youtube" style="font-size:13px;font-weight:400;color:var(--muted);margin-left:6px"></span></h2>
           <div style="display:flex;gap:6px">
             <button class="btn sm" onclick="downloadExcel('youtube')"><i class="ti ti-file-spreadsheet"></i> 엑셀 다운로드</button>
             <button class="btn sm primary" onclick="openModal('youtube')"><i class="ti ti-plus"></i> 항목 추가</button>
@@ -1059,7 +1059,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
       <div class="page-hd"><h1>언론보도 및 칼럼</h1><p>해당 페이지는 (주)소프트힐스 언론보도 및 칼럼 자료 현황을 제공합니다.</p></div>
       <div class="card card-res">
         <div class="card-hd">
-          <h2><i class="ti ti-news"></i> 언론보도 및 칼럼 목록</h2>
+          <h2><i class="ti ti-news"></i> 언론보도 및 칼럼 목록 <span id="count-press" style="font-size:13px;font-weight:400;color:var(--muted);margin-left:6px"></span></h2>
           <div style="display:flex;gap:6px">
             <button class="btn sm" onclick="downloadExcel('press')"><i class="ti ti-file-spreadsheet"></i> 엑셀 다운로드</button>
             <button class="btn sm primary" onclick="openModal('press')"><i class="ti ti-plus"></i> 항목 추가</button>
@@ -1102,7 +1102,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
       <div class="page-hd"><h1>블로그</h1><p>해당 페이지는 (주)소프트힐스 대표 블로그 컨텐츠 현황을 제공합니다.</p></div>
       <div class="card card-res">
         <div class="card-hd">
-          <h2><i class="ti ti-pencil"></i> 블로그 목록</h2>
+          <h2><i class="ti ti-pencil"></i> 블로그 목록 <span id="count-blog" style="font-size:13px;font-weight:400;color:var(--muted);margin-left:6px"></span></h2>
           <div style="display:flex;gap:6px">
             <button class="btn sm" onclick="downloadExcel('blog')"><i class="ti ti-file-spreadsheet"></i> 엑셀 다운로드</button>
             <button class="btn sm primary" onclick="openModal('blog')"><i class="ti ti-plus"></i> 항목 추가</button>
@@ -1129,7 +1129,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
       <div class="page-hd"><h1>연혁 관리</h1><p>(주)소프트힐스의 연혁을 관리합니다.</p></div>
       <div class="card card-scroll">
         <div class="card-hd">
-          <h2><i class="ti ti-timeline"></i> 연혁 목록</h2>
+          <h2><i class="ti ti-timeline"></i> 연혁 목록 <span id="count-history" style="font-size:13px;font-weight:400;color:var(--muted);margin-left:6px"></span></h2>
           <div style="display:flex;gap:6px">
             <button class="btn sm" onclick="downloadHistoryFiltered()"><i class="ti ti-file-spreadsheet"></i> 엑셀 다운로드</button>
             <button class="btn sm primary" onclick="openModal('history')"><i class="ti ti-plus"></i> 항목 추가</button>
@@ -1235,7 +1235,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
       <div class="page-hd"><h1>인증 관리</h1><p>(주)소프트힐스의 인증 사항을 관리합니다.</p></div>
       <div class="card card-scroll">
         <div class="card-hd">
-          <h2><i class="ti ti-certificate"></i> 인증 목록</h2>
+          <h2><i class="ti ti-certificate"></i> 인증 목록 <span id="count-cert" style="font-size:13px;font-weight:400;color:var(--muted);margin-left:6px"></span></h2>
           <div style="display:flex;gap:6px">
             <button class="btn sm" onclick="downloadBoardFiltered('cert')"><i class="ti ti-file-spreadsheet"></i> 엑셀 다운로드</button>
             <button class="btn sm primary" onclick="openModal('cert')"><i class="ti ti-plus"></i> 항목 추가</button>
@@ -1318,7 +1318,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
       <div class="page-hd"><h1>수상 관리</h1><p>(주)소프트힐스의 수상 사항을 관리합니다.</p></div>
       <div class="card card-scroll">
         <div class="card-hd">
-          <h2><i class="ti ti-trophy"></i> 수상 목록</h2>
+          <h2><i class="ti ti-trophy"></i> 수상 목록 <span id="count-award" style="font-size:13px;font-weight:400;color:var(--muted);margin-left:6px"></span></h2>
           <div style="display:flex;gap:6px">
             <button class="btn sm" onclick="downloadBoardFiltered('award')"><i class="ti ti-file-spreadsheet"></i> 엑셀 다운로드</button>
             <button class="btn sm primary" onclick="openModal('award')"><i class="ti ti-plus"></i> 항목 추가</button>
@@ -1401,7 +1401,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
       <div class="page-hd"><h1>특허 관리</h1><p>(주)소프트힐스의 특허 사항을 관리합니다.</p></div>
       <div class="card card-scroll">
         <div class="card-hd">
-          <h2><i class="ti ti-shield-check"></i> 특허 목록</h2>
+          <h2><i class="ti ti-shield-check"></i> 특허 목록 <span id="count-patent" style="font-size:13px;font-weight:400;color:var(--muted);margin-left:6px"></span></h2>
           <div style="display:flex;gap:6px">
             <button class="btn sm" onclick="downloadBoardFiltered('patent')"><i class="ti ti-file-spreadsheet"></i> 엑셀 다운로드</button>
             <button class="btn sm primary" onclick="openModal('patent')"><i class="ti ti-plus"></i> 항목 추가</button>
@@ -1489,7 +1489,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
       <div class="page-hd"><h1>상표 관리</h1><p>(주)소프트힐스의 상표 사항을 관리합니다.</p></div>
       <div class="card card-scroll">
         <div class="card-hd">
-          <h2><i class="ti ti-registered"></i> 상표 목록</h2>
+          <h2><i class="ti ti-registered"></i> 상표 목록 <span id="count-brand" style="font-size:13px;font-weight:400;color:var(--muted);margin-left:6px"></span></h2>
           <div style="display:flex;gap:6px">
             <button class="btn sm" onclick="downloadBoardFiltered('brand')"><i class="ti ti-file-spreadsheet"></i> 엑셀 다운로드</button>
             <button class="btn sm primary" onclick="openModal('brand')"><i class="ti ti-plus"></i> 항목 추가</button>
@@ -1579,7 +1579,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
       <!-- 프로그램 등록 -->
       <div class="card card-res">
         <div class="card-hd">
-          <h2><i class="ti ti-file-certificate"></i> 프로그램 등록</h2>
+          <h2><i class="ti ti-file-certificate"></i> 프로그램 등록 <span id="count-copyright-reg" style="font-size:13px;font-weight:400;color:var(--muted);margin-left:6px"></span></h2>
           <button class="btn sm primary" onclick="openModalFixed('copyright','프로그램 등록')"><i class="ti ti-plus"></i> 항목 추가</button>
         </div>
         <div class="history-filter-bar">
@@ -1604,7 +1604,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
       <!-- 저작권 -->
       <div class="card card-res" style="margin-top:20px">
         <div class="card-hd">
-          <h2><i class="ti ti-copyright"></i> 저작권</h2>
+          <h2><i class="ti ti-copyright"></i> 저작권 <span id="count-copyright-right" style="font-size:13px;font-weight:400;color:var(--muted);margin-left:6px"></span></h2>
           <button class="btn sm primary" onclick="openModalFixed('copyright','저작권')"><i class="ti ti-plus"></i> 항목 추가</button>
         </div>
         <div class="history-filter-bar">
@@ -1925,8 +1925,18 @@ const _boardAllRows = {}; // key별 원본 저장
 // ── 프로그램 저작/등록 분류별 렌더 ─────────────────────
 let _copyrightAllRows = [];
 
+// ── 목록 개수 badge 업데이트 헬퍼 ─────────────────────────
+function setCountBadge(id, n) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = n > 0 ? `(${n}건)` : '(0건)';
+}
+
 function renderCopyright(rows) {
   _copyrightAllRows = rows || [];
+  const regRows   = _copyrightAllRows.filter(r => (r['분류'] || '프로그램 등록') !== '저작권');
+  const rightRows = _copyrightAllRows.filter(r => r['분류'] === '저작권');
+  setCountBadge('count-copyright-reg',   regRows.length);
+  setCountBadge('count-copyright-right', rightRows.length);
   applyCopyrightFilter();
 }
 
@@ -2274,6 +2284,7 @@ function downloadHistoryFiltered() {
 
 function renderHistory(rows) {
   _historyAllRows = rows || [];
+  setCountBadge('count-history', _historyAllRows.length);
   applyHistoryFilter();
 }
 
@@ -2410,6 +2421,7 @@ let _youtubeAllRows = [];
 
 function renderYoutube(rows) {
   _youtubeAllRows = rows || [];
+  setCountBadge('count-youtube', _youtubeAllRows.length);
   // 구분 드롭다운 옵션 채우기 (기존 선택값 유지)
   const sel = document.getElementById('yf-category');
   if (sel) {
@@ -2495,6 +2507,7 @@ function renderContentTable(key, rows) {
   const cfg = CONTENT_TABLE_CFG[key];
   if (!cfg) return;
   _contentAllRows[key] = rows || [];
+  setCountBadge('count-' + key, (rows || []).length);
   const sel = document.getElementById(cfg.prefix + '-category');
   if (sel) {
     const prevVal = sel.value;
@@ -2694,8 +2707,8 @@ function previewBlock(fileId, imgId, format) {
 }
 
 function renderBoard(key, rows) {
-  // 원본 저장 (필터링용)
   _boardAllRows[key] = rows || [];
+  setCountBadge('count-' + key, (rows || []).length);
   renderBoardRows(key, rows || []);
 }
 
