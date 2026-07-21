@@ -1864,12 +1864,12 @@ function bannerClear() {
 }
 
 // ── API 호출 ─────────────────────────────────────────────
-async function apiFetch(params = {}) {
+async function apiFetch(params = {}, silent = false) {
   if (!API_URL) {
-    banner('API URL이 설정되지 않았습니다. 설정 탭에서 입력해주세요.', 'error');
+    if (!silent) banner('API URL이 설정되지 않았습니다. 설정 탭에서 입력해주세요.', 'error');
     return null;
   }
-  banner('데이터 불러오는 중…', 'loading');
+  if (!silent) banner('데이터 불러오는 중…', 'loading');
   try {
     const qs = new URLSearchParams(params).toString();
     const res = await fetch(API_URL + (qs ? '?' + qs : ''), {
@@ -1879,12 +1879,12 @@ async function apiFetch(params = {}) {
     const text = await res.text();
     let json;
     try { json = JSON.parse(text); }
-    catch(pe) { banner('응답 파싱 실패: ' + text.slice(0,100), 'error'); return null; }
-    bannerClear();
-    if (json && json.error) { banner(json.error, 'error'); return null; }
+    catch(pe) { if (!silent) banner('응답 파싱 실패: ' + text.slice(0,100), 'error'); return null; }
+    if (!silent) bannerClear();
+    if (json && json.error) { if (!silent) banner(json.error, 'error'); return null; }
     return json;
   } catch (e) {
-    banner('연결 실패: ' + e.message, 'error');
+    if (!silent) banner('연결 실패: ' + e.message, 'error');
     return null;
   }
 }
@@ -1924,15 +1924,15 @@ async function refreshAll() {
 
   // copyright, press, blog가 누락된 구버전 응답 대비 fallback
   if (!d.copyright) {
-    const r = await apiFetch({ action: 'copyright' });
+    const r = await apiFetch({ action: 'copyright' }, true);
     d.copyright = r || [];
   }
   if (!d.press) {
-    const r = await apiFetch({ action: 'press' });
+    const r = await apiFetch({ action: 'press' }, true);
     d.press = r || [];
   }
   if (!d.blog) {
-    const r = await apiFetch({ action: 'blog' });
+    const r = await apiFetch({ action: 'blog' }, true);
     d.blog = r || [];
   }
 
@@ -3353,7 +3353,7 @@ async function refreshSheet(type) {
   const action = actionMap[type];
   if (!action) { await refreshAll(); return; }
 
-  const rows = await apiFetch({ action });
+  const rows = await apiFetch({ action }, true); // silent: 에러 배너 억제
   // unknown action 등 실패 시 전체 새로고침으로 fallback
   if (!rows || (rows && rows.error)) { await refreshAll(); return; }
   DATA[type] = rows;
