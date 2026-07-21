@@ -421,6 +421,30 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
 .card-scroll .scroll-body .tbl td { padding-left: 18px; padding-right: 18px; }
 .card-scroll .scroll-body .empty { padding: 40px 20px; }
 
+/* ── 연혁 테이블 가로 스크롤 ── */
+.history-tbl-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.history-tbl-wrap::-webkit-scrollbar { height: 6px; }
+.history-tbl-wrap::-webkit-scrollbar-track { background: var(--bg); }
+.history-tbl-wrap::-webkit-scrollbar-thumb { background: var(--border-md); border-radius: 3px; }
+
+/* 내용(영문) 컬럼 토글 */
+.col-en-hidden .th-en,
+.col-en-hidden .td-en { display: none; }
+.th-en { cursor: pointer; user-select: none; white-space: nowrap; }
+.th-en:hover { color: var(--accent); }
+.th-en::after { content: ' ▾'; font-size: 11px; color: var(--accent); }
+.col-en-hidden .th-en { display: table-cell !important; }
+.col-en-hidden .th-en::after { content: ' ▸'; }
+
+/* 내용(원문) 셀 */
+.td-origin { color: var(--muted); font-size: 13.5px; font-style: italic; }
+
+/* 메인 연혁 */
+.rm-history-tbl-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
 /* ── 알림 목록 ── */
 .alert-list { display: flex; flex-direction: column; gap: 8px; }
 .alert-item {
@@ -1322,19 +1346,33 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
         </div>
         <div id="history-filter-info" style="font-size:13.5px;color:var(--muted);padding:6px 16px;display:none"></div>
         <div class="scroll-body">
-        <table class="tbl">
+        <div class="history-tbl-wrap" id="history-tbl-wrap">
+        <table class="tbl" id="history-tbl">
           <colgroup>
-            <col style="width:62px">  <!-- 상태 -->
-            <col style="width:54px">  <!-- 일자 -->
-            <col style="width:64px">  <!-- 구분 -->
-            <col style="width:32%">   <!-- 내용(국문) -->
-            <col style="width:32%">   <!-- 내용(영문) -->
-            <col style="width:90px">  <!-- 첨부 -->
-            <col style="width:72px">  <!-- 수정/삭제 -->
+            <col style="width:62px">   <!-- 상태 -->
+            <col style="width:54px">   <!-- 일자 -->
+            <col style="width:64px">   <!-- 구분 -->
+            <col style="width:240px">  <!-- 내용 -->
+            <col style="width:200px">  <!-- 내용(원문) -->
+            <col class="td-en" style="width:240px">  <!-- 내용(영문) -->
+            <col style="width:90px">   <!-- 첨부 -->
+            <col style="width:72px">   <!-- 액션 -->
           </colgroup>
-          <thead><tr><th>상태</th><th>일자</th><th>구분</th><th>내용</th><th>내용(영문)</th><th>첨부</th><th></th></tr></thead>
+          <thead>
+            <tr>
+              <th>상태</th>
+              <th>일자</th>
+              <th>구분</th>
+              <th>내용</th>
+              <th>내용(원문)</th>
+              <th class="th-en" onclick="toggleHistoryEn()" title="클릭하여 영문 컬럼 표시/숨김">내용(영문)</th>
+              <th>첨부</th>
+              <th></th>
+            </tr>
+          </thead>
           <tbody id="history-list"></tbody>
         </table>
+        </div>
         </div>
       </div>
     </div>
@@ -2210,15 +2248,24 @@ function renderResMain(history) {
     el.innerHTML = '<div class="empty"><i class="ti ti-timeline"></i><p>최근 3년 활성화된 연혁이 없습니다.</p></div>';
     return;
   }
-  el.innerHTML = `<table class="tbl"><thead><tr><th>일자</th><th>구분</th><th>내용</th><th>내용(영문)</th><th>첨부</th></tr></thead><tbody>
+  el.innerHTML = `<div class="rm-history-tbl-wrap"><table class="tbl" id="rm-history-tbl">
+    <thead><tr>
+      <th>일자</th><th>구분</th><th>내용</th>
+      <th>내용(원문)</th>
+      <th class="th-en" onclick="toggleHistoryEn()" title="클릭하여 영문 표시/숨김">내용(영문)</th>
+      <th>첨부</th>
+    </tr></thead>
+    <tbody>
     ${active.map(r => `<tr>
       <td style="color:var(--muted);white-space:nowrap">${fmtDate(r['날짜'])}</td>
       <td>${r['구분'] ? `<span style="background:var(--accent-lt);color:var(--accent);padding:2px 8px;border-radius:100px;font-size:11px;font-weight:500">${r['구분']}</span>` : '—'}</td>
       <td>${r['내용'] || ''}</td>
-      <td style="color:var(--muted)">${r['내용2'] || '—'}</td>
+      <td class="td-origin">${r['내용(원문)'] || '—'}</td>
+      <td class="td-en" style="color:var(--muted)">${r['내용2'] || '—'}</td>
       <td style="color:var(--muted)">${r['첨부파일명'] || '—'}</td>
     </tr>`).join('')}
-  </tbody></table>`;
+    </tbody>
+  </table></div>`;
 }
 
 // ── 메인 페이지 최근 영상 5개 렌더 ──────────────────────
@@ -2296,6 +2343,14 @@ function renderMainIntro(rows) {
 
 // ── 연혁 렌더 ────────────────────────────────────────────
 // ── 연혁 필터 ──────────────────────────────────────────
+// ── 연혁 영문 컬럼 토글 ─────────────────────────────────
+function toggleHistoryEn() {
+  const tbl = document.getElementById('history-tbl');
+  if (tbl) tbl.classList.toggle('col-en-hidden');
+  const rmTbl = document.querySelector('#rm-history-list table');
+  if (rmTbl) rmTbl.classList.toggle('col-en-hidden');
+}
+
 let _historyAllRows = []; // 전체 원본 보관
 
 function applyHistoryFilter() {
@@ -2401,7 +2456,7 @@ function renderHistoryRows(rows) {
   const el = document.getElementById('history-list');
   if (!el) return;
   if (!rows || !rows.length) {
-    el.innerHTML = '<tr><td colspan="7"><div class="empty"><i class="ti ti-timeline"></i><p>연혁이 없습니다.</p></div></td></tr>';
+    el.innerHTML = '<tr><td colspan="8"><div class="empty"><i class="ti ti-timeline"></i><p>연혁이 없습니다.</p></div></td></tr>';
     return;
   }
   const sorted = [...rows].sort((a,b) => parseDateNum(b['날짜']) - parseDateNum(a['날짜']));
@@ -2416,7 +2471,8 @@ function renderHistoryRows(rows) {
       <td style="white-space:nowrap;color:var(--muted)">${fmtDate(r['날짜'])}</td>
       <td style="white-space:nowrap">${r['구분'] ? `<span style="background:var(--accent-lt);color:var(--accent);padding:2px 8px;border-radius:100px;font-size:11px;font-weight:500">${r['구분']}</span>` : '—'}</td>
       <td>${r['내용'] || ''}</td>
-      <td style="color:var(--muted)">${r['내용2'] || '—'}</td>
+      <td class="td-origin">${r['내용(원문)'] || '—'}</td>
+      <td class="td-en" style="color:var(--muted)">${r['내용2'] || '—'}</td>
       <td>${r['첨부파일명'] ? `<a href="https://drive.google.com/file/d/${r['첨부파일ID']}/view" target="_blank" class="btn sm"><i class="ti ti-paperclip"></i> ${r['첨부파일명']}</a>` : '—'}</td>
       <td style="text-align:right;white-space:nowrap">
         <button class="btn sm edit-btn" data-type="history" data-key="${r._cacheKey}"><i class="ti ti-edit"></i></button>
@@ -3052,6 +3108,7 @@ const MODAL_FORMS = {
     ${yearMonthSelect(d['날짜']||'')}
     <div class="form-row"><label>구분 <span style="font-size:11px;color:var(--muted)">(예: 설립, 수상, 계약, 출시 등)</span></label><input type="text" id="f-category" placeholder="구분 직접 입력" value="${d['구분']||''}"></div>
     <div class="form-row"><label>내용 (국문)</label><input type="text" id="f-content" placeholder="연혁 내용 (한국어)" value="${d['내용']||''}"></div>
+    <div class="form-row"><label>내용 (원문)</label><input type="text" id="f-content-origin" placeholder="연혁 내용 원문 (원어)" value="${d['내용(원문)']||''}"></div>
     <div class="form-row"><label>내용 (영문)</label><input type="text" id="f-content-en" placeholder="연혁 내용 (English)" value="${d['내용2']||''}"></div>
     <div class="form-row"><label>첨부파일 구글 드라이브 ID</label><input type="text" id="f-fileid" placeholder="구글 드라이브 파일 ID" value="${d['첨부파일ID']||''}"></div>
     <div class="form-row"><label>첨부파일명</label><input type="text" id="f-filename" placeholder="예) 수상내역.pdf" value="${d['첨부파일명']||''}"></div>
@@ -3214,7 +3271,7 @@ const EXCEL_COLS = {
   patent:  ['날짜','제목','내용','비고','이미지명'],
   brand:   ['날짜','제목','내용','비고','이미지명'],
   copyright: ['날짜','제목','내용','비고','이미지명'],
-  history: ['날짜','내용','첨부파일명','상태'],
+  history: ['날짜','구분','내용','내용(원문)','내용2','첨부파일명','상태'],
   intro:   ['게시일','분류','제목','내용','비고','파일명','형식'],
   youtube: ['게시일','구분','솔루션명','제목','유튜브URL'],
   press:   ['게시일','구분','발행처','언론사명','제목','내용','URL'],
@@ -3308,7 +3365,7 @@ async function submitModal() {
   }
 
   if (t === 'history') {
-    data = { '날짜': getDateFromSelects(), '구분': v('f-category'), '내용': v('f-content'), '내용2': v('f-content-en'), '첨부파일ID': v('f-fileid'), '첨부파일명': v('f-filename'), '상태': v('f-status') };
+    data = { '날짜': getDateFromSelects(), '구분': v('f-category'), '내용': v('f-content'), '내용(원문)': v('f-content-origin'), '내용2': v('f-content-en'), '첨부파일ID': v('f-fileid'), '첨부파일명': v('f-filename'), '상태': v('f-status') };
   } else if (t === 'patent') {
     data = { '날짜': getDateFromSelects(), '상태': v('f-patent-status') || '출원', '제목': v('f-title'), '내용': v('f-content'), '비고': v('f-note'), '이미지ID': v('f-imgid'), '이미지명': v('f-imgname') };
   } else if (['cert','award','brand'].includes(t)) {
