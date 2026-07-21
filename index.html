@@ -1364,7 +1364,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
               <th>일자</th>
               <th>구분</th>
               <th>내용(대외홍보)</th>
-              <th>내용</th>
+              <th>내용(기존)</th>
               <th class="th-en" onclick="toggleHistoryEn()" title="클릭하여 영문 컬럼 표시/숨김">내용(영문)</th>
               <th>첨부</th>
               <th></th>
@@ -2252,7 +2252,7 @@ function renderResMain(history) {
     <thead><tr>
       <th>일자</th><th>구분</th>
       <th>내용(대외홍보)</th>
-      <th>내용</th>
+      <th>내용(기존)</th>
       <th class="th-en" onclick="toggleHistoryEn()" title="클릭하여 영문 표시/숨김">내용(영문)</th>
       <th>첨부</th>
     </tr></thead>
@@ -3109,7 +3109,7 @@ const MODAL_FORMS = {
     ${yearMonthSelect(d['날짜']||'')}
     <div class="form-row"><label>구분 <span style="font-size:11px;color:var(--muted)">(예: 설립, 수상, 계약, 출시 등)</span></label><input type="text" id="f-category" placeholder="구분 직접 입력" value="${d['구분']||''}"></div>
     <div class="form-row"><label>내용 (대외홍보)</label><input type="text" id="f-content-origin" placeholder="대외홍보용 내용" value="${d['내용(대외홍보)']||''}"></div>
-    <div class="form-row"><label>내용 (국문)</label><input type="text" id="f-content" placeholder="연혁 내용 (한국어)" value="${d['내용']||''}"></div>
+    <div class="form-row"><label>내용 (국문-기존)</label><input type="text" id="f-content" placeholder="기존 내용 (한국어)" value="${d['내용']||''}"></div>
     <div class="form-row"><label>내용 (영문)</label><input type="text" id="f-content-en" placeholder="연혁 내용 (English)" value="${d['내용2']||''}"></div>
     <div class="form-row"><label>첨부파일 구글 드라이브 ID</label><input type="text" id="f-fileid" placeholder="구글 드라이브 파일 ID" value="${d['첨부파일ID']||''}"></div>
     <div class="form-row"><label>첨부파일명</label><input type="text" id="f-filename" placeholder="예) 수상내역.pdf" value="${d['첨부파일명']||''}"></div>
