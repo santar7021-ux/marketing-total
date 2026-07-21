@@ -677,30 +677,15 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
 /* ── 반응형 ── */
 @media (max-width: 700px) {
   #mobile-nav-bar { display: flex !important; }
+  .content { padding-top: 0 !important; }
   #mobile-nav-drawer { display: block !important; }
   #mobile-nav-drawer.open { transform: translateX(0); }
-  #mobile-nav-drawer.open ~ #mobile-nav-overlay,
-  #mobile-nav-overlay.open { display: block !important; }
 }
 
 @media (max-width: 700px) {
   /* ── 레이아웃 ── */
   .rail { display: none; }
   .content { padding: 16px 12px; }
-  .shell { flex-direction: column; }
-
-  /* 모바일 상단 헤더 바 */
-  .content::before {
-    content: 'SOFTHILLS 마케팅 운영';
-    display: block;
-    background: var(--accent-dk);
-    color: #fff;
-    font-size: 14px;
-    font-weight: 700;
-    padding: 12px 16px;
-    margin: -16px -12px 16px;
-    letter-spacing: 0.3px;
-  }
 
   /* ── 지표 카드 ── */
   .metric-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
@@ -993,7 +978,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
   <!-- ── 콘텐츠 ── -->
   <main class="content">
     <!-- 모바일 전용 상단 네비 바 -->
-    <div id="mobile-nav-bar" style="display:none;background:var(--accent-dk);color:#fff;padding:11px 14px;margin:-16px -12px 14px;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50">
+    <div id="mobile-nav-bar" style="display:none;background:var(--accent-dk);color:#fff;padding:12px 16px;margin:0 0 16px;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;border-radius:0">
       <span style="font-size:14px;font-weight:700;letter-spacing:0.3px">SOFTHILLS 마케팅 운영</span>
       <button onclick="document.getElementById('mobile-nav-drawer').classList.toggle('open');document.getElementById('mobile-nav-overlay').style.display=document.getElementById('mobile-nav-drawer').classList.contains('open')?'block':'none'" style="background:none;border:none;color:#fff;cursor:pointer;padding:4px 6px"><i class="ti ti-menu-2" style="font-size:22px"></i></button>
     </div>
@@ -2709,7 +2694,8 @@ function renderContentRows(key, rows) {
   const el = document.getElementById(cfg.listId);
   if (!el) return;
   if (!rows || !rows.length) {
-    el.innerHTML = `<tr><td colspan="6"><div class="empty"><i class="ti ${cfg.emptyIcon}"></i><p>${cfg.emptyMsg}</p></div></td></tr>`;
+    const colspan = key === 'press' ? 7 : 6;
+    el.innerHTML = `<tr><td colspan="${colspan}"><div class="empty"><i class="ti ${cfg.emptyIcon}"></i><p>${cfg.emptyMsg}</p></div></td></tr>`;
     return;
   }
   const sorted = [...rows].sort((a,b) => parseDateNum(b['게시일']) - parseDateNum(a['게시일']));
