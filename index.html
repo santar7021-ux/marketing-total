@@ -477,7 +477,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
 
 .tbl { width: 100%; border-collapse: collapse; font-size: 16.2px; }
 .tbl-goods { table-layout: fixed; min-width: 640px; }
-.tbl-goods td, .tbl-goods th { overflow: hidden; text-overflow: ellipsis; }
+.tbl-goods td, .tbl-goods th { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .goods-tbl-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 .goods-tbl-wrap::-webkit-scrollbar { height: 6px; }
 .goods-tbl-wrap::-webkit-scrollbar-track { background: var(--bg); }
@@ -713,80 +713,90 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
 }
 
 @media (max-width: 700px) {
+  /* ── 기본 폰트 (PC 17.5px → 모바일 축소) ── */
+  body { font-size: 14.5px; }
+
   /* ── 레이아웃 ── */
   .rail { display: none; }
   .content { padding: 16px 12px; }
 
-  /* ── 지표 카드 ── */
+  /* ── 지표 카드 (실제 클래스명: .metric / .metric-label / .metric-val / .metric-unit) ── */
   .metric-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
-  .metric-card { padding: 14px 12px; }
-  .metric-card .mv { font-size: 32px; }
-  .metric-card .mk { font-size: 12px; }
-  .metric-card .mu { font-size: 11px; padding: 2px 8px; }
+  .metric { padding: 14px 12px; }
+  .metric-label { font-size: 12px; }
+  .metric-val   { font-size: 24px; }
+  .metric-unit  { font-size: 12px; }
+  .metric-badge { font-size: 11px; padding: 2px 8px; }
 
   /* ── 페이지 제목 ── */
-  .page-hd h1, .page-hd-with-btn h1 { font-size: 20px; }
-  .page-hd p,  .page-hd-with-btn p  { font-size: 14px; }
+  .page-hd h1, .page-hd-with-btn h1 { font-size: 19px; }
+  .page-hd p,  .page-hd-with-btn p  { font-size: 13px; }
   .page-hd-with-btn { flex-direction: column; gap: 8px; }
   .page-hd-with-btn button { align-self: flex-start; }
 
   /* ── 카드 ── */
   .card { border-radius: 10px; }
   .card-hd { padding: 12px 14px; flex-wrap: wrap; gap: 6px; }
-  .card-hd h2 { font-size: 15px; }
+  .card-hd h2 { font-size: 14.5px; }
 
   /* ── 필터 바 ── */
   .history-filter-bar { flex-wrap: wrap; gap: 6px; padding: 10px 12px; }
   .history-filter-bar select,
-  .history-filter-bar input[type=text] { font-size: 13px; padding: 5px 8px; min-width: 0; flex: 1; }
+  .history-filter-bar input[type=text] { font-size: 12.5px; padding: 5px 8px; min-width: 0; flex: 1; }
 
-  /* ── 테이블 ── */
-  .tbl { font-size: 13px; }
-  .tbl th, .tbl td { padding: 8px 8px; }
-
-  /* 연혁: 영문 컬럼 숨김 (모바일) — 물품재고 테이블(tbl-goods)은 가로 스크롤 방식이라 제외 */
-  .tbl:not(.tbl-goods) th:nth-child(5),
-  .tbl:not(.tbl-goods) td:nth-child(5) { display: none; }
+  /* ── 테이블: 컬럼을 숨기지 않고, 가로 스크롤로 전체 데이터를 보여줌 ── */
+  .tbl { font-size: 12.5px; }
+  .tbl th, .tbl td { padding: 8px 8px; white-space: nowrap; }
+  .card-scroll .scroll-body { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .card-scroll .scroll-body table.tbl { min-width: 620px; }
+  .history-tbl-wrap table.tbl,
+  .rm-history-tbl-wrap table.tbl { min-width: 560px; }
 
   /* ── post-list 카드형 ── */
   .post-item { padding: 14px 12px; }
-  .post-title { font-size: 15px; }
-  .post-date  { font-size: 12px; }
-  .post-meta  { font-size: 12px; }
+  .post-title { font-size: 14.5px; }
+  .post-content { font-size: 13px; }
+  .post-note { font-size: 12.5px; }
+  .post-date  { font-size: 11.5px; }
+  .post-meta  { font-size: 11.5px; }
   .post-actions { flex-wrap: wrap; gap: 4px; }
   .post-actions .btn { font-size: 12px; padding: 4px 8px; }
 
   /* ── 버튼 ── */
-  .btn { font-size: 13px; }
+  .btn { font-size: 12.5px; }
   .btn.sm { padding: 5px 10px; }
   .btn.primary { padding: 7px 14px; }
 
-  /* ── 모달 ── */
+  /* ── 모달 / 업로드 ── */
   .modal-box { width: 95vw !important; max-width: 95vw !important; padding: 20px 16px; }
-  .modal-title { font-size: 16px; }
-  .form-row label { font-size: 13px; }
-  .form-row input, .form-row select, .form-row textarea { font-size: 14px; }
+  .modal-title { font-size: 15.5px; }
+  .form-row label { font-size: 12.5px; }
+  .form-row input, .form-row select, .form-row textarea { font-size: 13.5px; }
+  .dropzone-text { font-size: 13.5px; }
+  .dropzone-sub  { font-size: 12px; }
+  .upload-state .us-name { font-size: 13.5px; }
+  .empty p { font-size: 13px; }
+
+  /* ── 설정 페이지 ── */
+  .setup-card h2 { font-size: 15px; }
+  .res-type-name { font-size: 13.5px; }
 
   /* ── AI 검색 오버레이 ── */
   #ais-overlay { width: 96vw; max-width: 96vw; top: 10px; }
 
   /* ── 토스트 팝업 ── */
-  #banner { min-width: 260px; max-width: 88vw; font-size: 14px; padding: 14px 18px; }
-
-  /* ── 메인 테이블 (연혁) ── */
-  #rm-history-list .tbl th:nth-child(4),
-  #rm-history-list .tbl td:nth-child(4) { display: none; }
+  #banner { min-width: 260px; max-width: 88vw; font-size: 13px; padding: 14px 18px; }
 
   /* ── 스크롤바 숨김 (모바일) ── */
   .scroll-body::-webkit-scrollbar { display: none; }
 
   /* ── chip ── */
-  .chip { font-size: 12px; padding: 2px 8px; }
+  .chip { font-size: 11.5px; padding: 2px 8px; }
 }
 
 @media (max-width: 400px) {
   .metric-grid { grid-template-columns: 1fr 1fr; gap: 6px; }
-  .metric-card .mv { font-size: 28px; }
+  .metric-val { font-size: 21px; }
   .content { padding: 12px 10px; }
 }
 </style>
@@ -1990,24 +2000,40 @@ async function apiFetch(params = {}, silent = false) {
     return null;
   }
   if (!silent) banner('데이터 불러오는 중…', 'loading');
-  try {
-    const qs = new URLSearchParams(params).toString();
-    const res = await fetch(API_URL + (qs ? '?' + qs : ''), {
-      redirect: 'follow',
-      mode: 'cors',
-    });
-    const text = await res.text();
-    let json;
-    try { json = JSON.parse(text); }
-    catch(pe) { if (!silent) banner('응답 파싱 실패: ' + text.slice(0,100), 'error'); return null; }
-    if (!silent) bannerClear();
-    if (json && json.error) { if (!silent) banner(json.error, 'error'); return null; }
-    return json;
-  } catch (e) {
-    if (!silent) banner('연결 실패: ' + e.message, 'error');
-    return null;
+  const qs = new URLSearchParams(params).toString();
+  const url = API_URL + (qs ? '?' + qs : '');
+
+  const MAX_TRIES = 3;
+  let lastErr = null;
+  for (let attempt = 1; attempt <= MAX_TRIES; attempt++) {
+    try {
+      const res = await fetch(url, { redirect: 'follow', mode: 'cors', cache: 'no-store' });
+      let text = await res.text();
+      text = (text || '').trim();
+      // 모바일 네트워크 불안정 등으로 응답이 비어 있으면 재시도
+      if (!text) { lastErr = 'empty'; if (attempt < MAX_TRIES) { await sleep(400 * attempt); continue; } }
+      let json;
+      try { json = JSON.parse(text); }
+      catch(pe) {
+        lastErr = pe;
+        if (attempt < MAX_TRIES) { await sleep(400 * attempt); continue; }
+        if (!silent) banner('응답 파싱 실패 (네트워크 상태를 확인해주세요): ' + text.slice(0,100), 'error');
+        return null;
+      }
+      if (!silent) bannerClear();
+      if (json && json.error) { if (!silent) banner(json.error, 'error'); return null; }
+      return json;
+    } catch (e) {
+      lastErr = e;
+      if (attempt < MAX_TRIES) { await sleep(400 * attempt); continue; }
+      if (!silent) banner('연결 실패: ' + e.message, 'error');
+      return null;
+    }
   }
+  return null;
 }
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
 async function apiPost(body) {
   if (!API_URL) { banner('API URL이 설정되지 않았습니다.', 'error'); return null; }
@@ -2663,14 +2689,14 @@ function renderGoods(rows) {
       const hasImg = !!fileId;
       return `
       <tr>
-        <td>${r['소구분'] || '—'}</td>
-        <td>${hasImg
+        <td title="${r['소구분'] || ''}">${r['소구분'] || '—'}</td>
+        <td title="${r['품목'] || ''}">${hasImg
           ? `<span class="preview-btn" data-fileid="${fileId}" data-filename="${fileName}" style="cursor:pointer;color:var(--accent);text-decoration:underline;display:inline-flex;align-items:center;gap:4px" title="클릭하여 이미지 보기"><i class="ti ti-photo" style="font-size:14px"></i>${r['품목'] || ''}</span>`
           : (r['품목'] || '')}</td>
         <td style="white-space:nowrap;color:var(--muted)">${r['제작일시'] || '—'}</td>
         <td style="text-align:right">${r['수량'] || ''}</td>
         <td>${r['단위'] || ''}</td>
-        <td style="color:var(--muted)">${r['비고'] || '—'}</td>
+        <td title="${r['비고'] || ''}" style="color:var(--muted)">${r['비고'] || '—'}</td>
         <td style="text-align:right;white-space:nowrap">
           <button class="btn sm edit-btn" data-type="goods" data-key="${r._cacheKey}"><i class="ti ti-edit"></i></button>
           <button class="btn sm danger del-btn" data-type="goods" data-row="${r._row}"><i class="ti ti-trash"></i></button>
