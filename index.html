@@ -982,6 +982,18 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
       </div>
     </div>
 
+    <div class="nav-group">
+      <div class="nav-item" id="ni-goods">
+        <div class="nav-main" onclick="toggle('ni-goods','goods-stock')">
+          <i class="ti ti-package"></i> 마케팅 물품 관리
+          <i class="ti ti-chevron-down nav-arrow"></i>
+        </div>
+        <div class="nav-sub">
+          <div class="nav-sub-item" data-page="goods-stock" onclick="goSub('goods-stock',this,'ni-goods')"><i class="ti ti-boxes"></i> 마케팅 물품 재고</div>
+        </div>
+      </div>
+    </div>
+
     <div style="padding: 10px 12px; border-top: 1px solid var(--border); margin-top: auto;">
       <button class="search-trigger-bottom" onclick="openAiSearch()" title="자원 검색 (/)">
         <i class="ti ti-search"></i>
@@ -1253,6 +1265,58 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
         <table class="tbl">
           <thead><tr><th>구분</th><th>게시일</th><th>솔루션명</th><th>제목 / 내용</th><th>링크</th><th></th></tr></thead>
           <tbody id="blog-list"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ══ 마케팅 물품 재고 ══ -->
+    <div id="pg-goods-stock" class="page">
+      <div class="page-hd-with-btn">
+        <div><h1>마케팅 물품 재고</h1><p>소프트힐스 마케팅 관련 물품의 재고를 관리합니다.</p></div>
+        <button class="btn sm" onclick="downloadExcel('goods')"><i class="ti ti-file-spreadsheet"></i> 엑셀 다운로드</button>
+      </div>
+
+      <div class="card card-res">
+        <div class="card-hd">
+          <h2><i class="ti ti-printer"></i> 인쇄 <span id="goods-count-인쇄" style="font-size:13px;font-weight:400;color:var(--muted);margin-left:6px"></span></h2>
+          <button class="btn sm primary" onclick="openModalFixedCat('goods','인쇄')"><i class="ti ti-plus"></i> 항목 추가</button>
+        </div>
+        <table class="tbl">
+          <thead><tr><th>소구분</th><th>품목</th><th>제작일시</th><th>수량</th><th>단위</th><th>비고</th><th></th></tr></thead>
+          <tbody id="goods-list-인쇄"></tbody>
+        </table>
+      </div>
+
+      <div class="card card-res" style="margin-top:20px">
+        <div class="card-hd">
+          <h2><i class="ti ti-gift"></i> 판촉 <span id="goods-count-판촉" style="font-size:13px;font-weight:400;color:var(--muted);margin-left:6px"></span></h2>
+          <button class="btn sm primary" onclick="openModalFixedCat('goods','판촉')"><i class="ti ti-plus"></i> 항목 추가</button>
+        </div>
+        <table class="tbl">
+          <thead><tr><th>소구분</th><th>품목</th><th>제작일시</th><th>수량</th><th>단위</th><th>비고</th><th></th></tr></thead>
+          <tbody id="goods-list-판촉"></tbody>
+        </table>
+      </div>
+
+      <div class="card card-res" style="margin-top:20px">
+        <div class="card-hd">
+          <h2><i class="ti ti-device-tv"></i> 장비 <span id="goods-count-장비" style="font-size:13px;font-weight:400;color:var(--muted);margin-left:6px"></span></h2>
+          <button class="btn sm primary" onclick="openModalFixedCat('goods','장비')"><i class="ti ti-plus"></i> 항목 추가</button>
+        </div>
+        <table class="tbl">
+          <thead><tr><th>소구분</th><th>품목</th><th>제작일시</th><th>수량</th><th>단위</th><th>비고</th><th></th></tr></thead>
+          <tbody id="goods-list-장비"></tbody>
+        </table>
+      </div>
+
+      <div class="card card-res" style="margin-top:20px">
+        <div class="card-hd">
+          <h2><i class="ti ti-box"></i> 비품 <span id="goods-count-비품" style="font-size:13px;font-weight:400;color:var(--muted);margin-left:6px"></span></h2>
+          <button class="btn sm primary" onclick="openModalFixedCat('goods','비품')"><i class="ti ti-plus"></i> 항목 추가</button>
+        </div>
+        <table class="tbl">
+          <thead><tr><th>소구분</th><th>품목</th><th>제작일시</th><th>수량</th><th>단위</th><th>비고</th><th></th></tr></thead>
+          <tbody id="goods-list-비품"></tbody>
         </table>
       </div>
     </div>
@@ -1973,6 +2037,10 @@ async function refreshAll() {
     const r = await apiFetch({ action: 'blog' }, true);
     d.blog = r || [];
   }
+  if (!d.goods) {
+    const r = await apiFetch({ action: 'goods' }, true);
+    d.goods = r || [];
+  }
 
   DATA = d;
   renderMetrics(d.metrics);
@@ -1990,6 +2058,7 @@ async function refreshAll() {
   renderCopyright(d.copyright);
   renderContentTable('press', d.press);
   renderContentTable('blog',  d.blog);
+  renderGoods(d.goods);
   if (document.getElementById('pg-changelog')?.classList.contains('active')) {
     renderAlerts(d.alerts);
   }
@@ -2019,6 +2088,7 @@ function renderPage(pageId) {
     case 'res-copyright':  renderCopyright(DATA.copyright); break;
     case 'content-press':  renderContentTable('press', DATA.press); break;
     case 'content-blog':   renderContentTable('blog',  DATA.blog); break;
+    case 'goods-stock':    renderGoods(DATA.goods); break;
     default:
       // 커스텀 자원 관리 탭
       if (pageId.startsWith('res-custom_')) {
@@ -2549,6 +2619,42 @@ function _renderIntroList(elId, rows, emptyMsg) {
   }).join('');
 }
 
+// ── 마케팅 물품 재고 렌더 (카테고리별 테이블) ─────────────
+function renderGoods(rows) {
+  const all = rows || [];
+  const cats = ['인쇄', '판촉', '장비', '비품'];
+  cats.forEach(cat => {
+    const list = all.filter(r => r['구분'] === cat);
+    const countEl = document.getElementById('goods-count-' + cat);
+    if (countEl) countEl.textContent = list.length ? `(${list.length}건)` : '';
+
+    const el = document.getElementById('goods-list-' + cat);
+    if (!el) return;
+    if (!list.length) {
+      el.innerHTML = `<tr><td colspan="7" class="empty" style="text-align:center;color:var(--muted);padding:24px 10px">등록된 물품이 없습니다.</td></tr>`;
+      return;
+    }
+    list.forEach((r, idx) => {
+      const cKey = 'goods_' + (r._row !== undefined && r._row !== null ? String(r._row) : cat + '_' + idx);
+      r._cacheKey = cKey;
+      rowCache[cKey] = r;
+    });
+    el.innerHTML = list.map(r => `
+      <tr>
+        <td>${r['소구분'] || '—'}</td>
+        <td>${r['품목'] || ''}</td>
+        <td style="white-space:nowrap;color:var(--muted)">${r['제작일시'] || '—'}</td>
+        <td style="text-align:right">${r['수량'] || ''}</td>
+        <td>${r['단위'] || ''}</td>
+        <td style="color:var(--muted)">${r['비고'] || '—'}</td>
+        <td style="text-align:right;white-space:nowrap">
+          <button class="btn sm edit-btn" data-type="goods" data-key="${r._cacheKey}"><i class="ti ti-edit"></i></button>
+          <button class="btn sm danger del-btn" data-type="goods" data-row="${r._row}"><i class="ti ti-trash"></i></button>
+        </td>
+      </tr>`).join('');
+  });
+}
+
 // ── 소개 자료 순서 변경 ──────────────────────────────────────
 // elId: 'intro-list' | 'intro-product-list', idx: 현재 인덱스, dir: -1(위) / +1(아래)
 async function moveIntroRow(elId, idx, dir) {
@@ -2951,7 +3057,7 @@ async function toggleStatus(rowNum) {
 }
 
 // ── 삭제 ─────────────────────────────────────────────────
-const SHEET_MAP = { cert:'인증', award:'수상', patent:'특허', brand:'상표', copyright:'프로그램저작', history:'연혁', intro:'소개자료', youtube:'유튜브', press:'언론보도', blog:'블로그' };
+const SHEET_MAP = { cert:'인증', award:'수상', patent:'특허', brand:'상표', copyright:'프로그램저작', history:'연혁', intro:'소개자료', youtube:'유튜브', press:'언론보도', blog:'블로그', goods:'물품재고' };
 async function deleteItem(key, rowNum) {
   if (!confirm('이 항목을 삭제하시겠습니까?')) return;
   const res = await apiPost({ action: 'delete', sheet: SHEET_MAP[key], row: rowNum });
@@ -3219,6 +3325,17 @@ const MODAL_FORMS = {
     <div class="form-row"><label>제목</label><input type="text" id="f-title" value="${d['제목']||''}"></div>
     <div class="form-row"><label>내용</label><textarea id="f-content" placeholder="설명 (선택)">${d['내용']||''}</textarea></div>
     <div class="form-row"><label>URL</label><input type="url" id="f-url" placeholder="https://..." value="${d['URL']||''}"></div>`,
+
+  goods: (d) => `
+    <div class="form-row"><label>구분</label><input type="text" id="f-category" value="${d['구분']||''}" readonly style="background:var(--bg);color:var(--muted)"></div>
+    <div class="form-row"><label>소구분 <span style="font-size:11px;color:var(--muted)">(예: 브로슈어&카탈로그, 기념품 등)</span></label><input type="text" id="f-subcategory" placeholder="소구분 입력" value="${d['소구분']||''}"></div>
+    <div class="form-row"><label>품목</label><input type="text" id="f-item" placeholder="품목명" value="${d['품목']||''}"></div>
+    <div class="form-row"><label>제작일시 <span style="font-size:11px;color:var(--muted)">(예: 2024년, - 등)</span></label><input type="text" id="f-madedate" placeholder="예: 2024년" value="${d['제작일시']||''}"></div>
+    <div class="form-row" style="display:flex;gap:10px">
+      <div style="flex:1"><label>수량</label><input type="number" id="f-qty" value="${d['수량']||''}"></div>
+      <div style="flex:1"><label>단위</label><input type="text" id="f-unit" placeholder="예: 부, ea, set" value="${d['단위']||''}"></div>
+    </div>
+    <div class="form-row"><label>비고</label><input type="text" id="f-note" placeholder="기타 참고사항" value="${d['비고']||''}"></div>`,
 };
 
 function boardForm(d) {
@@ -3277,10 +3394,12 @@ const EXCEL_COLS = {
   youtube: ['게시일','구분','솔루션명','제목','유튜브URL'],
   press:   ['게시일','구분','발행처','언론사명','제목','내용','URL'],
   blog:    ['게시일','구분','솔루션명','제목','내용','URL'],
+  goods:   ['구분','소구분','품목','제작일시','수량','단위','비고'],
 };
 const EXCEL_LABELS = {
   cert:'인증', award:'수상', patent:'특허', brand:'상표', copyright:'프로그램저작등록',
-  history:'연혁', intro:'소개자료', youtube:'유튜브영상', press:'언론보도및칼럼', blog:'블로그'
+  history:'연혁', intro:'소개자료', youtube:'유튜브영상', press:'언론보도및칼럼', blog:'블로그',
+  goods:'마케팅물품재고'
 };
 
 function downloadExcel(key) {
@@ -3310,10 +3429,15 @@ function openModalFixed(type, fixedCategory) {
   openModal(type, { '분류': fixedCategory });
 }
 
+// ── 구분 고정 모달 열기 (마케팅 물품 재고 카테고리별 버튼용) ──
+function openModalFixedCat(type, fixedCategory) {
+  openModal(type, { '구분': fixedCategory });
+}
+
 function openModal(type, data = {}) {
   currentModal = type;
   editRow = data._row || null;
-  document.getElementById('modal-title').textContent = (editRow ? '항목 수정' : '항목 추가') + ' — ' + ({ cert:'인증', award:'수상', patent:'특허', brand:'상표', copyright:'프로그램 저작/등록', history:'연혁', intro:'소개자료', youtube:'유튜브', press:'언론보도 및 칼럼', blog:'블로그' }[type] || type);
+  document.getElementById('modal-title').textContent = (editRow ? '항목 수정' : '항목 추가') + ' — ' + ({ cert:'인증', award:'수상', patent:'특허', brand:'상표', copyright:'프로그램 저작/등록', history:'연혁', intro:'소개자료', youtube:'유튜브', press:'언론보도 및 칼럼', blog:'블로그', goods:'마케팅 물품' }[type] || type);
   document.getElementById('modal-body').innerHTML = MODAL_FORMS[type](data);
   document.getElementById('modal-bg').classList.add('open');
   // 연/월(/일) 드롭다운 초기 동기화
@@ -3322,7 +3446,7 @@ function openModal(type, data = {}) {
   // 모달 타입 → 시트명 매핑
   const MODAL_TO_SHEET = {
     cert: '인증', award: '수상', patent: '특허', brand: '상표', copyright: '프로그램저작',
-    intro: '소개자료', youtube: '유튜브', history: '연혁', press: '언론보도', blog: '블로그'
+    intro: '소개자료', youtube: '유튜브', history: '연혁', press: '언론보도', blog: '블로그', goods: '물품재고'
   };
   currentUploadSheet = MODAL_TO_SHEET[type] || '';
 }
@@ -3382,6 +3506,8 @@ async function submitModal() {
     data = { '게시일': getDateFromSelects(), '구분': v('f-category'), '발행처': v('f-solution'), '언론사명': v('f-press-company'), '제목': v('f-title'), '내용': v('f-content'), 'URL': v('f-url') };
   } else if (t === 'blog') {
     data = { '게시일': getDateFromSelects(), '구분': v('f-category'), '솔루션명': v('f-solution'), '제목': v('f-title'), '내용': v('f-content'), 'URL': v('f-url') };
+  } else if (t === 'goods') {
+    data = { '구분': v('f-category'), '소구분': v('f-subcategory'), '품목': v('f-item'), '제작일시': v('f-madedate'), '수량': v('f-qty'), '단위': v('f-unit'), '비고': v('f-note') };
   }
 
   const sheetName = SHEET_MAP[t];
@@ -3406,7 +3532,7 @@ async function refreshSheet(type) {
   const actionMap = {
     history: 'history', cert: 'cert', award: 'award', patent: 'patent',
     brand: 'brand', copyright: 'copyright', intro: 'intro',
-    youtube: 'youtube', press: 'press', blog: 'blog'
+    youtube: 'youtube', press: 'press', blog: 'blog', goods: 'goods'
   };
   const action = actionMap[type];
   if (!action) { await refreshAll(); return; }
@@ -3428,6 +3554,7 @@ async function refreshSheet(type) {
     case 'youtube':   renderYoutube(rows); renderMainYoutube(rows); break;
     case 'press':     renderContentTable('press', rows); break;
     case 'blog':      renderContentTable('blog', rows); break;
+    case 'goods':     renderGoods(rows); break;
   }
   // 지표 카드 빠른 갱신 (메인에 영향 있는 카테고리)
   if (['cert','award','patent','brand','copyright','history'].includes(type)) {
@@ -3977,6 +4104,14 @@ function saveApiUrl() {
 }
 
 // ── 모바일 네비 드로어 ────────────────────────────────────
+// ── 모바일 드로어 메뉴 전용 페이지 이동 ──
+function navTo(pageId) {
+  const target = document.querySelector(`[data-page="${pageId}"]`);
+  if (pageId === 'main') { go('main', target); return; }
+  const navItem = target ? target.closest('.nav-item') : null;
+  goSub(pageId, target, navItem ? navItem.id : null);
+}
+
 function closeMobileNav() {
   document.getElementById('mobile-nav-drawer')?.classList.remove('open');
   const overlay = document.getElementById('mobile-nav-overlay');
