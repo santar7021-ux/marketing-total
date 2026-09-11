@@ -2086,6 +2086,12 @@ async function refreshAll() {
     d.goods = r || [];
   }
 
+  // 백엔드 metrics에 특정 항목이 누락된 구버전 대비: 실제 데이터 배열 길이로 클라이언트에서 보정
+  d.metrics = d.metrics || {};
+  if (d.metrics['프로그램저작'] === undefined) {
+    d.metrics['프로그램저작'] = { value: (d.copyright || []).length, unit: '건' };
+  }
+
   DATA = d;
   renderMetrics(d.metrics);
   renderResMain(d.history, d.metrics);
