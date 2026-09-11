@@ -476,8 +476,12 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
 .history-filter-bar input[type=text]:focus { border-color: var(--accent); }
 
 .tbl { width: 100%; border-collapse: collapse; font-size: 16.2px; }
-.tbl-goods { table-layout: fixed; }
+.tbl-goods { table-layout: fixed; min-width: 640px; }
 .tbl-goods td, .tbl-goods th { overflow: hidden; text-overflow: ellipsis; }
+.goods-tbl-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.goods-tbl-wrap::-webkit-scrollbar { height: 6px; }
+.goods-tbl-wrap::-webkit-scrollbar-track { background: var(--bg); }
+.goods-tbl-wrap::-webkit-scrollbar-thumb { background: var(--border-md); border-radius: 3px; }
 .tbl td { word-break: keep-all; overflow-wrap: break-word; vertical-align: middle; }
 .tbl th { padding: 8px 10px; text-align: left; font-weight: 500; color: var(--muted); border-bottom: 1px solid var(--border); font-size: 15px; }
 .tbl td { padding: 10px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; }
@@ -705,7 +709,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
   #mobile-nav-bar { display: flex !important; }
   .content { padding-top: 0 !important; }
   #mobile-nav-drawer { display: block !important; }
-  #mobile-nav-drawer.open { transform: translateX(0); }
+  #mobile-nav-drawer.open { transform: translateX(0) !important; }
 }
 
 @media (max-width: 700px) {
@@ -740,9 +744,9 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
   .tbl { font-size: 13px; }
   .tbl th, .tbl td { padding: 8px 8px; }
 
-  /* 연혁: 영문 컬럼 숨김 (모바일) */
-  .tbl th:nth-child(5),
-  .tbl td:nth-child(5) { display: none; }
+  /* 연혁: 영문 컬럼 숨김 (모바일) — 물품재고 테이블(tbl-goods)은 가로 스크롤 방식이라 제외 */
+  .tbl:not(.tbl-goods) th:nth-child(5),
+  .tbl:not(.tbl-goods) td:nth-child(5) { display: none; }
 
   /* ── post-list 카드형 ── */
   .post-item { padding: 14px 12px; }
@@ -1283,11 +1287,13 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
           <h2><i class="ti ti-printer"></i> 인쇄 <span id="goods-count-인쇄" style="font-size:13px;font-weight:400;color:var(--muted);margin-left:6px"></span></h2>
           <button class="btn sm primary" onclick="openModalFixedCat('goods','인쇄')"><i class="ti ti-plus"></i> 항목 추가</button>
         </div>
+        <div class="goods-tbl-wrap">
         <table class="tbl tbl-goods">
           <colgroup><col style="width:16%"><col style="width:28%"><col style="width:12%"><col style="width:9%"><col style="width:9%"><col style="width:18%"><col style="width:8%"></colgroup>
           <thead><tr><th>소구분</th><th>품목</th><th>제작일시</th><th style="text-align:right">수량</th><th>단위</th><th>비고</th><th></th></tr></thead>
           <tbody id="goods-list-인쇄"></tbody>
         </table>
+        </div>
       </div>
 
       <div class="card card-res" style="margin-top:20px">
@@ -1295,11 +1301,13 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
           <h2><i class="ti ti-gift"></i> 판촉 <span id="goods-count-판촉" style="font-size:13px;font-weight:400;color:var(--muted);margin-left:6px"></span></h2>
           <button class="btn sm primary" onclick="openModalFixedCat('goods','판촉')"><i class="ti ti-plus"></i> 항목 추가</button>
         </div>
+        <div class="goods-tbl-wrap">
         <table class="tbl tbl-goods">
           <colgroup><col style="width:16%"><col style="width:28%"><col style="width:12%"><col style="width:9%"><col style="width:9%"><col style="width:18%"><col style="width:8%"></colgroup>
           <thead><tr><th>소구분</th><th>품목</th><th>제작일시</th><th style="text-align:right">수량</th><th>단위</th><th>비고</th><th></th></tr></thead>
           <tbody id="goods-list-판촉"></tbody>
         </table>
+        </div>
       </div>
 
       <div class="card card-res" style="margin-top:20px">
@@ -1307,11 +1315,13 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
           <h2><i class="ti ti-device-tv"></i> 장비 <span id="goods-count-장비" style="font-size:13px;font-weight:400;color:var(--muted);margin-left:6px"></span></h2>
           <button class="btn sm primary" onclick="openModalFixedCat('goods','장비')"><i class="ti ti-plus"></i> 항목 추가</button>
         </div>
+        <div class="goods-tbl-wrap">
         <table class="tbl tbl-goods">
           <colgroup><col style="width:16%"><col style="width:28%"><col style="width:12%"><col style="width:9%"><col style="width:9%"><col style="width:18%"><col style="width:8%"></colgroup>
           <thead><tr><th>소구분</th><th>품목</th><th>제작일시</th><th style="text-align:right">수량</th><th>단위</th><th>비고</th><th></th></tr></thead>
           <tbody id="goods-list-장비"></tbody>
         </table>
+        </div>
       </div>
 
       <div class="card card-res" style="margin-top:20px">
@@ -1319,11 +1329,13 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
           <h2><i class="ti ti-box"></i> 비품 <span id="goods-count-비품" style="font-size:13px;font-weight:400;color:var(--muted);margin-left:6px"></span></h2>
           <button class="btn sm primary" onclick="openModalFixedCat('goods','비품')"><i class="ti ti-plus"></i> 항목 추가</button>
         </div>
+        <div class="goods-tbl-wrap">
         <table class="tbl tbl-goods">
           <colgroup><col style="width:16%"><col style="width:28%"><col style="width:12%"><col style="width:9%"><col style="width:9%"><col style="width:18%"><col style="width:8%"></colgroup>
           <thead><tr><th>소구분</th><th>품목</th><th>제작일시</th><th style="text-align:right">수량</th><th>단위</th><th>비고</th><th></th></tr></thead>
           <tbody id="goods-list-비품"></tbody>
         </table>
+        </div>
       </div>
     </div>
 
