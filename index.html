@@ -476,7 +476,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
 .history-filter-bar input[type=text]:focus { border-color: var(--accent); }
 
 .tbl { width: 100%; border-collapse: collapse; font-size: 16.2px; }
-.tbl-goods { table-layout: fixed; min-width: 640px; }
+.tbl-goods { table-layout: fixed; min-width: 760px; }
 .tbl-goods td, .tbl-goods th { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .goods-tbl-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 .goods-tbl-wrap::-webkit-scrollbar { height: 6px; }
@@ -1397,8 +1397,8 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
         </div>
         <div class="goods-tbl-wrap">
         <table class="tbl tbl-goods">
-          <colgroup><col style="width:16%"><col style="width:28%"><col style="width:12%"><col style="width:9%"><col style="width:9%"><col style="width:18%"><col style="width:8%"></colgroup>
-          <thead><tr><th>소구분</th><th>품목</th><th>제작일시</th><th style="text-align:right">수량</th><th>단위</th><th>비고</th><th></th></tr></thead>
+          <colgroup><col style="width:12%"><col style="width:19%"><col style="width:8%"><col style="width:8%"><col style="width:8%"><col style="width:8%"><col style="width:6%"><col style="width:16%"><col style="width:15%"></colgroup>
+          <thead><tr><th>소구분</th><th>품목</th><th>제작일시</th><th style="text-align:right">제작수량</th><th style="text-align:right">사용수량</th><th style="text-align:right">재고수량</th><th>단위</th><th>비고</th><th></th></tr></thead>
           <tbody id="goods-list-인쇄"></tbody>
         </table>
         </div>
@@ -1411,8 +1411,8 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
         </div>
         <div class="goods-tbl-wrap">
         <table class="tbl tbl-goods">
-          <colgroup><col style="width:16%"><col style="width:28%"><col style="width:12%"><col style="width:9%"><col style="width:9%"><col style="width:18%"><col style="width:8%"></colgroup>
-          <thead><tr><th>소구분</th><th>품목</th><th>제작일시</th><th style="text-align:right">수량</th><th>단위</th><th>비고</th><th></th></tr></thead>
+          <colgroup><col style="width:12%"><col style="width:19%"><col style="width:8%"><col style="width:8%"><col style="width:8%"><col style="width:8%"><col style="width:6%"><col style="width:16%"><col style="width:15%"></colgroup>
+          <thead><tr><th>소구분</th><th>품목</th><th>제작일시</th><th style="text-align:right">제작수량</th><th style="text-align:right">사용수량</th><th style="text-align:right">재고수량</th><th>단위</th><th>비고</th><th></th></tr></thead>
           <tbody id="goods-list-판촉"></tbody>
         </table>
         </div>
@@ -1425,8 +1425,8 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
         </div>
         <div class="goods-tbl-wrap">
         <table class="tbl tbl-goods">
-          <colgroup><col style="width:16%"><col style="width:28%"><col style="width:12%"><col style="width:9%"><col style="width:9%"><col style="width:18%"><col style="width:8%"></colgroup>
-          <thead><tr><th>소구분</th><th>품목</th><th>제작일시</th><th style="text-align:right">수량</th><th>단위</th><th>비고</th><th></th></tr></thead>
+          <colgroup><col style="width:12%"><col style="width:19%"><col style="width:8%"><col style="width:8%"><col style="width:8%"><col style="width:8%"><col style="width:6%"><col style="width:16%"><col style="width:15%"></colgroup>
+          <thead><tr><th>소구분</th><th>품목</th><th>제작일시</th><th style="text-align:right">제작수량</th><th style="text-align:right">사용수량</th><th style="text-align:right">재고수량</th><th>단위</th><th>비고</th><th></th></tr></thead>
           <tbody id="goods-list-장비"></tbody>
         </table>
         </div>
@@ -1439,8 +1439,8 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
         </div>
         <div class="goods-tbl-wrap">
         <table class="tbl tbl-goods">
-          <colgroup><col style="width:16%"><col style="width:28%"><col style="width:12%"><col style="width:9%"><col style="width:9%"><col style="width:18%"><col style="width:8%"></colgroup>
-          <thead><tr><th>소구분</th><th>품목</th><th>제작일시</th><th style="text-align:right">수량</th><th>단위</th><th>비고</th><th></th></tr></thead>
+          <colgroup><col style="width:12%"><col style="width:19%"><col style="width:8%"><col style="width:8%"><col style="width:8%"><col style="width:8%"><col style="width:6%"><col style="width:16%"><col style="width:15%"></colgroup>
+          <thead><tr><th>소구분</th><th>품목</th><th>제작일시</th><th style="text-align:right">제작수량</th><th style="text-align:right">사용수량</th><th style="text-align:right">재고수량</th><th>단위</th><th>비고</th><th></th></tr></thead>
           <tbody id="goods-list-비품"></tbody>
         </table>
         </div>
@@ -2777,6 +2777,14 @@ function _renderIntroList(elId, rows, emptyMsg) {
 // ── 마케팅 물품 재고 렌더 (카테고리별 테이블) ─────────────
 function renderGoods(rows) {
   const all = rows || [];
+  const usage = DATA.goodsUsage || [];
+  // 백엔드가 아직 구버전이라 사용수량/재고수량을 안 내려주는 경우를 대비한 클라이언트 계산 폴백
+  const usedMap = {};
+  usage.forEach(u => {
+    const key = String(u['재고행번호']);
+    usedMap[key] = (usedMap[key] || 0) + (Number(u['사용수량']) || 0);
+  });
+
   const cats = ['인쇄', '판촉', '장비', '비품'];
   cats.forEach(cat => {
     const list = all.filter(r => r['구분'] === cat);
@@ -2786,7 +2794,7 @@ function renderGoods(rows) {
     const el = document.getElementById('goods-list-' + cat);
     if (!el) return;
     if (!list.length) {
-      el.innerHTML = `<tr><td colspan="7" class="empty" style="text-align:center;color:var(--muted);padding:24px 10px">등록된 물품이 없습니다.</td></tr>`;
+      el.innerHTML = `<tr><td colspan="9" class="empty" style="text-align:center;color:var(--muted);padding:24px 10px">등록된 물품이 없습니다.</td></tr>`;
       return;
     }
     list.forEach((r, idx) => {
@@ -2798,6 +2806,10 @@ function renderGoods(rows) {
       const fileId = r['이미지ID'] || '';
       const fileName = r['이미지명'] || '';
       const hasImg = !!fileId;
+      const made  = Number(r['제작수량'] !== undefined && r['제작수량'] !== '' ? r['제작수량'] : r['수량']) || 0;
+      const used  = r['사용수량'] !== undefined ? Number(r['사용수량']) || 0 : (usedMap[String(r._row)] || 0);
+      const stock = r['재고수량'] !== undefined ? Number(r['재고수량']) : (made - used);
+      const stockColor = stock <= 0 ? '#c0392b' : 'var(--accent-dk)';
       return `
       <tr>
         <td title="${r['소구분'] || ''}">${r['소구분'] || '—'}</td>
@@ -2805,7 +2817,9 @@ function renderGoods(rows) {
           ? `<span class="preview-btn" data-fileid="${fileId}" data-filename="${fileName}" style="cursor:pointer;color:var(--accent);text-decoration:underline;display:inline-flex;align-items:center;gap:4px" title="클릭하여 이미지 보기"><i class="ti ti-photo" style="font-size:14px"></i>${r['품목'] || ''}</span>`
           : (r['품목'] || '')}</td>
         <td style="white-space:nowrap;color:var(--muted)">${r['제작일시'] || '—'}</td>
-        <td style="text-align:right">${r['수량'] || ''}</td>
+        <td style="text-align:right">${made}</td>
+        <td style="text-align:right;color:var(--muted)">${used || '—'}</td>
+        <td style="text-align:right;font-weight:600;color:${stockColor}">${stock}</td>
         <td>${r['단위'] || ''}</td>
         <td title="${r['비고'] || ''}" style="color:var(--muted)">${r['비고'] || '—'}</td>
         <td style="text-align:right;white-space:nowrap">
@@ -2825,7 +2839,7 @@ function openGoodsUsageModal(row) {
   _guCurrentRow = row;
   const item = (DATA.goods || []).find(r => String(r._row) === String(row));
   document.getElementById('gu-item-name').textContent = item ? (item['품목'] || '') : '';
-  document.getElementById('gu-current-qty').textContent = item ? (item['수량'] || 0) : '-';
+  document.getElementById('gu-current-qty').textContent = item ? goodsStockOf(item) : '-';
   document.getElementById('gu-unit').textContent = item ? (item['단위'] || '') : '';
   document.getElementById('gu-date').value = new Date().toISOString().slice(0, 10);
   document.getElementById('gu-qty').value = '';
@@ -2833,6 +2847,16 @@ function openGoodsUsageModal(row) {
   document.getElementById('gu-reason').value = '';
   renderGoodsUsageHistory(row);
   document.getElementById('goods-usage-modal-bg').classList.add('open');
+}
+
+// 아이템 객체에서 재고수량을 구한다 (백엔드 미반영 시 사용내역으로 직접 계산)
+function goodsStockOf(item) {
+  if (item['재고수량'] !== undefined) return item['재고수량'];
+  const made = Number(item['제작수량'] !== undefined && item['제작수량'] !== '' ? item['제작수량'] : item['수량']) || 0;
+  const used = (DATA.goodsUsage || [])
+    .filter(u => String(u['재고행번호']) === String(item._row))
+    .reduce((sum, u) => sum + (Number(u['사용수량']) || 0), 0);
+  return made - used;
 }
 
 function closeGoodsUsageModal() {
@@ -2849,12 +2873,28 @@ function renderGoodsUsageHistory(row) {
     return;
   }
   el.innerHTML = list.map(u => `
-    <div style="padding:10px 14px;border-bottom:1px solid var(--border);font-size:13px">
-      <div style="display:flex;justify-content:space-between;color:var(--muted);font-size:12px;margin-bottom:3px">
-        <span>${u['사용일자'] || '—'}</span><span style="color:var(--accent-dk);font-weight:600">-${u['사용수량'] || 0}</span>
+    <div style="display:flex;align-items:flex-start;gap:8px;padding:10px 14px;border-bottom:1px solid var(--border);font-size:13px">
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;justify-content:space-between;color:var(--muted);font-size:12px;margin-bottom:3px">
+          <span>${u['사용일자'] || '—'}</span><span style="color:var(--accent-dk);font-weight:600">-${u['사용수량'] || 0}</span>
+        </div>
+        <div>${[u['사용처'], u['사용사유']].filter(Boolean).join(' · ') || '—'}</div>
       </div>
-      <div>${[u['사용처'], u['사용사유']].filter(Boolean).join(' · ') || '—'}</div>
+      <button class="btn sm danger" style="flex-shrink:0;padding:4px 7px" onclick="deleteGoodsUsageRecord(${u._row})" title="이 기록 삭제"><i class="ti ti-trash" style="font-size:13px"></i></button>
     </div>`).join('');
+}
+
+async function deleteGoodsUsageRecord(usageRow) {
+  if (!confirm('이 사용 기록을 삭제하시겠습니까?\n삭제하면 재고 수량에 자동으로 다시 반영됩니다.')) return;
+  const res = await apiPost({ action: 'delete', sheet: '물품사용내역', row: usageRow });
+  if (res) {
+    const r = await apiFetch({ action: 'goodsUsage' }, true);
+    DATA.goodsUsage = r || [];
+    renderGoodsUsageHistory(_guCurrentRow);
+    await refreshSheet('goods');
+    const item = (DATA.goods || []).find(x => String(x._row) === String(_guCurrentRow));
+    document.getElementById('gu-current-qty').textContent = item ? goodsStockOf(item) : '-';
+  }
 }
 
 async function submitGoodsUsage() {
@@ -3558,9 +3598,10 @@ const MODAL_FORMS = {
     <div class="form-row"><label>품목</label><input type="text" id="f-item" placeholder="품목명" value="${d['품목']||''}"></div>
     <div class="form-row"><label>제작일시 <span style="font-size:11px;color:var(--muted)">(예: 2024년, - 등)</span></label><input type="text" id="f-madedate" placeholder="예: 2024년" value="${d['제작일시']||''}"></div>
     <div class="form-row" style="display:flex;gap:10px">
-      <div style="flex:1"><label>수량</label><input type="number" id="f-qty" value="${d['수량']||''}"></div>
+      <div style="flex:1"><label>제작수량</label><input type="number" id="f-qty" value="${(d['제작수량'] !== undefined && d['제작수량'] !== '') ? d['제작수량'] : (d['수량']||'')}"></div>
       <div style="flex:1"><label>단위</label><input type="text" id="f-unit" placeholder="예: 부, ea, set" value="${d['단위']||''}"></div>
     </div>
+    ${(d['재고수량'] !== undefined) ? `<div style="font-size:12px;color:var(--muted);margin:-8px 0 13px">현재 사용 ${d['사용수량']||0} / 재고 ${d['재고수량']} — 사용 이력 버튼에서 자동 계산됩니다.</div>` : ''}
     <div class="form-row"><label>비고</label><input type="text" id="f-note" placeholder="기타 참고사항" value="${d['비고']||''}"></div>
     <div class="upload-section">
       <label>이미지 첨부</label>
@@ -3639,7 +3680,7 @@ const EXCEL_COLS = {
   youtube: ['게시일','구분','솔루션명','제목','유튜브URL'],
   press:   ['게시일','구분','발행처','언론사명','제목','내용','URL'],
   blog:    ['게시일','구분','솔루션명','제목','내용','URL'],
-  goods:   ['구분','소구분','품목','제작일시','수량','단위','비고','이미지명'],
+  goods:   ['구분','소구분','품목','제작일시','제작수량','사용수량','재고수량','단위','비고','이미지명'],
 };
 const EXCEL_LABELS = {
   cert:'인증', award:'수상', patent:'특허', brand:'상표', copyright:'프로그램저작등록',
@@ -3752,7 +3793,7 @@ async function submitModal() {
   } else if (t === 'blog') {
     data = { '게시일': getDateFromSelects(), '구분': v('f-category'), '솔루션명': v('f-solution'), '제목': v('f-title'), '내용': v('f-content'), 'URL': v('f-url') };
   } else if (t === 'goods') {
-    data = { '구분': v('f-category'), '소구분': v('f-subcategory'), '품목': v('f-item'), '제작일시': v('f-madedate'), '수량': v('f-qty'), '단위': v('f-unit'), '비고': v('f-note'), '이미지ID': v('f-imgid'), '이미지명': v('f-imgname') };
+    data = { '구분': v('f-category'), '소구분': v('f-subcategory'), '품목': v('f-item'), '제작일시': v('f-madedate'), '제작수량': v('f-qty'), '수량': v('f-qty'), '단위': v('f-unit'), '비고': v('f-note'), '이미지ID': v('f-imgid'), '이미지명': v('f-imgname') };
   }
 
   const sheetName = SHEET_MAP[t];
