@@ -980,6 +980,30 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
   </div>
 </div>
 
+<!-- ── 물품 사용 이력 모달 ── -->
+<div class="modal-bg" id="goods-usage-modal-bg">
+  <div class="modal" id="goods-usage-modal-box">
+    <h2>사용 이력 — <span id="gu-item-name"></span></h2>
+    <div style="font-size:13.5px;color:var(--muted);margin:-8px 0 16px">
+      현재 재고: <b id="gu-current-qty" style="color:var(--accent-dk)">-</b> <span id="gu-unit"></span>
+    </div>
+
+    <div style="font-size:14px;font-weight:600;margin-bottom:8px">지난 사용 기록</div>
+    <div id="gu-history-list" style="border:1px solid var(--border);border-radius:10px;max-height:200px;overflow-y:auto;margin-bottom:18px"></div>
+
+    <div style="font-size:14px;font-weight:600;margin-bottom:8px">+ 새 사용 기록 추가</div>
+    <div class="form-row"><label>사용일자</label><input type="date" id="gu-date"></div>
+    <div class="form-row"><label>사용 수량</label><input type="number" id="gu-qty" min="1" placeholder="예: 5"></div>
+    <div class="form-row"><label>사용처</label><input type="text" id="gu-place" placeholder="예: OO 전시회, OO팀 요청"></div>
+    <div class="form-row"><label>사용 사유</label><input type="text" id="gu-reason" placeholder="예: 고객사 미팅 제공용"></div>
+
+    <div class="modal-actions">
+      <button class="btn" onclick="closeGoodsUsageModal()">닫기</button>
+      <button class="btn primary" onclick="submitGoodsUsage()">사용 기록 저장</button>
+    </div>
+  </div>
+</div>
+
 <!-- ── 모바일 표 → 카드 상세 팝업 ── -->
 <div id="mobile-detail-overlay" onclick="if(event.target===this) closeMobileDetail()">
   <div class="mobile-detail-box">
@@ -2159,6 +2183,10 @@ async function refreshAll() {
     const r = await apiFetch({ action: 'goods' }, true);
     d.goods = r || [];
   }
+  if (!d.goodsUsage) {
+    const r = await apiFetch({ action: 'goodsUsage' }, true);
+    d.goodsUsage = r || [];
+  }
 
   // 백엔드 metrics에 특정 항목이 누락된 구버전 대비: 실제 데이터 배열 길이로 클라이언트에서 보정
   d.metrics = d.metrics || {};
@@ -2781,12 +2809,70 @@ function renderGoods(rows) {
         <td>${r['단위'] || ''}</td>
         <td title="${r['비고'] || ''}" style="color:var(--muted)">${r['비고'] || '—'}</td>
         <td style="text-align:right;white-space:nowrap">
+          <button class="btn sm history-btn" data-row="${r._row}" title="사용 이력"><i class="ti ti-history"></i></button>
           <button class="btn sm edit-btn" data-type="goods" data-key="${r._cacheKey}"><i class="ti ti-edit"></i></button>
           <button class="btn sm danger del-btn" data-type="goods" data-row="${r._row}"><i class="ti ti-trash"></i></button>
         </td>
       </tr>`;
     }).join('');
   });
+}
+
+// ── 물품 사용 이력 모달 ──────────────────────────────────────
+let _guCurrentRow = null;
+
+function openGoodsUsageModal(row) {
+  _guCurrentRow = row;
+  const item = (DATA.goods || []).find(r => String(r._row) === String(row));
+  document.getElementById('gu-item-name').textContent = item ? (item['품목'] || '') : '';
+  document.getElementById('gu-current-qty').textContent = item ? (item['수량'] || 0) : '-';
+  document.getElementById('gu-unit').textContent = item ? (item['단위'] || '') : '';
+  document.getElementById('gu-date').value = new Date().toISOString().slice(0, 10);
+  document.getElementById('gu-qty').value = '';
+  document.getElementById('gu-place').value = '';
+  document.getElementById('gu-reason').value = '';
+  renderGoodsUsageHistory(row);
+  document.getElementById('goods-usage-modal-bg').classList.add('open');
+}
+
+function closeGoodsUsageModal() {
+  document.getElementById('goods-usage-modal-bg').classList.remove('open');
+}
+
+function renderGoodsUsageHistory(row) {
+  const list = (DATA.goodsUsage || [])
+    .filter(u => String(u['재고행번호']) === String(row))
+    .sort((a, b) => String(b['사용일자'] || '').localeCompare(String(a['사용일자'] || '')));
+  const el = document.getElementById('gu-history-list');
+  if (!list.length) {
+    el.innerHTML = `<div style="padding:22px 14px;text-align:center;color:var(--muted);font-size:13px">사용 이력이 없습니다.</div>`;
+    return;
+  }
+  el.innerHTML = list.map(u => `
+    <div style="padding:10px 14px;border-bottom:1px solid var(--border);font-size:13px">
+      <div style="display:flex;justify-content:space-between;color:var(--muted);font-size:12px;margin-bottom:3px">
+        <span>${u['사용일자'] || '—'}</span><span style="color:var(--accent-dk);font-weight:600">-${u['사용수량'] || 0}</span>
+      </div>
+      <div>${[u['사용처'], u['사용사유']].filter(Boolean).join(' · ') || '—'}</div>
+    </div>`).join('');
+}
+
+async function submitGoodsUsage() {
+  const qty = document.getElementById('gu-qty').value;
+  if (!qty || Number(qty) <= 0) { banner('사용 수량을 정확히 입력해주세요.', 'error'); return; }
+  const data = {
+    '사용일자': document.getElementById('gu-date').value,
+    '사용수량': qty,
+    '사용처': document.getElementById('gu-place').value,
+    '사용사유': document.getElementById('gu-reason').value,
+  };
+  const res = await apiPost({ action: 'useGoods', row: _guCurrentRow, data });
+  if (res && res.success) {
+    closeGoodsUsageModal();
+    await refreshSheet('goods');
+    const r = await apiFetch({ action: 'goodsUsage' }, true);
+    DATA.goodsUsage = r || [];
+  }
 }
 
 // ── 소개 자료 순서 변경 ──────────────────────────────────────
@@ -4304,6 +4390,13 @@ window.addEventListener('DOMContentLoaded', () => {
 // ── 전역 이벤트 위임: 수정/삭제/미리보기 버튼 ──
 // (DOMContentLoaded 밖에 두어 어떤 상황에서도 작동)
 document.addEventListener('click', function(e) {
+  const historyBtn = e.target.closest('.history-btn');
+  if (historyBtn) {
+    e.preventDefault();
+    e.stopPropagation();
+    openGoodsUsageModal(historyBtn.dataset.row);
+    return;
+  }
   const editBtn = e.target.closest('.edit-btn');
   if (editBtn) {
     e.preventDefault();
