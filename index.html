@@ -704,6 +704,37 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
 ::-webkit-scrollbar { width: 5px; }
 ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 99px; }
 
+/* ── 모바일 상세 내용 팝업(바텀시트) — 화면 크기와 무관하게 항상 기본은 숨김 ── */
+#mobile-detail-overlay {
+  display: none; position: fixed; inset: 0; z-index: 500;
+  background: rgba(0,0,0,0.45);
+}
+#mobile-detail-overlay.open { display: block; }
+.mobile-detail-box {
+  position: absolute; left: 0; right: 0; bottom: 0; max-height: 78vh;
+  background: var(--surface); border-radius: 16px 16px 0 0;
+  display: flex; flex-direction: column; overflow: hidden;
+  animation: mdSlideUp 0.2s ease-out;
+}
+@keyframes mdSlideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+.mobile-detail-hd {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 16px; border-bottom: 1px solid var(--border); flex-shrink: 0;
+}
+.mobile-detail-hd span:first-child { font-size: 14.5px; font-weight: 600; }
+.mobile-detail-close { font-size: 20px; color: var(--muted); padding: 0 4px; line-height: 1; cursor: pointer; }
+.mobile-detail-body { overflow-y: auto; padding: 6px 16px 20px; -webkit-overflow-scrolling: touch; }
+.mdf-row { padding: 10px 0; border-bottom: 1px solid var(--border); }
+.mdf-row:last-child { border-bottom: none; }
+.mdf-label { font-size: 11.5px; color: var(--muted); margin-bottom: 3px; }
+.mdf-value { font-size: 13.5px; color: var(--text); line-height: 1.5; word-break: break-word; }
+.mdf-value a { color: var(--accent); }
+.mobile-detail-actions { display: flex; gap: 8px; padding: 10px 0 0; }
+.mobile-detail-actions .post-file-btn {
+  flex: 1; justify-content: center; padding: 13px; font-size: 14px;
+  border-radius: var(--r-md); background: var(--accent); color: #fff; border-color: var(--accent);
+}
+
 /* ── 반응형 ── */
 @media (max-width: 700px) {
   #mobile-nav-bar { display: flex !important; }
@@ -745,10 +776,20 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
   .card-hd { padding: 12px 14px; flex-wrap: wrap; gap: 6px; }
   .card-hd h2 { font-size: 14.5px; }
 
-  /* ── 필터 바 ── */
-  .history-filter-bar { flex-wrap: wrap; gap: 6px; padding: 10px 12px; }
+  /* ── 필터 바: 한 줄에 욱여넣지 않고 세로로 펼쳐서 각 항목이 충분한 너비를 갖도록 ── */
+  .history-filter-bar {
+    flex-direction: column; align-items: stretch; flex-wrap: nowrap;
+    gap: 8px; padding: 12px;
+  }
+  .history-filter-bar > select,
+  .history-filter-bar > input[type=text],
+  .history-filter-bar > button,
+  .history-filter-bar > div { width: 100%; flex: none; }
   .history-filter-bar select,
-  .history-filter-bar input[type=text] { font-size: 12.5px; padding: 5px 8px; min-width: 0; flex: 1; }
+  .history-filter-bar input[type=text] { font-size: 13.5px; padding: 9px 10px; min-width: 0; }
+  /* 시작년도~끝년도 묶음: 내부에서만 균등 분할 */
+  .history-filter-bar > div select { flex: 1; min-width: 0; }
+  .history-filter-bar > button { justify-content: center; padding: 9px 10px; }
 
   /* ── 테이블: 모바일에서는 원본 표를 숨기고 카드 목록으로 대체 (JS가 생성) ── */
   .tbl { font-size: 12.5px; }
@@ -770,40 +811,9 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
   .mcard-meta .chip, .mcard-meta span { font-size: 10.5px; }
   .mcard-title:active { opacity: 0.6; }
   .mcard-chevron { color: var(--muted); font-size: 12px; flex-shrink: 0; margin-top: 2px; }
-  .mcard-actions { display: flex; gap: 4px; flex-shrink: 0; margin-top: -2px; }
-  .mcard-actions .btn.sm { padding: 4px 7px; }
+  .mcard-actions { display: flex; gap: 6px; flex-shrink: 0; margin-top: -2px; }
+  .mcard-actions .btn.sm { padding: 7px 9px; font-size: 14px; }
   .mcard-empty { padding: 30px 14px; text-align: center; color: var(--muted); font-size: 12.5px; }
-
-  /* ── 상세 내용 하단 팝업(바텀시트) ── */
-  #mobile-detail-overlay {
-    display: none; position: fixed; inset: 0; z-index: 500;
-    background: rgba(0,0,0,0.45);
-  }
-  #mobile-detail-overlay.open { display: block; }
-  .mobile-detail-box {
-    position: absolute; left: 0; right: 0; bottom: 0; max-height: 78vh;
-    background: var(--surface); border-radius: 16px 16px 0 0;
-    display: flex; flex-direction: column; overflow: hidden;
-    animation: mdSlideUp 0.2s ease-out;
-  }
-  @keyframes mdSlideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-  .mobile-detail-hd {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 14px 16px; border-bottom: 1px solid var(--border); flex-shrink: 0;
-  }
-  .mobile-detail-hd span:first-child { font-size: 14.5px; font-weight: 600; }
-  .mobile-detail-close { font-size: 20px; color: var(--muted); padding: 0 4px; line-height: 1; }
-  .mobile-detail-body { overflow-y: auto; padding: 6px 16px 20px; -webkit-overflow-scrolling: touch; }
-  .mdf-row { padding: 10px 0; border-bottom: 1px solid var(--border); }
-  .mdf-row:last-child { border-bottom: none; }
-  .mdf-label { font-size: 11.5px; color: var(--muted); margin-bottom: 3px; }
-  .mdf-value { font-size: 13.5px; color: var(--text); line-height: 1.5; word-break: break-word; }
-  .mdf-value a { color: var(--accent); }
-  .mobile-detail-actions { display: flex; gap: 8px; padding: 10px 0 0; }
-  .mobile-detail-actions .post-file-btn {
-    flex: 1; justify-content: center; padding: 13px; font-size: 14px;
-    border-radius: var(--r-md); background: var(--accent); color: #fff; border-color: var(--accent);
-  }
 
   /* ── post-list 카드형 ── */
   .post-body { padding: 14px 12px; }
@@ -4720,6 +4730,7 @@ function isMobileView() { return window.innerWidth <= 700; }
 // 모든 .tbl 표를 스캔해서 모바일이면 카드 목록으로, 아니면 원래 표로 되돌린다.
 function applyMobileCards() {
   const mobile = isMobileView();
+  if (!mobile) closeMobileDetail();
   document.querySelectorAll('table.tbl').forEach(table => {
     let cardList = table.nextElementSibling;
     if (!cardList || !cardList.classList || !cardList.classList.contains('mobile-card-list')) {
