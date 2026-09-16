@@ -763,9 +763,11 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
   }
   .mcard:last-child { border-bottom: none; }
   .mcard-title {
-    flex: 1; min-width: 0; font-size: 13px; color: var(--text);
-    white-space: normal; word-break: break-word; line-height: 1.45;
+    flex: 1; min-width: 0; white-space: normal; word-break: break-word;
   }
+  .mcard-meta { font-size: 11px; color: var(--muted); margin-bottom: 3px; }
+  .mcard-main { font-size: 13px; color: var(--text); line-height: 1.45; }
+  .mcard-meta .chip, .mcard-meta span { font-size: 10.5px; }
   .mcard-title:active { opacity: 0.6; }
   .mcard-chevron { color: var(--muted); font-size: 12px; flex-shrink: 0; margin-top: 2px; }
   .mcard-actions { display: flex; gap: 4px; flex-shrink: 0; margin-top: -2px; }
@@ -4778,10 +4780,14 @@ function applyMobilePostCards() {
 
       const cacheKey = 'mpost_' + Date.now() + '_' + idx + '_' + Math.random().toString(36).slice(2, 7);
       _mobileFieldsCache[cacheKey] = { title, fields, fileHtml: fileBtn ? fileBtn.outerHTML : '' };
+      const meta = dateEl ? dateEl.innerHTML.replace(/<a[^>]*>[\s\S]*?<\/a>/gi, '').trim() : '';
 
       return `<div class="mcard">
-        <span class="mcard-title mpost-title" data-mkey="${cacheKey}">${title}</span>
-        <span class="mcard-chevron mpost-title" data-mkey="${cacheKey}"><i class="ti ti-chevron-right"></i></span>
+        <div class="mcard-title" data-mkey="${cacheKey}">
+          ${meta ? `<div class="mcard-meta">${meta}</div>` : ''}
+          <div class="mcard-main">${title}</div>
+        </div>
+        <span class="mcard-chevron" data-mkey="${cacheKey}"><i class="ti ti-chevron-right"></i></span>
         <span class="mcard-actions">${editBtn ? editBtn.outerHTML : ''}${delBtn ? delBtn.outerHTML : ''}</span>
       </div>`;
     }).join('');
@@ -4836,6 +4842,15 @@ function buildCardsForTable(table, cardList) {
       });
     }
 
+    // 일자/구분·상태 컬럼을 찾아 카드 상단에 메타 정보로 함께 노출 (빈 공간 없이)
+    const findColIdx = (matchers) => headers.findIndex((h, i) =>
+      h && matchers.some(m => h === m || h.includes(m)) && !(actionTd && tds[i] === actionTd) && i !== titleIdx);
+    const dateIdx = findColIdx(['일자', '날짜', '게시일', '일시', '등록일']);
+    const tagIdx  = findColIdx(['상태', '구분', '분류']);
+    const dateVal = dateIdx !== -1 && tds[dateIdx] ? cellText(tds[dateIdx]) : '';
+    const tagVal  = tagIdx  !== -1 && tds[tagIdx]  ? cellText(tds[tagIdx])  : '';
+    const meta = [dateVal, tagVal].filter(Boolean).join(' · ');
+
     // 상세 팝업용 필드(라벨:값) 수집 — 액션 컬럼과 빈 헤더는 제외
     const fields = [];
     headers.forEach((h, i) => {
@@ -4848,8 +4863,11 @@ function buildCardsForTable(table, cardList) {
     _mobileFieldsCache[cacheKey] = { title, fields };
 
     return `<div class="mcard">
-      <span class="mcard-title" data-mkey="${cacheKey}">${title || '(내용 없음)'}</span>
-      <span class="mcard-chevron mcard-title" data-mkey="${cacheKey}"><i class="ti ti-chevron-right"></i></span>
+      <div class="mcard-title" data-mkey="${cacheKey}">
+        ${meta ? `<div class="mcard-meta">${meta}</div>` : ''}
+        <div class="mcard-main">${title || '(내용 없음)'}</div>
+      </div>
+      <span class="mcard-chevron" data-mkey="${cacheKey}"><i class="ti ti-chevron-right"></i></span>
       ${actionTd ? `<span class="mcard-actions">${actionTd.innerHTML}</span>` : ''}
     </div>`;
   }).join('');
@@ -4858,7 +4876,7 @@ function buildCardsForTable(table, cardList) {
 const _mobileFieldsCache = {};
 
 document.addEventListener('click', (e) => {
-  const t = e.target.closest('.mcard-title');
+  const t = e.target.closest('.mcard-title, .mcard-chevron');
   if (!t) return;
   const entry = _mobileFieldsCache[t.dataset.mkey];
   if (!entry) return;
