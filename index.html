@@ -610,7 +610,26 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
   max-width: 85vw; max-height: 70vh;
   object-fit: contain; background: var(--bg);
 }
-.img-preview-footer { padding: 12px 18px; border-top: 1px solid var(--border); text-align: right; }
+.img-preview-footer { padding: 12px 18px; border-top: 1px solid var(--border); text-align: right; display: flex; align-items: center; }
+
+/* ── 이미지 갤러리(다중 이미지) 이전/다음 버튼 ── */
+.img-gallery-nav {
+  position: absolute; top: 50%; transform: translateY(-50%);
+  width: 40px; height: 40px; border-radius: 50%; border: none;
+  background: rgba(0,0,0,0.45); color: #fff; font-size: 18px;
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
+  transition: background .12s;
+}
+.img-gallery-nav:hover { background: rgba(0,0,0,0.7); }
+.img-gallery-nav.prev { left: 12px; }
+.img-gallery-nav.next { right: 12px; }
+
+/* ── 카드 썸네일 위 이미지 장수 배지 ── */
+.gallery-count-badge {
+  position: absolute; top: 8px; right: 8px;
+  background: rgba(0,0,0,0.6); color: #fff; font-size: 12px;
+  padding: 2px 8px; border-radius: 100px; display: inline-flex; align-items: center; gap: 4px;
+}
 
 .post-preview.clickable { cursor: pointer; }
 .post-preview.clickable:hover { background: var(--accent-lt); }
@@ -699,6 +718,26 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
 .upload-msg { font-size: 15px; margin-top: 6px; min-height: 18px; }
 .upload-msg.ok  { color: #004386; }
 .upload-msg.err { color: #A32D2D; }
+
+/* ── 다중 이미지 업로드 미리보기 (디자인 시안 등) ── */
+.multi-upload-preview {
+  display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px;
+}
+.mu-thumb {
+  position: relative; width: 76px; height: 76px; border-radius: var(--r-md);
+  overflow: hidden; border: 1px solid var(--border); background: var(--bg);
+}
+.mu-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.mu-thumb-remove {
+  position: absolute; top: 2px; right: 2px; width: 18px; height: 18px;
+  border-radius: 50%; background: rgba(0,0,0,0.6); color: #fff;
+  font-size: 13px; line-height: 18px; text-align: center; cursor: pointer;
+}
+.mu-thumb-remove:hover { background: #A32D2D; }
+.mu-thumb-badge {
+  position: absolute; bottom: 2px; left: 2px; background: var(--accent); color: #fff;
+  font-size: 9.5px; font-weight: 600; padding: 1px 5px; border-radius: 4px;
+}
 
 /* ── 스크롤바 ── */
 ::-webkit-scrollbar { width: 5px; }
@@ -956,11 +995,16 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
       <span class="img-preview-name" id="img-preview-name"></span>
       <span class="img-preview-close" onclick="closeImagePreview()">×</span>
     </div>
-    <!-- 이미지 미리보기 -->
-    <img class="img-preview-content" id="img-preview-img" alt="" style="display:none">
-    <!-- PDF/문서 미리보기 (iframe) -->
-    <iframe id="img-preview-iframe" style="display:none;width:80vw;height:70vh;border:none;background:#f4f4f4"></iframe>
+    <div style="position:relative">
+      <!-- 이미지 미리보기 -->
+      <img class="img-preview-content" id="img-preview-img" alt="" style="display:none">
+      <!-- PDF/문서 미리보기 (iframe) -->
+      <iframe id="img-preview-iframe" style="display:none;width:80vw;height:70vh;border:none;background:#f4f4f4"></iframe>
+      <button id="img-preview-prev" class="img-gallery-nav prev" onclick="galleryNav(-1)" style="display:none" title="이전 이미지"><i class="ti ti-chevron-left"></i></button>
+      <button id="img-preview-next" class="img-gallery-nav next" onclick="galleryNav(1)" style="display:none" title="다음 이미지"><i class="ti ti-chevron-right"></i></button>
+    </div>
     <div class="img-preview-footer">
+      <span id="img-preview-counter" style="display:none;color:var(--muted);font-size:13px;margin-right:auto"></span>
       <a id="img-preview-link" href="#" target="_blank" class="btn sm">
         <i class="ti ti-external-link"></i> 원본 열기
       </a>
@@ -1092,6 +1136,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
         <div class="nav-sub">
           <div class="nav-sub-item" data-page="content-press" onclick="goSub('content-press',this,'ni-content')"><i class="ti ti-news"></i> 언론보도 및 칼럼</div>
           <div class="nav-sub-item" data-page="content-blog"  onclick="goSub('content-blog',this,'ni-content')"><i class="ti ti-pencil"></i> 블로그</div>
+          <div class="nav-sub-item" data-page="content-design" onclick="goSub('content-design',this,'ni-content')"><i class="ti ti-photo"></i> 디자인 시안</div>
         </div>
       </div>
     </div>
@@ -1380,6 +1425,153 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
           <thead><tr><th>구분</th><th>게시일</th><th>솔루션명</th><th>제목 / 내용</th><th>링크</th><th></th></tr></thead>
           <tbody id="blog-list"></tbody>
         </table>
+      </div>
+    </div>
+
+    <!-- ══ 디자인 시안 ══ -->
+    <div id="pg-content-design" class="page">
+      <div class="page-hd">
+        <h1>디자인 시안</h1>
+        <p>(주)소프트힐스의 마케팅 관련 디자인 시안을 관리합니다.</p>
+      </div>
+
+      <div class="card card-res" >
+        <div class="card-hd">
+          <h2><i class="ti ti-printer"></i> 인쇄 <span id="count-design-print" style="font-size:13px;font-weight:400;color:var(--muted);margin-left:6px"></span></h2>
+          <button class="btn sm primary" onclick="openModalFixed('designDraft','인쇄')"><i class="ti ti-plus"></i> 항목 추가</button>
+        </div>
+        <div class="history-filter-bar">
+          <div style="display:flex;align-items:center;gap:4px">
+            <select id="bf-design-print-from" onchange="applyDesignFilter()">
+              <option value="">시작년도</option>
+              <option value="2040">2040년</option><option value="2039">2039년</option><option value="2038">2038년</option><option value="2037">2037년</option><option value="2036">2036년</option><option value="2035">2035년</option><option value="2034">2034년</option><option value="2033">2033년</option><option value="2032">2032년</option><option value="2031">2031년</option><option value="2030">2030년</option><option value="2029">2029년</option><option value="2028">2028년</option><option value="2027">2027년</option><option value="2026">2026년</option><option value="2025">2025년</option><option value="2024">2024년</option><option value="2023">2023년</option><option value="2022">2022년</option><option value="2021">2021년</option><option value="2020">2020년</option><option value="2019">2019년</option><option value="2018">2018년</option><option value="2017">2017년</option><option value="2016">2016년</option><option value="2015">2015년</option><option value="2014">2014년</option><option value="2013">2013년</option>
+            </select>
+            <span style="color:var(--muted);font-size:13px">~</span>
+            <select id="bf-design-print-to" onchange="applyDesignFilter()">
+              <option value="">끝년도</option>
+              <option value="2040">2040년</option><option value="2039">2039년</option><option value="2038">2038년</option><option value="2037">2037년</option><option value="2036">2036년</option><option value="2035">2035년</option><option value="2034">2034년</option><option value="2033">2033년</option><option value="2032">2032년</option><option value="2031">2031년</option><option value="2030">2030년</option><option value="2029">2029년</option><option value="2028">2028년</option><option value="2027">2027년</option><option value="2026">2026년</option><option value="2025">2025년</option><option value="2024">2024년</option><option value="2023">2023년</option><option value="2022">2022년</option><option value="2021">2021년</option><option value="2020">2020년</option><option value="2019">2019년</option><option value="2018">2018년</option><option value="2017">2017년</option><option value="2016">2016년</option><option value="2015">2015년</option><option value="2014">2014년</option><option value="2013">2013년</option>
+            </select>
+          </div>
+          <input type="text" id="bf-design-print-title" placeholder="제목 검색" oninput="applyDesignFilter()">
+          <button class="btn sm" onclick="resetDesignFilter()"><i class="ti ti-x"></i> 필터 초기화</button>
+        </div>
+        <div id="bf-design-print-info" style="font-size:13.5px;color:var(--muted);padding:6px 16px;display:none"></div>
+        <div class="post-list" id="design-print-list"></div>
+      </div>
+      <div class="card card-res" style="margin-top:20px">
+        <div class="card-hd">
+          <h2><i class="ti ti-gift"></i> 판촉 <span id="count-design-promo" style="font-size:13px;font-weight:400;color:var(--muted);margin-left:6px"></span></h2>
+          <button class="btn sm primary" onclick="openModalFixed('designDraft','판촉')"><i class="ti ti-plus"></i> 항목 추가</button>
+        </div>
+        <div class="history-filter-bar">
+          <div style="display:flex;align-items:center;gap:4px">
+            <select id="bf-design-promo-from" onchange="applyDesignFilter()">
+              <option value="">시작년도</option>
+              <option value="2040">2040년</option><option value="2039">2039년</option><option value="2038">2038년</option><option value="2037">2037년</option><option value="2036">2036년</option><option value="2035">2035년</option><option value="2034">2034년</option><option value="2033">2033년</option><option value="2032">2032년</option><option value="2031">2031년</option><option value="2030">2030년</option><option value="2029">2029년</option><option value="2028">2028년</option><option value="2027">2027년</option><option value="2026">2026년</option><option value="2025">2025년</option><option value="2024">2024년</option><option value="2023">2023년</option><option value="2022">2022년</option><option value="2021">2021년</option><option value="2020">2020년</option><option value="2019">2019년</option><option value="2018">2018년</option><option value="2017">2017년</option><option value="2016">2016년</option><option value="2015">2015년</option><option value="2014">2014년</option><option value="2013">2013년</option>
+            </select>
+            <span style="color:var(--muted);font-size:13px">~</span>
+            <select id="bf-design-promo-to" onchange="applyDesignFilter()">
+              <option value="">끝년도</option>
+              <option value="2040">2040년</option><option value="2039">2039년</option><option value="2038">2038년</option><option value="2037">2037년</option><option value="2036">2036년</option><option value="2035">2035년</option><option value="2034">2034년</option><option value="2033">2033년</option><option value="2032">2032년</option><option value="2031">2031년</option><option value="2030">2030년</option><option value="2029">2029년</option><option value="2028">2028년</option><option value="2027">2027년</option><option value="2026">2026년</option><option value="2025">2025년</option><option value="2024">2024년</option><option value="2023">2023년</option><option value="2022">2022년</option><option value="2021">2021년</option><option value="2020">2020년</option><option value="2019">2019년</option><option value="2018">2018년</option><option value="2017">2017년</option><option value="2016">2016년</option><option value="2015">2015년</option><option value="2014">2014년</option><option value="2013">2013년</option>
+            </select>
+          </div>
+          <input type="text" id="bf-design-promo-title" placeholder="제목 검색" oninput="applyDesignFilter()">
+          <button class="btn sm" onclick="resetDesignFilter()"><i class="ti ti-x"></i> 필터 초기화</button>
+        </div>
+        <div id="bf-design-promo-info" style="font-size:13.5px;color:var(--muted);padding:6px 16px;display:none"></div>
+        <div class="post-list" id="design-promo-list"></div>
+      </div>
+      <div class="card card-res" style="margin-top:20px">
+        <div class="card-hd">
+          <h2><i class="ti ti-tag"></i> POP <span id="count-design-pop" style="font-size:13px;font-weight:400;color:var(--muted);margin-left:6px"></span></h2>
+          <button class="btn sm primary" onclick="openModalFixed('designDraft','POP')"><i class="ti ti-plus"></i> 항목 추가</button>
+        </div>
+        <div class="history-filter-bar">
+          <div style="display:flex;align-items:center;gap:4px">
+            <select id="bf-design-pop-from" onchange="applyDesignFilter()">
+              <option value="">시작년도</option>
+              <option value="2040">2040년</option><option value="2039">2039년</option><option value="2038">2038년</option><option value="2037">2037년</option><option value="2036">2036년</option><option value="2035">2035년</option><option value="2034">2034년</option><option value="2033">2033년</option><option value="2032">2032년</option><option value="2031">2031년</option><option value="2030">2030년</option><option value="2029">2029년</option><option value="2028">2028년</option><option value="2027">2027년</option><option value="2026">2026년</option><option value="2025">2025년</option><option value="2024">2024년</option><option value="2023">2023년</option><option value="2022">2022년</option><option value="2021">2021년</option><option value="2020">2020년</option><option value="2019">2019년</option><option value="2018">2018년</option><option value="2017">2017년</option><option value="2016">2016년</option><option value="2015">2015년</option><option value="2014">2014년</option><option value="2013">2013년</option>
+            </select>
+            <span style="color:var(--muted);font-size:13px">~</span>
+            <select id="bf-design-pop-to" onchange="applyDesignFilter()">
+              <option value="">끝년도</option>
+              <option value="2040">2040년</option><option value="2039">2039년</option><option value="2038">2038년</option><option value="2037">2037년</option><option value="2036">2036년</option><option value="2035">2035년</option><option value="2034">2034년</option><option value="2033">2033년</option><option value="2032">2032년</option><option value="2031">2031년</option><option value="2030">2030년</option><option value="2029">2029년</option><option value="2028">2028년</option><option value="2027">2027년</option><option value="2026">2026년</option><option value="2025">2025년</option><option value="2024">2024년</option><option value="2023">2023년</option><option value="2022">2022년</option><option value="2021">2021년</option><option value="2020">2020년</option><option value="2019">2019년</option><option value="2018">2018년</option><option value="2017">2017년</option><option value="2016">2016년</option><option value="2015">2015년</option><option value="2014">2014년</option><option value="2013">2013년</option>
+            </select>
+          </div>
+          <input type="text" id="bf-design-pop-title" placeholder="제목 검색" oninput="applyDesignFilter()">
+          <button class="btn sm" onclick="resetDesignFilter()"><i class="ti ti-x"></i> 필터 초기화</button>
+        </div>
+        <div id="bf-design-pop-info" style="font-size:13.5px;color:var(--muted);padding:6px 16px;display:none"></div>
+        <div class="post-list" id="design-pop-list"></div>
+      </div>
+      <div class="card card-res" style="margin-top:20px">
+        <div class="card-hd">
+          <h2><i class="ti ti-world"></i> Web <span id="count-design-web" style="font-size:13px;font-weight:400;color:var(--muted);margin-left:6px"></span></h2>
+          <button class="btn sm primary" onclick="openModalFixed('designDraft','Web')"><i class="ti ti-plus"></i> 항목 추가</button>
+        </div>
+        <div class="history-filter-bar">
+          <div style="display:flex;align-items:center;gap:4px">
+            <select id="bf-design-web-from" onchange="applyDesignFilter()">
+              <option value="">시작년도</option>
+              <option value="2040">2040년</option><option value="2039">2039년</option><option value="2038">2038년</option><option value="2037">2037년</option><option value="2036">2036년</option><option value="2035">2035년</option><option value="2034">2034년</option><option value="2033">2033년</option><option value="2032">2032년</option><option value="2031">2031년</option><option value="2030">2030년</option><option value="2029">2029년</option><option value="2028">2028년</option><option value="2027">2027년</option><option value="2026">2026년</option><option value="2025">2025년</option><option value="2024">2024년</option><option value="2023">2023년</option><option value="2022">2022년</option><option value="2021">2021년</option><option value="2020">2020년</option><option value="2019">2019년</option><option value="2018">2018년</option><option value="2017">2017년</option><option value="2016">2016년</option><option value="2015">2015년</option><option value="2014">2014년</option><option value="2013">2013년</option>
+            </select>
+            <span style="color:var(--muted);font-size:13px">~</span>
+            <select id="bf-design-web-to" onchange="applyDesignFilter()">
+              <option value="">끝년도</option>
+              <option value="2040">2040년</option><option value="2039">2039년</option><option value="2038">2038년</option><option value="2037">2037년</option><option value="2036">2036년</option><option value="2035">2035년</option><option value="2034">2034년</option><option value="2033">2033년</option><option value="2032">2032년</option><option value="2031">2031년</option><option value="2030">2030년</option><option value="2029">2029년</option><option value="2028">2028년</option><option value="2027">2027년</option><option value="2026">2026년</option><option value="2025">2025년</option><option value="2024">2024년</option><option value="2023">2023년</option><option value="2022">2022년</option><option value="2021">2021년</option><option value="2020">2020년</option><option value="2019">2019년</option><option value="2018">2018년</option><option value="2017">2017년</option><option value="2016">2016년</option><option value="2015">2015년</option><option value="2014">2014년</option><option value="2013">2013년</option>
+            </select>
+          </div>
+          <input type="text" id="bf-design-web-title" placeholder="제목 검색" oninput="applyDesignFilter()">
+          <button class="btn sm" onclick="resetDesignFilter()"><i class="ti ti-x"></i> 필터 초기화</button>
+        </div>
+        <div id="bf-design-web-info" style="font-size:13.5px;color:var(--muted);padding:6px 16px;display:none"></div>
+        <div class="post-list" id="design-web-list"></div>
+      </div>
+      <div class="card card-res" style="margin-top:20px">
+        <div class="card-hd">
+          <h2><i class="ti ti-dots"></i> 기타 <span id="count-design-etc" style="font-size:13px;font-weight:400;color:var(--muted);margin-left:6px"></span></h2>
+          <button class="btn sm primary" onclick="openModalFixed('designDraft','기타')"><i class="ti ti-plus"></i> 항목 추가</button>
+        </div>
+        <div class="history-filter-bar">
+          <div style="display:flex;align-items:center;gap:4px">
+            <select id="bf-design-etc-from" onchange="applyDesignFilter()">
+              <option value="">시작년도</option>
+              <option value="2040">2040년</option><option value="2039">2039년</option><option value="2038">2038년</option><option value="2037">2037년</option><option value="2036">2036년</option><option value="2035">2035년</option><option value="2034">2034년</option><option value="2033">2033년</option><option value="2032">2032년</option><option value="2031">2031년</option><option value="2030">2030년</option><option value="2029">2029년</option><option value="2028">2028년</option><option value="2027">2027년</option><option value="2026">2026년</option><option value="2025">2025년</option><option value="2024">2024년</option><option value="2023">2023년</option><option value="2022">2022년</option><option value="2021">2021년</option><option value="2020">2020년</option><option value="2019">2019년</option><option value="2018">2018년</option><option value="2017">2017년</option><option value="2016">2016년</option><option value="2015">2015년</option><option value="2014">2014년</option><option value="2013">2013년</option>
+            </select>
+            <span style="color:var(--muted);font-size:13px">~</span>
+            <select id="bf-design-etc-to" onchange="applyDesignFilter()">
+              <option value="">끝년도</option>
+              <option value="2040">2040년</option><option value="2039">2039년</option><option value="2038">2038년</option><option value="2037">2037년</option><option value="2036">2036년</option><option value="2035">2035년</option><option value="2034">2034년</option><option value="2033">2033년</option><option value="2032">2032년</option><option value="2031">2031년</option><option value="2030">2030년</option><option value="2029">2029년</option><option value="2028">2028년</option><option value="2027">2027년</option><option value="2026">2026년</option><option value="2025">2025년</option><option value="2024">2024년</option><option value="2023">2023년</option><option value="2022">2022년</option><option value="2021">2021년</option><option value="2020">2020년</option><option value="2019">2019년</option><option value="2018">2018년</option><option value="2017">2017년</option><option value="2016">2016년</option><option value="2015">2015년</option><option value="2014">2014년</option><option value="2013">2013년</option>
+            </select>
+          </div>
+          <input type="text" id="bf-design-etc-title" placeholder="제목 검색" oninput="applyDesignFilter()">
+          <button class="btn sm" onclick="resetDesignFilter()"><i class="ti ti-x"></i> 필터 초기화</button>
+        </div>
+        <div id="bf-design-etc-info" style="font-size:13.5px;color:var(--muted);padding:6px 16px;display:none"></div>
+        <div class="post-list" id="design-etc-list"></div>
+      </div>
+      <div class="card card-res" style="margin-top:20px">
+        <div class="card-hd">
+          <h2><i class="ti ti-confetti"></i> 행사 <span id="count-design-event" style="font-size:13px;font-weight:400;color:var(--muted);margin-left:6px"></span></h2>
+          <button class="btn sm primary" onclick="openModalFixed('designDraft','행사')"><i class="ti ti-plus"></i> 항목 추가</button>
+        </div>
+        <div class="history-filter-bar">
+          <div style="display:flex;align-items:center;gap:4px">
+            <select id="bf-design-event-from" onchange="applyDesignFilter()">
+              <option value="">시작년도</option>
+              <option value="2040">2040년</option><option value="2039">2039년</option><option value="2038">2038년</option><option value="2037">2037년</option><option value="2036">2036년</option><option value="2035">2035년</option><option value="2034">2034년</option><option value="2033">2033년</option><option value="2032">2032년</option><option value="2031">2031년</option><option value="2030">2030년</option><option value="2029">2029년</option><option value="2028">2028년</option><option value="2027">2027년</option><option value="2026">2026년</option><option value="2025">2025년</option><option value="2024">2024년</option><option value="2023">2023년</option><option value="2022">2022년</option><option value="2021">2021년</option><option value="2020">2020년</option><option value="2019">2019년</option><option value="2018">2018년</option><option value="2017">2017년</option><option value="2016">2016년</option><option value="2015">2015년</option><option value="2014">2014년</option><option value="2013">2013년</option>
+            </select>
+            <span style="color:var(--muted);font-size:13px">~</span>
+            <select id="bf-design-event-to" onchange="applyDesignFilter()">
+              <option value="">끝년도</option>
+              <option value="2040">2040년</option><option value="2039">2039년</option><option value="2038">2038년</option><option value="2037">2037년</option><option value="2036">2036년</option><option value="2035">2035년</option><option value="2034">2034년</option><option value="2033">2033년</option><option value="2032">2032년</option><option value="2031">2031년</option><option value="2030">2030년</option><option value="2029">2029년</option><option value="2028">2028년</option><option value="2027">2027년</option><option value="2026">2026년</option><option value="2025">2025년</option><option value="2024">2024년</option><option value="2023">2023년</option><option value="2022">2022년</option><option value="2021">2021년</option><option value="2020">2020년</option><option value="2019">2019년</option><option value="2018">2018년</option><option value="2017">2017년</option><option value="2016">2016년</option><option value="2015">2015년</option><option value="2014">2014년</option><option value="2013">2013년</option>
+            </select>
+          </div>
+          <input type="text" id="bf-design-event-title" placeholder="제목 검색" oninput="applyDesignFilter()">
+          <button class="btn sm" onclick="resetDesignFilter()"><i class="ti ti-x"></i> 필터 초기화</button>
+        </div>
+        <div id="bf-design-event-info" style="font-size:13.5px;color:var(--muted);padding:6px 16px;display:none"></div>
+        <div class="post-list" id="design-event-list"></div>
       </div>
     </div>
 
@@ -2207,6 +2399,10 @@ async function refreshAll() {
     const r = await apiFetch({ action: 'goodsUsage' }, true);
     d.goodsUsage = r || [];
   }
+  if (!d.designDraft) {
+    const r = await apiFetch({ action: 'designDraft' }, true);
+    d.designDraft = r || [];
+  }
 
   // 백엔드 metrics에 특정 항목이 누락된 구버전 대비: 실제 데이터 배열 길이로 클라이언트에서 보정
   d.metrics = d.metrics || {};
@@ -2231,6 +2427,7 @@ async function refreshAll() {
   renderContentTable('press', d.press);
   renderContentTable('blog',  d.blog);
   renderGoods(d.goods);
+  renderDesignDraft(d.designDraft);
   if (document.getElementById('pg-changelog')?.classList.contains('active')) {
     renderAlerts(d.alerts);
   }
@@ -2262,6 +2459,7 @@ function renderPage(pageId) {
     case 'content-press':  renderContentTable('press', DATA.press); break;
     case 'content-blog':   renderContentTable('blog',  DATA.blog); break;
     case 'goods-stock':    renderGoods(DATA.goods); break;
+    case 'content-design': renderDesignDraft(DATA.designDraft); break;
     default:
       // 커스텀 자원 관리 탭
       if (pageId.startsWith('res-custom_')) {
@@ -2384,6 +2582,51 @@ function resetCopyrightFilter() {
     if (el) el.value = '';
   });
   applyCopyrightFilter();
+}
+
+// ── 디자인 시안 (다중 카테고리, 다중 이미지) ────────────────
+let _designAllRows = [];
+
+function renderDesignDraft(rows) {
+  _designAllRows = rows || [];
+  DESIGN_CATS.forEach(cat => {
+    const count = _designAllRows.filter(r => r['분류'] === cat.label).length;
+    setCountBadge('count-design-' + cat.key, count);
+  });
+  applyDesignFilter();
+}
+
+function applyDesignFilter() {
+  DESIGN_CATS.forEach(cat => {
+    const rowsInCat = _designAllRows.filter(r => r['분류'] === cat.label);
+    const from  = document.getElementById('bf-design-' + cat.key + '-from')?.value || '';
+    const to    = document.getElementById('bf-design-' + cat.key + '-to')?.value   || '';
+    const title = document.getElementById('bf-design-' + cat.key + '-title')?.value.toLowerCase() || '';
+    const filtered = rowsInCat.filter(r => {
+      const y = parseInt(String(r['날짜']||'').split('.')[0]) || 0;
+      if (from && y < parseInt(from)) return false;
+      if (to   && y > parseInt(to))   return false;
+      if (title && !String(r['제목']||'').toLowerCase().includes(title)) return false;
+      return true;
+    });
+    const info = document.getElementById('bf-design-' + cat.key + '-info');
+    if (info) {
+      const hasF = from || to || title;
+      info.style.display = hasF ? 'block' : 'none';
+      if (hasF) info.textContent = `필터 적용 중 — ${filtered.length}건 / 전체 ${rowsInCat.length}건`;
+    }
+    renderBoardRows('designDraft', filtered, 'design-' + cat.key + '-list', '등록된 ' + cat.label + ' 시안이 없습니다.');
+  });
+}
+
+function resetDesignFilter() {
+  DESIGN_CATS.forEach(cat => {
+    ['from','to','title'].forEach(suf => {
+      const el = document.getElementById('bf-design-' + cat.key + '-' + suf);
+      if (el) el.value = '';
+    });
+  });
+  applyDesignFilter();
 }
 
 function applyBoardFilter(key) {
@@ -3227,7 +3470,16 @@ function _renderPatentCards(sorted) {
 }
 
 // ── 게시판 공통 렌더 (소개자료·인증·수상·특허·상표) ────
-const BOARD_ICON = { cert:'ti-certificate', award:'ti-trophy', patent:'ti-shield-check', brand:'ti-registered', copyright:'ti-copyright', intro:'ti-files' };
+const BOARD_ICON = { cert:'ti-certificate', award:'ti-trophy', patent:'ti-shield-check', brand:'ti-registered', copyright:'ti-copyright', intro:'ti-files', designDraft:'ti-photo' };
+const MULTI_IMAGE_TYPES = ['designDraft'];
+const DESIGN_CATS = [
+  { key: 'print', label: '인쇄' },
+  { key: 'promo', label: '판촉' },
+  { key: 'pop',   label: 'POP' },
+  { key: 'web',   label: 'Web' },
+  { key: 'etc',   label: '기타' },
+  { key: 'event', label: '행사' },
+];
 
 function previewBlock(fileId, imgId, format) {
   const isImg = imgId || (format && ['jpg','jpeg','png','gif'].includes((format||'').toLowerCase()));
@@ -3290,6 +3542,12 @@ function renderBoardRows(key, rows, listId, emptyMsg) {
     return;
   }
 
+  // 디자인 시안 등 다중 이미지 타입: 갤러리 카드 형식
+  if (MULTI_IMAGE_TYPES.includes(key)) {
+    el.innerHTML = sorted.map(r => _renderMultiImageCard(key, r)).join('');
+    return;
+  }
+
   el.innerHTML = sorted.map(r => {
     const fileId = r['이미지ID'] || r['파일ID'] || '';
     const fmt    = r['이미지명'] ? r['이미지명'].split('.').pop().toLowerCase() : '';
@@ -3329,6 +3587,39 @@ function renderBoardRows(key, rows, listId, emptyMsg) {
   }).join('');
 }
 
+// ── 다중 이미지 갤러리 카드 (디자인 시안 등) ────────────────
+const _galleryCache = {};
+
+function _renderMultiImageCard(key, r) {
+  const ids   = String(r['이미지ID'] || '').split('|').map(s => s.trim()).filter(Boolean);
+  const names = String(r['이미지명'] || '').split('|').map(s => s.trim()).filter(Boolean);
+  const first = ids[0] || '';
+  const count = ids.length;
+  _galleryCache[r._cacheKey] = ids.map((id, i) => ({ id, name: names[i] || '' }));
+
+  return `
+    <div class="post-card">
+      <div class="post-preview ${first ? 'clickable gallery-btn' : ''}" ${first ? `data-gkey="${r._cacheKey}"` : ''}>
+        ${first
+          ? `<img src="https://drive.google.com/thumbnail?id=${first}&sz=w320" alt="">
+             <span class="preview-label">${count > 1 ? count + '장 · 클릭하여 보기' : '클릭하여 확대'}</span>`
+          : `<i class="ti ti-photo preview-icon"></i>
+             <span class="preview-label">이미지 없음</span>`}
+        ${count > 1 ? `<span class="gallery-count-badge"><i class="ti ti-photo"></i> ${count}</span>` : ''}
+      </div>
+      <div class="post-body">
+        <div class="post-date">${fmtDate(r['날짜'] || r['게시일'])}</div>
+        <div class="post-title">${r['제목'] || '(제목 없음)'}</div>
+        ${r['내용'] ? `<div class="post-content">${r['내용']}</div>` : ''}
+        ${r['비고'] ? `<div class="post-note"><span>비고</span> ${r['비고']}</div>` : ''}
+        <div class="post-actions">
+          <button class="btn sm edit-btn" data-type="${key}" data-key="${r._cacheKey}"><i class="ti ti-edit"></i> 수정</button>
+          <button class="btn sm danger del-btn" data-type="${key}" data-row="${r._row}"><i class="ti ti-trash"></i> 삭제</button>
+        </div>
+      </div>
+    </div>`;
+}
+
 // ── 상태 토글 (연혁) ─────────────────────────────────────
 async function toggleStatus(rowNum) {
   const res = await apiPost({ action: 'toggle', row: rowNum });
@@ -3339,7 +3630,7 @@ async function toggleStatus(rowNum) {
 }
 
 // ── 삭제 ─────────────────────────────────────────────────
-const SHEET_MAP = { cert:'인증', award:'수상', patent:'특허', brand:'상표', copyright:'프로그램저작', history:'연혁', intro:'소개자료', youtube:'유튜브', press:'언론보도', blog:'블로그', goods:'물품재고' };
+const SHEET_MAP = { cert:'인증', award:'수상', patent:'특허', brand:'상표', copyright:'프로그램저작', history:'연혁', intro:'소개자료', youtube:'유튜브', press:'언론보도', blog:'블로그', goods:'물품재고', designDraft:'디자인시안' };
 async function deleteItem(key, rowNum) {
   if (!confirm('이 항목을 삭제하시겠습니까?')) return;
   const res = await apiPost({ action: 'delete', sheet: SHEET_MAP[key], row: rowNum });
@@ -3642,6 +3933,29 @@ const MODAL_FORMS = {
     <input type="hidden" id="f-imgid"   value="${existId}">
     <input type="hidden" id="f-imgname" value="${existName}">`;
   },
+
+  designDraft: (d) => {
+    existingDesignImages = String(d['이미지ID'] || '').split('|').map(s => s.trim()).filter(Boolean)
+      .map((id, i) => ({ id, name: (String(d['이미지명'] || '').split('|').map(s => s.trim()).filter(Boolean))[i] || '' }));
+    currentUploadFilesMulti = [];
+    return `
+    ${yearMonthSelect(d['날짜']||'')}
+    <div class="form-row"><label>분류</label><input type="text" id="f-category" value="${d['분류']||''}" readonly style="background:var(--bg);color:var(--muted)"></div>
+    <div class="form-row"><label>제목</label><input type="text" id="f-title" value="${d['제목']||''}"></div>
+    <div class="form-row"><label>내용</label><textarea id="f-content">${d['내용']||''}</textarea></div>
+    <div class="form-row"><label>기타 참고사항</label><input type="text" id="f-note" placeholder="기타 참고사항" value="${d['비고']||''}"></div>
+    <div class="upload-section">
+      <label>이미지 첨부 <span style="font-size:11px;color:var(--muted)">(jpg/png, 여러 장 첨부 가능)</span></label>
+      <div class="dropzone" id="f-dropzone-multi">
+        <i class="ti ti-photo dropzone-icon"></i>
+        <div class="dropzone-text">클릭하거나 이미지를 드래그하여 여러 장 첨부</div>
+        <div class="dropzone-sub">jpg, png 파일만 지원</div>
+      </div>
+      <div id="f-multi-preview" class="multi-upload-preview"></div>
+    </div>
+    <input type="hidden" id="f-imgid"   value="${d['이미지ID']||''}">
+    <input type="hidden" id="f-imgname" value="${d['이미지명']||''}">`;
+  },
 };
 
 function boardForm(d) {
@@ -3701,11 +4015,12 @@ const EXCEL_COLS = {
   press:   ['게시일','구분','발행처','언론사명','제목','내용','URL'],
   blog:    ['게시일','구분','솔루션명','제목','내용','URL'],
   goods:   ['구분','소구분','품목','제작일시','제작수량','사용수량','재고수량','단위','비고','이미지명'],
+  designDraft: ['날짜','분류','제목','내용','비고','이미지명'],
 };
 const EXCEL_LABELS = {
   cert:'인증', award:'수상', patent:'특허', brand:'상표', copyright:'프로그램저작등록',
   history:'연혁', intro:'소개자료', youtube:'유튜브영상', press:'언론보도및칼럼', blog:'블로그',
-  goods:'마케팅물품재고'
+  goods:'마케팅물품재고', designDraft:'디자인시안'
 };
 
 function downloadExcel(key) {
@@ -3743,16 +4058,21 @@ function openModalFixedCat(type, fixedCategory) {
 function openModal(type, data = {}) {
   currentModal = type;
   editRow = data._row || null;
-  document.getElementById('modal-title').textContent = (editRow ? '항목 수정' : '항목 추가') + ' — ' + ({ cert:'인증', award:'수상', patent:'특허', brand:'상표', copyright:'프로그램 저작/등록', history:'연혁', intro:'소개자료', youtube:'유튜브', press:'언론보도 및 칼럼', blog:'블로그', goods:'마케팅 물품' }[type] || type);
+  document.getElementById('modal-title').textContent = (editRow ? '항목 수정' : '항목 추가') + ' — ' + ({ cert:'인증', award:'수상', patent:'특허', brand:'상표', copyright:'프로그램 저작/등록', history:'연혁', intro:'소개자료', youtube:'유튜브', press:'언론보도 및 칼럼', blog:'블로그', goods:'마케팅 물품', designDraft:'디자인 시안' }[type] || type);
   document.getElementById('modal-body').innerHTML = MODAL_FORMS[type](data);
   document.getElementById('modal-bg').classList.add('open');
   // 연/월(/일) 드롭다운 초기 동기화
-  setTimeout(() => { (['youtube','press','blog'].includes(type) ? syncDateFieldYMD : syncDateField)(); initDropzone(); }, 0);
+  setTimeout(() => {
+    (['youtube','press','blog'].includes(type) ? syncDateFieldYMD : syncDateField)();
+    if (type === 'designDraft') { initMultiDropzone(); renderMultiUploadPreview(); }
+    else { initDropzone(); }
+  }, 0);
   currentUploadFile = null;
   // 모달 타입 → 시트명 매핑
   const MODAL_TO_SHEET = {
     cert: '인증', award: '수상', patent: '특허', brand: '상표', copyright: '프로그램저작',
-    intro: '소개자료', youtube: '유튜브', history: '연혁', press: '언론보도', blog: '블로그', goods: '물품재고'
+    intro: '소개자료', youtube: '유튜브', history: '연혁', press: '언론보도', blog: '블로그', goods: '물품재고',
+    designDraft: '디자인시안'
   };
   currentUploadSheet = MODAL_TO_SHEET[type] || '';
 }
@@ -3795,6 +4115,23 @@ async function submitModal() {
     }
   }
 
+  // 디자인 시안: 여러 장의 새 이미지를 순차 업로드 후 기존 이미지와 합쳐서 저장
+  if (t === 'designDraft' && currentUploadFilesMulti.length) {
+    try {
+      for (let i = 0; i < currentUploadFilesMulti.length; i++) {
+        const f = currentUploadFilesMulti[i];
+        banner(`이미지 업로드 중… (${i + 1}/${currentUploadFilesMulti.length})`, 'loading');
+        const uploaded = await uploadFileViaForm(f);
+        existingDesignImages.push({ id: uploaded.fileId || '', name: f.name });
+      }
+      currentUploadFilesMulti = [];
+    } catch (e) {
+      banner('이미지 업로드 실패: ' + e.message, 'error');
+      if (saveBtn) saveBtn.disabled = false;
+      return;
+    }
+  }
+
   if (t === 'history') {
     data = { '날짜': getDateFromSelects(), '구분': v('f-category'), '내용': v('f-content'), '내용(대외홍보)': v('f-content-origin'), '내용2': v('f-content-en'), '첨부파일ID': v('f-fileid'), '첨부파일명': v('f-filename'), '상태': v('f-status') };
   } else if (t === 'patent') {
@@ -3814,6 +4151,12 @@ async function submitModal() {
     data = { '게시일': getDateFromSelects(), '구분': v('f-category'), '솔루션명': v('f-solution'), '제목': v('f-title'), '내용': v('f-content'), 'URL': v('f-url') };
   } else if (t === 'goods') {
     data = { '구분': v('f-category'), '소구분': v('f-subcategory'), '품목': v('f-item'), '제작일시': v('f-madedate'), '제작수량': v('f-qty'), '수량': v('f-qty'), '단위': v('f-unit'), '비고': v('f-note'), '이미지ID': v('f-imgid'), '이미지명': v('f-imgname') };
+  } else if (t === 'designDraft') {
+    data = {
+      '날짜': getDateFromSelects(), '분류': v('f-category'), '제목': v('f-title'), '내용': v('f-content'), '비고': v('f-note'),
+      '이미지ID':   existingDesignImages.map(x => x.id).join('|'),
+      '이미지명':   existingDesignImages.map(x => x.name).join('|'),
+    };
   }
 
   const sheetName = SHEET_MAP[t];
@@ -3838,7 +4181,7 @@ async function refreshSheet(type) {
   const actionMap = {
     history: 'history', cert: 'cert', award: 'award', patent: 'patent',
     brand: 'brand', copyright: 'copyright', intro: 'intro',
-    youtube: 'youtube', press: 'press', blog: 'blog', goods: 'goods'
+    youtube: 'youtube', press: 'press', blog: 'blog', goods: 'goods', designDraft: 'designDraft'
   };
   const action = actionMap[type];
   if (!action) { await refreshAll(); return; }
@@ -3860,6 +4203,7 @@ async function refreshSheet(type) {
     case 'youtube':   renderYoutube(rows); renderMainYoutube(rows); break;
     case 'press':     renderContentTable('press', rows); break;
     case 'blog':      renderContentTable('blog', rows); break;
+    case 'designDraft': renderDesignDraft(rows); break;
     case 'goods':     renderGoods(rows); break;
   }
   // 지표 카드 빠른 갱신 (메인에 영향 있는 카테고리)
@@ -3870,6 +4214,10 @@ async function refreshSheet(type) {
   queueApplyMobileCards();
 }
 function openImagePreview(fileId, fileName) {
+  _galleryItems = [];
+  _galleryIndex = 0;
+  hideGalleryNav();
+
   const bg     = document.getElementById('img-preview-bg');
   const img    = document.getElementById('img-preview-img');
   const iframe = document.getElementById('img-preview-iframe');
@@ -3904,6 +4252,66 @@ function closeImagePreview(e) {
   if (e && e.target && !e.target.matches('.img-preview-bg, .img-preview-close')) return;
   document.getElementById('img-preview-bg').classList.remove('open');
 }
+
+// ── 다중 이미지 갤러리 (디자인 시안 등) ────────────────────
+let _galleryItems = [];
+let _galleryIndex = 0;
+
+function hideGalleryNav() {
+  const prev = document.getElementById('img-preview-prev');
+  const next = document.getElementById('img-preview-next');
+  const cnt  = document.getElementById('img-preview-counter');
+  if (prev) prev.style.display = 'none';
+  if (next) next.style.display = 'none';
+  if (cnt)  cnt.style.display = 'none';
+}
+
+function openImageGallery(items, startIdx) {
+  _galleryItems = items || [];
+  _galleryIndex = startIdx || 0;
+  if (!_galleryItems.length) return;
+  showGalleryImage();
+  const multi = _galleryItems.length > 1;
+  const prev = document.getElementById('img-preview-prev');
+  const next = document.getElementById('img-preview-next');
+  const cnt  = document.getElementById('img-preview-counter');
+  if (prev) prev.style.display = multi ? 'flex' : 'none';
+  if (next) next.style.display = multi ? 'flex' : 'none';
+  if (cnt)  cnt.style.display  = multi ? 'inline' : 'none';
+  document.getElementById('img-preview-bg').classList.add('open');
+}
+
+function showGalleryImage() {
+  const item = _galleryItems[_galleryIndex];
+  if (!item) return;
+  const img    = document.getElementById('img-preview-img');
+  const iframe = document.getElementById('img-preview-iframe');
+  const name   = document.getElementById('img-preview-name');
+  const link   = document.getElementById('img-preview-link');
+  const cnt    = document.getElementById('img-preview-counter');
+
+  name.textContent = item.name || '미리보기';
+  link.href = `https://drive.google.com/file/d/${item.id}/view`;
+  img.src = `https://drive.google.com/thumbnail?id=${item.id}&sz=w1600`;
+  img.style.display = 'block';
+  iframe.style.display = 'none';
+  iframe.src = '';
+  if (cnt) cnt.textContent = (_galleryIndex + 1) + ' / ' + _galleryItems.length;
+}
+
+function galleryNav(dir) {
+  if (!_galleryItems.length) return;
+  _galleryIndex = (_galleryIndex + dir + _galleryItems.length) % _galleryItems.length;
+  showGalleryImage();
+}
+
+// 좌우 화살표 키로도 갤러리 넘기기
+document.addEventListener('keydown', e => {
+  if (!document.getElementById('img-preview-bg')?.classList.contains('open')) return;
+  if (!_galleryItems.length) return;
+  if (e.key === 'ArrowLeft')  galleryNav(-1);
+  if (e.key === 'ArrowRight') galleryNav(1);
+});
 
 // ── 자원 관리 동적 추가 ─────────────────────────────────
 const ICON_OPTIONS = [
@@ -4287,6 +4695,70 @@ function downloadCustomExcel(key, name) {
 let currentUploadFile = null;
 let currentUploadSheet = ''; // 업로드 대상 시트명
 
+// ── 다중 이미지 업로드 (디자인 시안 등) ──────────────────
+let existingDesignImages = [];   // [{id, name}] 이미 저장된 이미지 (수정 시)
+let currentUploadFilesMulti = []; // File[] 새로 추가한(아직 업로드 안 된) 파일
+
+function initMultiDropzone() {
+  const dz = document.getElementById('f-dropzone-multi');
+  if (!dz) return;
+  const newDz = dz.cloneNode(true);
+  dz.parentNode.replaceChild(newDz, dz);
+
+  newDz.addEventListener('click', () => {
+    const inp = document.createElement('input');
+    inp.type = 'file';
+    inp.accept = '.jpg,.jpeg,.png';
+    inp.multiple = true;
+    inp.onchange = e => { addMultiUploadFiles(e.target.files); };
+    inp.click();
+  });
+  newDz.addEventListener('dragover',  e => { e.preventDefault(); newDz.classList.add('drag-over'); });
+  newDz.addEventListener('dragleave', () => newDz.classList.remove('drag-over'));
+  newDz.addEventListener('drop', e => {
+    e.preventDefault();
+    newDz.classList.remove('drag-over');
+    addMultiUploadFiles(e.dataTransfer.files);
+  });
+}
+
+function addMultiUploadFiles(fileList) {
+  const allowed = ['image/jpeg', 'image/png'];
+  Array.from(fileList || []).forEach(f => {
+    if (allowed.includes(f.type) || /\.(jpe?g|png)$/i.test(f.name)) {
+      currentUploadFilesMulti.push(f);
+    }
+  });
+  renderMultiUploadPreview();
+}
+
+function removeExistingDesignImage(idx) {
+  existingDesignImages.splice(idx, 1);
+  renderMultiUploadPreview();
+}
+
+function removeNewDesignFile(idx) {
+  currentUploadFilesMulti.splice(idx, 1);
+  renderMultiUploadPreview();
+}
+
+function renderMultiUploadPreview() {
+  const el = document.getElementById('f-multi-preview');
+  if (!el) return;
+  const existThumbs = existingDesignImages.map((img, i) => `
+    <div class="mu-thumb">
+      <img src="https://drive.google.com/thumbnail?id=${img.id}&sz=w160" alt="">
+      <span class="mu-thumb-remove" onclick="removeExistingDesignImage(${i})" title="제거">×</span>
+    </div>`).join('');
+  const newThumbs = currentUploadFilesMulti.map((f, i) => `
+    <div class="mu-thumb mu-thumb-new">
+      <img src="${URL.createObjectURL(f)}" alt="">
+      <span class="mu-thumb-badge">NEW</span>
+      <span class="mu-thumb-remove" onclick="removeNewDesignFile(${i})" title="제거">×</span>
+    </div>`).join('');
+  el.innerHTML = existThumbs + newThumbs;
+}
+
 function initDropzone() {
   const dz = document.getElementById('f-dropzone');
   if (!dz) return;
@@ -4503,6 +4975,15 @@ document.addEventListener('click', function(e) {
     const fileId   = previewBtn.dataset.fileid;
     const fileName = previewBtn.dataset.filename || '미리보기';
     if (fileId) openImagePreview(fileId, fileName);
+    return;
+  }
+
+  const galleryBtn = e.target.closest('.gallery-btn');
+  if (galleryBtn) {
+    e.preventDefault();
+    e.stopPropagation();
+    const items = _galleryCache[galleryBtn.dataset.gkey] || [];
+    if (items.length) openImageGallery(items, 0);
     return;
   }
 });
