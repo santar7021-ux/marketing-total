@@ -2036,6 +2036,7 @@ function go(pageId, el) {
   document.getElementById('pg-' + pageId).classList.add('active');
   document.querySelectorAll('.nav-main, .nav-sub-item').forEach(n => n.classList.remove('active'));
   if (el) el.classList.add('active');
+  try { history.replaceState(null, '', '#' + pageId); } catch (e) {}
 }
 
 function toggle(navId, defaultPage) {
@@ -2063,6 +2064,7 @@ function goSub(pageId, el, navId) {
     ni.classList.add('open');
     ni.querySelector('.nav-main').classList.add('active');
   }
+  try { history.replaceState(null, '', '#' + pageId); } catch (e) {}
 
   // 렌더 (커스텀 탭과 기존 탭 분리)
   if (pageId.startsWith('res-custom_')) {
@@ -2070,6 +2072,24 @@ function goSub(pageId, el, navId) {
     renderCustomPage(customKey);
   } else {
     renderPage(pageId);
+  }
+}
+
+// 새로고침(F5) 시 URL 해시를 보고 마지막으로 보던 페이지로 복원
+function restoreLastPage() {
+  const hash = (location.hash || '').replace(/^#/, '');
+  if (!hash || hash === 'main') return; // 기본값(메인)이 이미 표시된 상태라 별도 처리 불필요
+  const target = document.querySelector(`[data-page="${hash}"]`);
+  if (!target && hash !== 'changelog' && hash !== 'settings') return; // 알 수 없는 해시면 메인 유지
+  if (hash === 'changelog' || hash === 'settings') {
+    go(hash, target || null);
+    return;
+  }
+  const navItem = target.closest('.nav-item');
+  if (navItem) {
+    goSub(hash, target, navItem.id);
+  } else {
+    go(hash, target);
   }
 }
 
@@ -4406,12 +4426,13 @@ function closeMobileNav() {
 }
 
 // ── 초기화 ───────────────────────────────────────────────
-window.addEventListener('DOMContentLoaded', () => {
+window.addEventListener('DOMContentLoaded', async () => {
   const stored = localStorage.getItem('sh_api_url') || DEFAULT_API_URL;
   API_URL = stored;
   document.getElementById('api-url-input').value = stored;
   document.getElementById('api-status').textContent = '✅ 연결됨: ' + stored;
-  refreshAll();
+  await refreshAll();
+  restoreLastPage();
 
 
   // ESC 모달 닫기
