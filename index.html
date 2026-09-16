@@ -720,20 +720,19 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
   .rail { display: none; }
   .content { padding: 16px 12px; }
 
-  /* ── 지표 카드: 2열 그리드 대신 가로로 스와이프하는 카드 스트립 ── */
+  /* ── 지표 카드: 한 줄에 하나씩, "인증 7건" 형태로 세로 나열 ── */
   .metric-grid {
-    display: flex; grid-template-columns: none; overflow-x: auto; gap: 10px;
-    padding: 2px 2px 8px; margin-bottom: 14px; -webkit-overflow-scrolling: touch;
-    scroll-snap-type: x proximity;
+    display: flex; flex-direction: column; overflow-x: visible; gap: 8px;
+    padding: 0; margin-bottom: 14px; scroll-snap-type: none;
   }
-  .metric-grid::-webkit-scrollbar { display: none; }
   .metric {
-    flex: 0 0 auto; width: 128px; padding: 14px 14px; scroll-snap-align: start;
+    flex: none; width: auto; display: flex; align-items: center; gap: 8px;
+    padding: 13px 16px; scroll-snap-align: none; border-radius: 10px;
   }
-  .metric-label { font-size: 12px; }
-  .metric-val   { font-size: 24px; }
+  .metric-label { flex: 1; font-size: 13.5px; font-weight: 500; margin-bottom: 0; }
+  .metric-val   { font-size: 19px; order: 2; margin: 0; }
   .metric-unit  { font-size: 12px; }
-  .metric-badge { font-size: 11px; padding: 2px 8px; }
+  .metric-badge { font-size: 11px; padding: 2px 8px; order: 3; margin-top: 0; }
 
   /* ── 페이지 제목 ── */
   .page-hd h1, .page-hd-with-btn h1 { font-size: 19px; }
@@ -755,20 +754,21 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
   .tbl { font-size: 12.5px; }
   .tbl th, .tbl td { padding: 8px 8px; }
   table.tbl.mtbl-hidden { display: none; }
+  .post-card.mtbl-hidden { display: none; }
 
   .mobile-card-list { display: flex; flex-direction: column; }
   .mcard {
-    display: flex; align-items: center; justify-content: space-between; gap: 8px;
-    padding: 12px 14px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: flex-start; justify-content: space-between; gap: 8px;
+    padding: 13px 14px; border-bottom: 1px solid var(--border);
   }
   .mcard:last-child { border-bottom: none; }
   .mcard-title {
     flex: 1; min-width: 0; font-size: 13px; color: var(--text);
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    white-space: normal; word-break: break-word; line-height: 1.45;
   }
   .mcard-title:active { opacity: 0.6; }
-  .mcard-chevron { color: var(--muted); font-size: 12px; flex-shrink: 0; }
-  .mcard-actions { display: flex; gap: 4px; flex-shrink: 0; }
+  .mcard-chevron { color: var(--muted); font-size: 12px; flex-shrink: 0; margin-top: 2px; }
+  .mcard-actions { display: flex; gap: 4px; flex-shrink: 0; margin-top: -2px; }
   .mcard-actions .btn.sm { padding: 4px 7px; }
   .mcard-empty { padding: 30px 14px; text-align: center; color: var(--muted); font-size: 12.5px; }
 
@@ -798,9 +798,13 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
   .mdf-value { font-size: 13.5px; color: var(--text); line-height: 1.5; word-break: break-word; }
   .mdf-value a { color: var(--accent); }
   .mobile-detail-actions { display: flex; gap: 8px; padding: 10px 0 0; }
+  .mobile-detail-actions .post-file-btn {
+    flex: 1; justify-content: center; padding: 13px; font-size: 14px;
+    border-radius: var(--r-md); background: var(--accent); color: #fff; border-color: var(--accent);
+  }
 
   /* ── post-list 카드형 ── */
-  .post-item { padding: 14px 12px; }
+  .post-body { padding: 14px 12px; }
   .post-title { font-size: 14.5px; }
   .post-content { font-size: 13px; }
   .post-note { font-size: 12.5px; }
@@ -842,9 +846,8 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
 }
 
 @media (max-width: 400px) {
-  .metric-grid { gap: 8px; }
-  .metric { width: 112px; padding: 12px 12px; }
-  .metric-val { font-size: 21px; }
+  .metric { padding: 11px 14px; }
+  .metric-val { font-size: 18px; }
   .content { padding: 12px 10px; }
 }
 </style>
@@ -4732,6 +4735,57 @@ function applyMobileCards() {
     cardList.style.display = '';
     buildCardsForTable(table, cardList);
   });
+  applyMobilePostCards();
+}
+
+// 모든 .post-card(소개 자료, 인증/수상/특허/상표/저작권 게시형 목록)를
+// 모바일에서는 제목 한 줄 카드로 축약하고, 탭하면 상세 내용 + 다운로드 버튼을 팝업으로 보여준다.
+function applyMobilePostCards() {
+  const mobile = isMobileView();
+  const parents = new Set();
+  document.querySelectorAll('.post-card').forEach(pc => parents.add(pc.parentNode));
+  parents.forEach(parent => {
+    const cards = Array.from(parent.children).filter(c => c.classList && c.classList.contains('post-card'));
+    if (!cards.length) return;
+    let cardList = parent.querySelector(':scope > .mobile-card-list');
+    if (!cardList) {
+      cardList = document.createElement('div');
+      cardList.className = 'mobile-card-list';
+      parent.appendChild(cardList);
+    }
+    if (!mobile) {
+      cards.forEach(c => c.classList.remove('mtbl-hidden'));
+      cardList.innerHTML = '';
+      cardList.style.display = 'none';
+      return;
+    }
+    cards.forEach(c => c.classList.add('mtbl-hidden'));
+    cardList.style.display = '';
+    cardList.innerHTML = cards.map((pc, idx) => {
+      const titleEl   = pc.querySelector('.post-title');
+      const title     = titleEl ? titleEl.textContent.trim() : '(제목 없음)';
+      const dateEl    = pc.querySelector('.post-date');
+      const contentEl = pc.querySelector('.post-content');
+      const noteEl    = pc.querySelector('.post-note');
+      const fileBtn   = pc.querySelector('.post-file-btn');
+      const editBtn   = pc.querySelector('.edit-btn');
+      const delBtn    = pc.querySelector('.del-btn');
+
+      const fields = [];
+      if (dateEl)    fields.push({ label: '날짜',  value: dateEl.innerHTML.trim() });
+      if (contentEl) fields.push({ label: '내용',  value: contentEl.innerHTML.trim() });
+      if (noteEl)    fields.push({ label: '비고',  value: noteEl.innerHTML.replace(/^<span>[^<]*<\/span>\s*/, '').trim() });
+
+      const cacheKey = 'mpost_' + Date.now() + '_' + idx + '_' + Math.random().toString(36).slice(2, 7);
+      _mobileFieldsCache[cacheKey] = { title, fields, fileHtml: fileBtn ? fileBtn.outerHTML : '' };
+
+      return `<div class="mcard">
+        <span class="mcard-title mpost-title" data-mkey="${cacheKey}">${title}</span>
+        <span class="mcard-chevron mpost-title" data-mkey="${cacheKey}"><i class="ti ti-chevron-right"></i></span>
+        <span class="mcard-actions">${editBtn ? editBtn.outerHTML : ''}${delBtn ? delBtn.outerHTML : ''}</span>
+      </div>`;
+    }).join('');
+  });
 }
 
 function queueApplyMobileCards() {
@@ -4756,15 +4810,31 @@ function buildCardsForTable(table, cardList) {
     const tds = Array.from(tr.children);
     const hasActionCol = tds.length && (tr.querySelector('.edit-btn') || tr.querySelector('.del-btn'));
     const actionTd = hasActionCol ? tds[tds.length - 1] : null;
+    const cellText = (td) => {
+      const html = td.innerHTML.replace(/<(br|\/div|\/p|\/li)\s*\/?>/gi, ' · ');
+      const tmp = document.createElement('div');
+      tmp.innerHTML = html;
+      return tmp.textContent.trim().replace(/^(\s*·\s*)+/, '').replace(/(\s*·\s*)+$/, '').replace(/(\s*·\s*){2,}/g, ' · ');
+    };
 
-    // 카드 제목: 액션 컬럼을 제외한 셀 중 텍스트 길이가 가장 긴 셀
-    // (짧은 분류/구분 태그보다 제목·품목명 같은 실제 내용이 우선되도록)
+    // 카드 제목 선정 우선순위:
+    // 1) 헤더에 "제목"이 포함된 컬럼 (예: 제목, 제목 / 내용)
+    // 2) 헤더가 정확히 "내용(대외홍보)"인 컬럼 (연혁)
+    // 3) 그 외엔 텍스트가 가장 긴 셀 (짧은 분류/날짜보다 실제 내용 우선)
     let title = '';
-    tds.forEach((td, i) => {
-      if (actionTd && td === actionTd) return;
-      const t = td.textContent.trim();
-      if (t.length > title.length) title = t;
-    });
+    let titleIdx = headers.findIndex((h, i) => h && h.includes('제목') && !(actionTd && tds[i] === actionTd));
+    if (titleIdx === -1) {
+      titleIdx = headers.findIndex((h, i) => h === '내용(대외홍보)' && !(actionTd && tds[i] === actionTd));
+    }
+    if (titleIdx !== -1 && tds[titleIdx]) {
+      title = cellText(tds[titleIdx]);
+    } else {
+      tds.forEach((td, i) => {
+        if (actionTd && td === actionTd) return;
+        const t = cellText(td);
+        if (t.length > title.length) title = t;
+      });
+    }
 
     // 상세 팝업용 필드(라벨:값) 수집 — 액션 컬럼과 빈 헤더는 제외
     const fields = [];
@@ -4792,16 +4862,18 @@ document.addEventListener('click', (e) => {
   if (!t) return;
   const entry = _mobileFieldsCache[t.dataset.mkey];
   if (!entry) return;
-  openMobileDetail(entry.title, entry.fields);
+  openMobileDetail(entry.title, entry.fields, entry.fileHtml);
 });
 
-function openMobileDetail(title, fields) {
+function openMobileDetail(title, fields, fileHtml) {
   document.getElementById('mobile-detail-title').textContent = title || '상세 내용';
-  document.getElementById('mobile-detail-body').innerHTML = fields.map(f => `
+  let html = fields.map(f => `
     <div class="mdf-row">
       <div class="mdf-label">${f.label}</div>
       <div class="mdf-value">${f.value || '—'}</div>
     </div>`).join('');
+  if (fileHtml) html += `<div class="mobile-detail-actions">${fileHtml}</div>`;
+  document.getElementById('mobile-detail-body').innerHTML = html;
   document.getElementById('mobile-detail-overlay').classList.add('open');
 }
 
