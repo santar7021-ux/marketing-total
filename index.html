@@ -611,6 +611,14 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
   max-width: 85vw; max-height: 70vh;
   object-fit: contain; background: var(--bg);
 }
+.img-preview-pdf {
+  /* PDF는 실제 페이지 비율을 알 수 없어 일반 문서(A4 세로, 약 1:1.414) 비율로 근사 */
+  height: 78vh; width: calc(78vh * 0.72);
+  max-width: 85vw; max-height: 85vh;
+}
+@media (max-width: 700px) {
+  .img-preview-pdf { width: 88vw; height: calc(88vw / 0.72); max-height: 78vh; }
+}
 .img-preview-footer { padding: 12px 18px; border-top: 1px solid var(--border); text-align: right; display: flex; align-items: center; }
 
 /* ── 이미지 갤러리(다중 이미지) 이전/다음 버튼 ── */
@@ -1000,7 +1008,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
       <!-- 이미지 미리보기 -->
       <img class="img-preview-content" id="img-preview-img" alt="" style="display:none">
       <!-- PDF/문서 미리보기 (iframe) -->
-      <iframe id="img-preview-iframe" style="display:none;width:80vw;height:70vh;border:none;background:#f4f4f4"></iframe>
+      <iframe id="img-preview-iframe" class="img-preview-pdf" style="display:none;border:none;background:#f4f4f4"></iframe>
       <button id="img-preview-prev" class="img-gallery-nav prev" onclick="galleryNav(-1)" style="display:none" title="이전 이미지"><i class="ti ti-chevron-left"></i></button>
       <button id="img-preview-next" class="img-gallery-nav next" onclick="galleryNav(1)" style="display:none" title="다음 이미지"><i class="ti ti-chevron-right"></i></button>
     </div>
