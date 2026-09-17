@@ -591,7 +591,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
 .img-preview-bg {
   position: fixed; inset: 0; background: rgba(0,0,0,0.85);
   display: none; align-items: center; justify-content: center;
-  z-index: 200; padding: 20px;
+  z-index: 600; padding: 20px;
 }
 .img-preview-bg.open { display: flex; }
 .img-preview-box {
@@ -5588,6 +5588,9 @@ function buildGoodsMobileCards(table, cardList, headers, rows) {
   const idxOf = (name) => headers.indexOf(name);
   const subIdx   = idxOf('소구분');
   const itemIdx  = idxOf('품목');
+  const dateIdx  = idxOf('제작일시');
+  const madeIdx  = idxOf('제작수량');
+  const usedIdx  = idxOf('사용수량');
   const stockIdx = idxOf('재고수량');
   const unitIdx  = idxOf('단위');
 
@@ -5605,8 +5608,12 @@ function buildGoodsMobileCards(table, cardList, headers, rows) {
 
     const sub   = cellText(tds[subIdx]);
     const item  = cellText(tds[itemIdx]) || '(품목 없음)';
+    const date  = cellText(tds[dateIdx]);
+    const made  = cellText(tds[madeIdx]);
+    const used  = cellText(tds[usedIdx]);
     const stock = cellText(tds[stockIdx]);
     const unit  = cellText(tds[unitIdx]);
+    const hasImg = tds[itemIdx] ? !!tds[itemIdx].querySelector('.preview-btn') : false;
 
     const fields = [];
     headers.forEach((h, i) => {
@@ -5621,11 +5628,14 @@ function buildGoodsMobileCards(table, cardList, headers, rows) {
     const stockNum = parseFloat(stock);
     const stockColor = (!isNaN(stockNum) && stockNum <= 0) ? '#c0392b' : 'var(--accent-dk)';
 
+    const metaTop = [sub, date].filter(Boolean).join(' · ');
+    const metaQty = `제작 ${made || 0} · 사용 ${used || 0} · 재고 <b style="color:${stockColor}">${stock || 0}</b>${unit ? ' ' + unit : ''}`;
+
     return `<div class="mcard">
       <div class="mcard-title" data-mkey="${cacheKey}">
-        ${sub ? `<div class="mcard-meta">${sub}</div>` : ''}
-        <div class="mcard-main">${item}</div>
-        <div class="mcard-meta" style="margin-top:3px">재고 <b style="color:${stockColor}">${stock || 0}</b>${unit ? ' ' + unit : ''}</div>
+        ${metaTop ? `<div class="mcard-meta">${metaTop}</div>` : ''}
+        <div class="mcard-main">${hasImg ? '<i class="ti ti-photo" style="font-size:12px;color:var(--accent);margin-right:4px"></i>' : ''}${item}</div>
+        <div class="mcard-meta" style="margin-top:3px">${metaQty}</div>
       </div>
       <span class="mcard-chevron" data-mkey="${cacheKey}"><i class="ti ti-chevron-right"></i></span>
       ${actionTd ? `<span class="mcard-actions">${actionTd.innerHTML}</span>` : ''}
