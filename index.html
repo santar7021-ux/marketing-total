@@ -859,6 +859,11 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
   .mcard-meta .chip, .mcard-meta span { font-size: 10.5px; }
   .mcard-title:active { opacity: 0.6; }
   .mcard-chevron { color: var(--muted); font-size: 12px; flex-shrink: 0; margin-top: 2px; }
+  .mcard-thumb {
+    flex-shrink: 0; width: 46px; height: 46px; border-radius: 8px; overflow: hidden;
+    background: var(--bg); border: 1px solid var(--border); cursor: pointer;
+  }
+  .mcard-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
   .mcard-actions { display: flex; gap: 6px; flex-shrink: 0; margin-top: -2px; }
   .mcard-actions .btn.sm { padding: 7px 9px; font-size: 14px; }
   .mcard-empty { padding: 30px 14px; text-align: center; color: var(--muted); font-size: 12.5px; }
@@ -2393,34 +2398,23 @@ async function apiPost(body) {
 }
 
 // ── 초기 데이터 로드 ─────────────────────────────────────
-async function refreshAll() {
-  const d = await apiFetch({ action: 'all' });
+async function refreshAll(silent) {
+  const d = await apiFetch({ action: 'all' }, silent);
   if (!d) return;
 
-  // copyright, press, blog가 누락된 구버전 응답 대비 fallback
-  if (!d.copyright) {
-    const r = await apiFetch({ action: 'copyright' }, true);
-    d.copyright = r || [];
-  }
-  if (!d.press) {
-    const r = await apiFetch({ action: 'press' }, true);
-    d.press = r || [];
-  }
-  if (!d.blog) {
-    const r = await apiFetch({ action: 'blog' }, true);
-    d.blog = r || [];
-  }
-  if (!d.goods) {
-    const r = await apiFetch({ action: 'goods' }, true);
-    d.goods = r || [];
-  }
-  if (!d.goodsUsage) {
-    const r = await apiFetch({ action: 'goodsUsage' }, true);
-    d.goodsUsage = r || [];
-  }
-  if (!d.designDraft) {
-    const r = await apiFetch({ action: 'designDraft' }, true);
-    d.designDraft = r || [];
+  // copyright, press, blog 등이 누락된 구버전 응답 대비 fallback — 병렬로 한 번에 요청 (모바일에서 순차 요청 시 체감 로딩이 크게 길어짐)
+  const fallbackJobs = [
+    ['copyright',   'copyright'],
+    ['press',       'press'],
+    ['blog',        'blog'],
+    ['goods',       'goods'],
+    ['goodsUsage',  'goodsUsage'],
+    ['designDraft', 'designDraft'],
+  ].filter(([key]) => !d[key]);
+
+  if (fallbackJobs.length) {
+    const results = await Promise.all(fallbackJobs.map(([, action]) => apiFetch({ action }, true)));
+    fallbackJobs.forEach(([key], i) => { d[key] = results[i] || []; });
   }
 
   // 백엔드 metrics에 특정 항목이 누락된 구버전 대비: 실제 데이터 배열 길이로 클라이언트에서 보정
@@ -2430,6 +2424,11 @@ async function refreshAll() {
   }
 
   DATA = d;
+  renderAllData(d);
+  saveCachedData(d);
+}
+
+function renderAllData(d) {
   renderMetrics(d.metrics);
   renderResMain(d.history, d.metrics);
   renderMainYoutube(d.youtube);
@@ -2451,6 +2450,22 @@ async function refreshAll() {
     renderAlerts(d.alerts);
   }
   queueApplyMobileCards();
+}
+
+// ── 최초 로딩 체감 속도 개선: 마지막으로 불러온 데이터를 로컬에 저장해두고,
+//    다음 방문 시 즉시 화면에 먼저 보여준 뒤 최신 데이터로 조용히 갱신한다 ──
+const DATA_CACHE_KEY = 'sh_data_cache_v1';
+
+function loadCachedData() {
+  try {
+    const raw = localStorage.getItem(DATA_CACHE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch (e) { return null; }
+}
+
+function saveCachedData(d) {
+  try { localStorage.setItem(DATA_CACHE_KEY, JSON.stringify(d)); }
+  catch (e) { /* 저장 공간 초과 등은 무시 — 캐시는 있으면 좋은 부가 기능일 뿐 */ }
 }
 
 function renderPage(pageId) {
@@ -4922,8 +4937,17 @@ window.addEventListener('DOMContentLoaded', async () => {
   API_URL = stored;
   document.getElementById('api-url-input').value = stored;
   document.getElementById('api-status').textContent = '✅ 연결됨: ' + stored;
-  await refreshAll();
-  restoreLastPage();
+
+  // 직전에 불러온 데이터가 있으면 즉시 화면에 먼저 보여준다 (체감 로딩 속도 개선)
+  const cached = loadCachedData();
+  if (cached && Object.keys(cached).length) {
+    DATA = cached;
+    renderAllData(cached);
+    restoreLastPage();
+  }
+  // 최신 데이터로 조용히(또는 캐시가 없었으면 화면에 로딩 표시) 갱신
+  await refreshAll(!!cached);
+  if (!cached) restoreLastPage();
 
 
   // ESC 모달 닫기
@@ -5438,6 +5462,9 @@ function applyMobilePostCards() {
       const fileBtn   = pc.querySelector('.post-file-btn');
       const editBtn   = pc.querySelector('.edit-btn');
       const delBtn    = pc.querySelector('.del-btn');
+      const thumbImg  = pc.querySelector('.post-preview img');
+      const galleryBtn = pc.querySelector('.gallery-btn');
+      const previewBtn = pc.querySelector('.preview-btn');
 
       const fields = [];
       if (dateEl)    fields.push({ label: '날짜',  value: dateEl.innerHTML.trim() });
@@ -5448,7 +5475,18 @@ function applyMobilePostCards() {
       _mobileFieldsCache[cacheKey] = { title, fields, fileHtml: fileBtn ? fileBtn.outerHTML : '' };
       const meta = dateEl ? dateEl.innerHTML.replace(/<a[^>]*>[\s\S]*?<\/a>/gi, '').trim() : '';
 
+      // 미리보기 썸네일: 갤러리/단일 미리보기 버튼이 있으면 탭 시 바로 이미지가 뜨도록 연결
+      const thumbAttrs = galleryBtn
+        ? `class="mcard-thumb gallery-btn" data-gkey="${galleryBtn.dataset.gkey}"`
+        : previewBtn
+        ? `class="mcard-thumb preview-btn" data-fileid="${previewBtn.dataset.fileid}" data-filename="${previewBtn.dataset.filename || ''}"`
+        : `class="mcard-thumb"`;
+      const thumbHtml = thumbImg
+        ? `<span ${thumbAttrs}><img src="${thumbImg.src}" alt=""></span>`
+        : '';
+
       return `<div class="mcard">
+        ${thumbHtml}
         <div class="mcard-title" data-mkey="${cacheKey}">
           ${meta ? `<div class="mcard-meta">${meta}</div>` : ''}
           <div class="mcard-main">${title}</div>
@@ -5475,6 +5513,12 @@ function buildCardsForTable(table, cardList) {
   // 데이터 없음 안내 행(colspan) 그대로 표시
   if (rows.length === 1 && rows[0].children.length === 1 && rows[0].children[0].hasAttribute('colspan')) {
     cardList.innerHTML = `<div class="mcard-empty">${rows[0].textContent.trim()}</div>`;
+    return;
+  }
+
+  // 마케팅 물품 재고: 소구분/품목/재고수량/단위를 카드에 모두 노출
+  if (table.classList.contains('tbl-goods')) {
+    buildGoodsMobileCards(table, cardList, headers, rows);
     return;
   }
 
@@ -5532,6 +5576,56 @@ function buildCardsForTable(table, cardList) {
       <div class="mcard-title" data-mkey="${cacheKey}">
         ${meta ? `<div class="mcard-meta">${meta}</div>` : ''}
         <div class="mcard-main">${title || '(내용 없음)'}</div>
+      </div>
+      <span class="mcard-chevron" data-mkey="${cacheKey}"><i class="ti ti-chevron-right"></i></span>
+      ${actionTd ? `<span class="mcard-actions">${actionTd.innerHTML}</span>` : ''}
+    </div>`;
+  }).join('');
+}
+
+// 마케팅 물품 재고 전용 모바일 카드: 소구분/품목/재고수량/단위를 한 줄에 모두 표시
+function buildGoodsMobileCards(table, cardList, headers, rows) {
+  const idxOf = (name) => headers.indexOf(name);
+  const subIdx   = idxOf('소구분');
+  const itemIdx  = idxOf('품목');
+  const stockIdx = idxOf('재고수량');
+  const unitIdx  = idxOf('단위');
+
+  const cellText = (td) => {
+    if (!td) return '';
+    const html = td.innerHTML.replace(/<(br|\/div|\/p|\/li)\s*\/?>/gi, ' · ');
+    const tmp = document.createElement('div');
+    tmp.innerHTML = html;
+    return tmp.textContent.trim().replace(/^(\s*·\s*)+/, '').replace(/(\s*·\s*)+$/, '').replace(/(\s*·\s*){2,}/g, ' · ');
+  };
+
+  cardList.innerHTML = rows.map((tr, idx) => {
+    const tds = Array.from(tr.children);
+    const actionTd = (tr.querySelector('.edit-btn') || tr.querySelector('.del-btn')) ? tds[tds.length - 1] : null;
+
+    const sub   = cellText(tds[subIdx]);
+    const item  = cellText(tds[itemIdx]) || '(품목 없음)';
+    const stock = cellText(tds[stockIdx]);
+    const unit  = cellText(tds[unitIdx]);
+
+    const fields = [];
+    headers.forEach((h, i) => {
+      if (!h) return;
+      if (actionTd && tds[i] === actionTd) return;
+      fields.push({ label: h, value: tds[i] ? tds[i].innerHTML.trim() : '' });
+    });
+
+    const cacheKey = 'mgoods_' + Date.now() + '_' + idx + '_' + Math.random().toString(36).slice(2, 7);
+    _mobileFieldsCache[cacheKey] = { title: item, fields };
+
+    const stockNum = parseFloat(stock);
+    const stockColor = (!isNaN(stockNum) && stockNum <= 0) ? '#c0392b' : 'var(--accent-dk)';
+
+    return `<div class="mcard">
+      <div class="mcard-title" data-mkey="${cacheKey}">
+        ${sub ? `<div class="mcard-meta">${sub}</div>` : ''}
+        <div class="mcard-main">${item}</div>
+        <div class="mcard-meta" style="margin-top:3px">재고 <b style="color:${stockColor}">${stock || 0}</b>${unit ? ' ' + unit : ''}</div>
       </div>
       <span class="mcard-chevron" data-mkey="${cacheKey}"><i class="ti ti-chevron-right"></i></span>
       ${actionTd ? `<span class="mcard-actions">${actionTd.innerHTML}</span>` : ''}
