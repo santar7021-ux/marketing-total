@@ -5826,14 +5826,24 @@ function _adRawRows() {
   return DATA[action] || [];
 }
 
+// 시트의 날짜 값이 구글 시트에 의해 날짜형으로 저장되어 있으면, 백엔드에서
+// ISO 날짜시간 문자열("2026-08-19T15:00:00.000Z")로 넘어올 수 있습니다.
+// 앞 10자리(YYYY-MM-DD)만 뽑아 항상 일관되게 비교할 수 있도록 정규화합니다.
+function _adNormDate(v) {
+  if (!v) return '';
+  const s = String(v);
+  const m = s.match(/^\d{4}-\d{2}-\d{2}/);
+  return m ? m[0] : s;
+}
+
 function _adFilteredRows() {
   const rows = _adRawRows();
-  return rows.filter(r => { const d = String(r['날짜'] || ''); return d >= AD_STATE.dateFrom && d <= AD_STATE.dateTo; });
+  return rows.filter(r => { const d = _adNormDate(r['날짜']); return d >= AD_STATE.dateFrom && d <= AD_STATE.dateTo; });
 }
 
 function _adFilteredKeywordRows() {
   const rows = DATA.naverKeyword || [];
-  return rows.filter(r => { const d = String(r['날짜'] || ''); return d >= AD_STATE.dateFrom && d <= AD_STATE.dateTo; });
+  return rows.filter(r => { const d = _adNormDate(r['날짜']); return d >= AD_STATE.dateFrom && d <= AD_STATE.dateTo; });
 }
 
 function _adPrevPeriodRows() {
@@ -5845,7 +5855,7 @@ function _adPrevPeriodRows() {
   const prevFrom = new Date(prevTo); prevFrom.setDate(prevFrom.getDate() - (dayCount - 1));
   const prevFromStr = Utilities_formatYMD(prevFrom);
   const prevToStr = Utilities_formatYMD(prevTo);
-  return rows.filter(r => { const d = String(r['날짜'] || ''); return d >= prevFromStr && d <= prevToStr; });
+  return rows.filter(r => { const d = _adNormDate(r['날짜']); return d >= prevFromStr && d <= prevToStr; });
 }
 
 function Utilities_formatYMD(d) {
@@ -5946,7 +5956,7 @@ function renderAdKeywordTable() {
         키워드: kw, 캠페인명: r['캠페인명'] || '', 광고그룹명: r['광고그룹명'] || '',
         노출수: 0, 클릭수: 0, 비용: 0, 전환수: 0,
         검색수PC: Number(r['월간검색수(PC)']) || 0, 검색수모바일: Number(r['월간검색수(모바일)']) || 0,
-        최신날짜: r['날짜'] || ''
+        최신날짜: _adNormDate(r['날짜'])
       };
     }
     const acc = byKey[key];
@@ -5955,10 +5965,10 @@ function renderAdKeywordTable() {
     acc.비용   += Number(r['비용']) || 0;
     acc.전환수 += Number(r['전환수']) || 0;
     // 월간검색수는 매일 갱신되는 값이라 가장 최근 날짜의 값을 사용
-    if (String(r['날짜'] || '') >= acc.최신날짜) {
+    if (_adNormDate(r['날짜']) >= acc.최신날짜) {
       acc.검색수PC = Number(r['월간검색수(PC)']) || 0;
       acc.검색수모바일 = Number(r['월간검색수(모바일)']) || 0;
-      acc.최신날짜 = r['날짜'] || '';
+      acc.최신날짜 = _adNormDate(r['날짜']);
     }
   });
 
@@ -5996,7 +6006,7 @@ function renderAdKeywordTable() {
 function renderAdTrendChart(rows) {
   const byDate = {};
   rows.forEach(r => {
-    const d = r['날짜'] || '';
+    const d = _adNormDate(r['날짜']);
     if (!byDate[d]) byDate[d] = { 클릭수: 0, 비용: 0 };
     byDate[d].클릭수 += Number(r['클릭수']) || 0;
     byDate[d].비용   += Number(r['비용']) || 0;
