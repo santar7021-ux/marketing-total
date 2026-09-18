@@ -1386,6 +1386,25 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
           </table>
         </div>
       </div>
+
+      <div class="card" id="ad-keyword-card" style="margin-top:20px;display:none">
+        <div class="card-hd">
+          <h2><i class="ti ti-key"></i> 키워드별 분석 <span id="ad-keyword-count" style="font-size:13px;font-weight:400;color:var(--muted);margin-left:6px"></span></h2>
+          <input type="text" id="ad-keyword-search" placeholder="키워드 검색" oninput="renderAdKeywordTable()" style="max-width:220px;padding:7px 12px;border:1px solid var(--border);border-radius:var(--r-md);font-size:13.5px">
+        </div>
+        <div class="goods-tbl-wrap">
+          <table class="tbl" id="ad-keyword-tbl">
+            <thead><tr>
+              <th>키워드</th><th>캠페인/광고그룹</th>
+              <th style="text-align:right">노출수</th><th style="text-align:right">클릭수</th>
+              <th style="text-align:right">클릭률</th><th style="text-align:right">CPC</th>
+              <th style="text-align:right">비용</th><th style="text-align:right">전환수</th>
+              <th style="text-align:right">월간검색수</th>
+            </tr></thead>
+            <tbody id="ad-keyword-list"></tbody>
+          </table>
+        </div>
+      </div>
     </div>
 
     <!-- ══ 소개 자료 ══ -->
@@ -5743,7 +5762,7 @@ window.addEventListener('orientationchange', queueApplyMobileCards);
 // ============================================================
 //  광고 관리 — 네이버/메타 광고 분석 대시보드
 // ============================================================
-const AD_STATE = { platform: 'naver', range: 30, loaded: { naver: false, meta: false }, chart: null };
+const AD_STATE = { platform: 'naver', range: 30, loaded: { naver: false, meta: false, naverKeyword: false }, chart: null };
 
 async function initAdMediaPage() {
   await loadAdData(AD_STATE.platform);
@@ -5751,11 +5770,18 @@ async function initAdMediaPage() {
 }
 
 async function loadAdData(platform) {
-  if (AD_STATE.loaded[platform]) return;
-  const action = platform === 'naver' ? 'naverAd' : 'metaAd';
-  const rows = await apiFetch({ action }, true);
-  DATA[action] = rows || [];
-  AD_STATE.loaded[platform] = true;
+  if (!AD_STATE.loaded[platform]) {
+    const action = platform === 'naver' ? 'naverAd' : 'metaAd';
+    const rows = await apiFetch({ action }, true);
+    DATA[action] = rows || [];
+    AD_STATE.loaded[platform] = true;
+  }
+  // 키워드별 데이터는 네이버 탭에서만 필요 (지연 로딩)
+  if (platform === 'naver' && !AD_STATE.loaded.naverKeyword) {
+    const kwRows = await apiFetch({ action: 'naverKeyword' }, true);
+    DATA.naverKeyword = kwRows || [];
+    AD_STATE.loaded.naverKeyword = true;
+  }
 }
 
 async function switchAdPlatform(p) {
@@ -5774,6 +5800,7 @@ function setAdRange(r) {
 
 async function refreshAdData() {
   AD_STATE.loaded[AD_STATE.platform] = false;
+  if (AD_STATE.platform === 'naver') AD_STATE.loaded.naverKeyword = false;
   await loadAdData(AD_STATE.platform);
   renderAdDashboard();
 }
@@ -5785,6 +5812,15 @@ function _adRawRows() {
 
 function _adFilteredRows() {
   const rows = _adRawRows();
+  if (AD_STATE.range === 'all') return rows;
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - Number(AD_STATE.range));
+  const cutoffStr = Utilities_formatYMD(cutoff);
+  return rows.filter(r => String(r['날짜'] || '') >= cutoffStr);
+}
+
+function _adFilteredKeywordRows() {
+  const rows = DATA.naverKeyword || [];
   if (AD_STATE.range === 'all') return rows;
   const cutoff = new Date();
   cutoff.setDate(cutoff.getDate() - Number(AD_STATE.range));
@@ -5816,11 +5852,13 @@ function renderAdDashboard() {
   const platformLabel = AD_STATE.platform === 'naver' ? '네이버 브랜드검색' : '메타 피드 광고';
 
   const grid = document.getElementById('ad-metric-grid');
+  const keywordCard = document.getElementById('ad-keyword-card');
   if (!rows.length) {
     grid.innerHTML = '';
     document.getElementById('ad-insights').innerHTML = `<div class="ad-empty-notice"><i class="ti ti-mood-empty" style="font-size:28px"></i><p style="margin-top:8px">${platformLabel} 데이터가 아직 없습니다. 수집 스크립트가 정상 동작 중인지, 시트에 데이터가 쌓였는지 확인해주세요.</p></div>`;
     document.getElementById('ad-campaign-list').innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:24px">데이터가 없습니다.</td></tr>`;
     if (AD_STATE.chart) { AD_STATE.chart.destroy(); AD_STATE.chart = null; }
+    keywordCard.style.display = 'none';
     return;
   }
 
@@ -5843,6 +5881,14 @@ function renderAdDashboard() {
   renderAdInsights(rows);
   renderAdTrendChart(rows);
   renderAdCampaignTable(rows);
+
+  // 키워드별 분석은 네이버 탭에서만 노출
+  if (AD_STATE.platform === 'naver') {
+    keywordCard.style.display = '';
+    renderAdKeywordTable();
+  } else {
+    keywordCard.style.display = 'none';
+  }
 }
 
 function renderAdCampaignTable(rows) {
@@ -5870,6 +5916,72 @@ function renderAdCampaignTable(rows) {
       <td style="text-align:right">${c.ctr.toFixed(2)}%</td>
       <td style="text-align:right">${Math.round(c.cpc).toLocaleString()}원</td>
       <td style="text-align:right">${c.전환수.toLocaleString()}</td>
+    </tr>`).join('');
+}
+
+// ── 키워드별 분석 (네이버 전용) ─────────────────────────
+function renderAdKeywordTable() {
+  const el = document.getElementById('ad-keyword-list');
+  const countEl = document.getElementById('ad-keyword-count');
+  if (!el) return;
+
+  const search = (document.getElementById('ad-keyword-search')?.value || '').trim().toLowerCase();
+  const rows = _adFilteredKeywordRows();
+
+  // 키워드+캠페인+광고그룹 기준으로 집계 (기간 내 합산), 월간검색수는 최신 값을 사용
+  const byKey = {};
+  rows.forEach(r => {
+    const kw = r['키워드'] || '(키워드 없음)';
+    const key = kw + '|' + (r['캠페인명'] || '') + '|' + (r['광고그룹명'] || '');
+    if (!byKey[key]) {
+      byKey[key] = {
+        키워드: kw, 캠페인명: r['캠페인명'] || '', 광고그룹명: r['광고그룹명'] || '',
+        노출수: 0, 클릭수: 0, 비용: 0, 전환수: 0,
+        검색수PC: Number(r['월간검색수(PC)']) || 0, 검색수모바일: Number(r['월간검색수(모바일)']) || 0,
+        최신날짜: r['날짜'] || ''
+      };
+    }
+    const acc = byKey[key];
+    acc.노출수 += Number(r['노출수']) || 0;
+    acc.클릭수 += Number(r['클릭수']) || 0;
+    acc.비용   += Number(r['비용']) || 0;
+    acc.전환수 += Number(r['전환수']) || 0;
+    // 월간검색수는 매일 갱신되는 값이라 가장 최근 날짜의 값을 사용
+    if (String(r['날짜'] || '') >= acc.최신날짜) {
+      acc.검색수PC = Number(r['월간검색수(PC)']) || 0;
+      acc.검색수모바일 = Number(r['월간검색수(모바일)']) || 0;
+      acc.최신날짜 = r['날짜'] || '';
+    }
+  });
+
+  let list = Object.values(byKey).map(v => ({
+    ...v,
+    ctr: v.노출수 ? (v.클릭수 / v.노출수 * 100) : 0,
+    cpc: v.클릭수 ? (v.비용 / v.클릭수) : 0,
+    검색수합계: v.검색수PC + v.검색수모바일,
+  }));
+
+  if (search) list = list.filter(v => v.키워드.toLowerCase().includes(search));
+  list.sort((a, b) => b.클릭수 - a.클릭수);
+
+  countEl.textContent = list.length ? `(${list.length}개)` : '';
+
+  if (!list.length) {
+    el.innerHTML = `<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:24px">${search ? '검색 결과가 없습니다.' : '키워드 데이터가 없습니다.'}</td></tr>`;
+    return;
+  }
+
+  el.innerHTML = list.map(v => `
+    <tr>
+      <td><b>${v.키워드}</b></td>
+      <td style="color:var(--muted);font-size:12.5px">${v.캠페인명}${v.광고그룹명 ? ' · ' + v.광고그룹명 : ''}</td>
+      <td style="text-align:right">${v.노출수.toLocaleString()}</td>
+      <td style="text-align:right">${v.클릭수.toLocaleString()}</td>
+      <td style="text-align:right">${v.ctr.toFixed(2)}%</td>
+      <td style="text-align:right">${Math.round(v.cpc).toLocaleString()}원</td>
+      <td style="text-align:right">${Math.round(v.비용).toLocaleString()}원</td>
+      <td style="text-align:right">${v.전환수.toLocaleString()}</td>
+      <td style="text-align:right">${v.검색수합계.toLocaleString()}</td>
     </tr>`).join('');
 }
 
