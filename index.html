@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>소프트힐스 마케팅 운영 대시보드</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.30.0/dist/tabler-icons.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
 /* ── 리셋 & 기반 ── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -324,6 +325,31 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
 
 /* ── 지표 그리드 ── */
 .metric-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px,1fr)); gap: 10px; margin-bottom: 20px; }
+
+/* ── 광고 매체 대시보드 ── */
+.ad-platform-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+.ad-tab {
+  flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 14px; border-radius: var(--r-lg); border: 1px solid var(--border);
+  background: var(--surface); color: var(--muted); font-size: 15px; font-weight: 500;
+  cursor: pointer; transition: all .12s;
+}
+.ad-tab:hover { border-color: var(--accent); }
+.ad-tab.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+.ad-range-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+.ad-insights-body { padding: 18px; }
+.ad-insight-line {
+  display: flex; align-items: flex-start; gap: 10px; padding: 10px 0;
+  border-bottom: 1px solid var(--border); font-size: 15px; line-height: 1.55;
+}
+.ad-insight-line:last-child { border-bottom: none; }
+.ad-insight-line i { flex-shrink: 0; margin-top: 3px; font-size: 16px; }
+.ad-insight-line.up   i { color: #1d9e75; }
+.ad-insight-line.down i { color: #A32D2D; }
+.ad-insight-line.flat i { color: var(--muted); }
+.ad-insight-line b { color: var(--accent-dk); }
+.ad-empty-notice { padding: 40px 20px; text-align: center; color: var(--muted); }
+
 .metric {
   background: var(--surface); border: 1px solid var(--border);
   border-left: 3px solid var(--accent);
@@ -799,6 +825,11 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
   .rail { display: none; }
   .content { padding: 16px 12px; }
 
+  /* ── 광고 매체 대시보드 (모바일) ── */
+  .ad-platform-tabs { flex-direction: column; gap: 6px; }
+  .ad-tab { padding: 12px; font-size: 13.5px; }
+  .ad-insight-line { font-size: 13px; }
+
   /* ── 지표 카드: 한 줄에 하나씩, "인증 7건" 형태로 세로 나열 ── */
   .metric-grid {
     display: flex; flex-direction: column; overflow-x: visible; gap: 8px;
@@ -1112,7 +1143,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
         </div>
         <div class="nav-sub">
           <div class="nav-sub-item" data-page="ad-homepage" onclick="goSub('ad-homepage',this,'ni-ad')"><i class="ti ti-chart-line"></i> 홈페이지 유입 분석</div>
-          <div class="nav-sub-item" data-page="ad-media"    onclick="goSub('ad-media',this,'ni-ad')"><i class="ti ti-layout-grid"></i> 미디어 매체 관리</div>
+          <div class="nav-sub-item" data-page="ad-media"    onclick="goSub('ad-media',this,'ni-ad')"><i class="ti ti-layout-grid"></i> 광고 관리</div>
           <div class="nav-sub-item" data-page="ad-sns"      onclick="goSub('ad-sns',this,'ni-ad')"><i class="ti ti-brand-instagram"></i> SNS 콘텐츠 생성기</div>
         </div>
       </div>
@@ -1203,7 +1234,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
         <div onclick="navTo('budget');closeMobileNav()" style="padding:11px 20px 11px 32px;color:#fff;font-size:14px;cursor:pointer"><i class="ti ti-chart-pie" style="margin-right:8px"></i>마케팅 예산 현황</div>
         <div style="padding:8px 20px 4px;font-size:11px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:1px">광고홍보</div>
         <div onclick="navTo('ad-homepage');closeMobileNav()" style="padding:11px 20px 11px 32px;color:#fff;font-size:14px;cursor:pointer"><i class="ti ti-chart-line" style="margin-right:8px"></i>홈페이지 유입 분석</div>
-        <div onclick="navTo('ad-media');closeMobileNav()" style="padding:11px 20px 11px 32px;color:#fff;font-size:14px;cursor:pointer"><i class="ti ti-layout-grid" style="margin-right:8px"></i>미디어 매체 관리</div>
+        <div onclick="navTo('ad-media');closeMobileNav()" style="padding:11px 20px 11px 32px;color:#fff;font-size:14px;cursor:pointer"><i class="ti ti-layout-grid" style="margin-right:8px"></i>광고 관리</div>
         <div onclick="navTo('ad-sns');closeMobileNav()" style="padding:11px 20px 11px 32px;color:#fff;font-size:14px;cursor:pointer"><i class="ti ti-brand-instagram" style="margin-right:8px"></i>SNS 콘텐츠 생성기</div>
         <div style="padding:8px 20px 4px;font-size:11px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:1px">자원 관리</div>
         <div onclick="navTo('res-intro');closeMobileNav()" style="padding:11px 20px 11px 32px;color:#fff;font-size:14px;cursor:pointer"><i class="ti ti-files" style="margin-right:8px"></i>소개 자료</div>
@@ -1317,8 +1348,44 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
       </div>
     </div>
     <div id="pg-ad-media" class="page">
-      <div class="page-hd"><h1>미디어 매체 관리</h1><p>광고홍보 — 추후 구성 예정</p></div>
-      <div class="card"><div class="empty"><i class="ti ti-layout-grid"></i><p>미디어 매체 관리 탭은 추후 구성 예정입니다.</p></div></div>
+      <div class="page-hd"><h1>광고 관리</h1><p>네이버 브랜드검색광고와 메타 피드 광고 성과를 한눈에 확인합니다.</p></div>
+
+      <div class="ad-platform-tabs">
+        <button class="ad-tab active" id="ad-tab-naver" onclick="switchAdPlatform('naver')"><i class="ti ti-search"></i> 네이버 브랜드검색</button>
+        <button class="ad-tab" id="ad-tab-meta" onclick="switchAdPlatform('meta')"><i class="ti ti-brand-facebook"></i> 메타 피드 광고</button>
+      </div>
+
+      <div class="card" style="padding:14px 18px;margin-bottom:20px">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <button class="btn sm ad-range-btn" data-range="7"  onclick="setAdRange(7)">최근 7일</button>
+          <button class="btn sm ad-range-btn active" data-range="30" onclick="setAdRange(30)">최근 30일</button>
+          <button class="btn sm ad-range-btn" data-range="90" onclick="setAdRange(90)">최근 90일</button>
+          <button class="btn sm ad-range-btn" data-range="all" onclick="setAdRange('all')">전체</button>
+          <button class="btn sm" style="margin-left:auto" onclick="refreshAdData()"><i class="ti ti-refresh"></i> 새로고침</button>
+        </div>
+      </div>
+
+      <div class="metric-grid" id="ad-metric-grid" style="margin-bottom:20px"></div>
+
+      <div class="card" style="margin-bottom:20px">
+        <div class="card-hd"><h2><i class="ti ti-bulb"></i> 자동 분석 인사이트</h2></div>
+        <div id="ad-insights" class="ad-insights-body"></div>
+      </div>
+
+      <div class="card" style="margin-bottom:20px">
+        <div class="card-hd"><h2><i class="ti ti-chart-line"></i> 일별 추세 (클릭수 · 비용)</h2></div>
+        <div style="padding:18px"><canvas id="ad-trend-chart" height="90"></canvas></div>
+      </div>
+
+      <div class="card">
+        <div class="card-hd"><h2><i class="ti ti-list"></i> 캠페인별 성과</h2></div>
+        <div class="goods-tbl-wrap">
+          <table class="tbl" id="ad-campaign-tbl">
+            <thead><tr><th>캠페인명</th><th style="text-align:right">노출수</th><th style="text-align:right">클릭수</th><th style="text-align:right">비용</th><th style="text-align:right">CTR</th><th style="text-align:right">CPC</th><th style="text-align:right">전환수</th></tr></thead>
+            <tbody id="ad-campaign-list"></tbody>
+          </table>
+        </div>
+      </div>
     </div>
 
     <!-- ══ 소개 자료 ══ -->
@@ -2494,6 +2561,7 @@ function renderPage(pageId) {
     case 'content-blog':   renderContentTable('blog',  DATA.blog); break;
     case 'goods-stock':    renderGoods(DATA.goods); break;
     case 'content-design': renderDesignDraft(DATA.designDraft); break;
+    case 'ad-media':       initAdMediaPage(); break;
     default:
       // 커스텀 자원 관리 탭
       if (pageId.startsWith('res-custom_')) {
@@ -5671,6 +5739,249 @@ function closeMobileDetail() {
 
 window.addEventListener('resize', queueApplyMobileCards);
 window.addEventListener('orientationchange', queueApplyMobileCards);
+
+// ============================================================
+//  광고 관리 — 네이버/메타 광고 분석 대시보드
+// ============================================================
+const AD_STATE = { platform: 'naver', range: 30, loaded: { naver: false, meta: false }, chart: null };
+
+async function initAdMediaPage() {
+  await loadAdData(AD_STATE.platform);
+  renderAdDashboard();
+}
+
+async function loadAdData(platform) {
+  if (AD_STATE.loaded[platform]) return;
+  const action = platform === 'naver' ? 'naverAd' : 'metaAd';
+  const rows = await apiFetch({ action }, true);
+  DATA[action] = rows || [];
+  AD_STATE.loaded[platform] = true;
+}
+
+async function switchAdPlatform(p) {
+  AD_STATE.platform = p;
+  document.getElementById('ad-tab-naver').classList.toggle('active', p === 'naver');
+  document.getElementById('ad-tab-meta').classList.toggle('active', p === 'meta');
+  await loadAdData(p);
+  renderAdDashboard();
+}
+
+function setAdRange(r) {
+  AD_STATE.range = r;
+  document.querySelectorAll('.ad-range-btn').forEach(b => b.classList.toggle('active', String(b.dataset.range) === String(r)));
+  renderAdDashboard();
+}
+
+async function refreshAdData() {
+  AD_STATE.loaded[AD_STATE.platform] = false;
+  await loadAdData(AD_STATE.platform);
+  renderAdDashboard();
+}
+
+function _adRawRows() {
+  const action = AD_STATE.platform === 'naver' ? 'naverAd' : 'metaAd';
+  return DATA[action] || [];
+}
+
+function _adFilteredRows() {
+  const rows = _adRawRows();
+  if (AD_STATE.range === 'all') return rows;
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - Number(AD_STATE.range));
+  const cutoffStr = Utilities_formatYMD(cutoff);
+  return rows.filter(r => String(r['날짜'] || '') >= cutoffStr);
+}
+
+function _adPrevPeriodRows() {
+  // 인사이트 비교용: 직전 같은 길이의 기간
+  const rows = _adRawRows();
+  if (AD_STATE.range === 'all') return [];
+  const n = Number(AD_STATE.range);
+  const curStart = new Date(); curStart.setDate(curStart.getDate() - n);
+  const prevStart = new Date(); prevStart.setDate(prevStart.getDate() - n * 2);
+  const curStartStr = Utilities_formatYMD(curStart);
+  const prevStartStr = Utilities_formatYMD(prevStart);
+  return rows.filter(r => { const d = String(r['날짜'] || ''); return d >= prevStartStr && d < curStartStr; });
+}
+
+function Utilities_formatYMD(d) {
+  const y = d.getFullYear(), m = String(d.getMonth() + 1).padStart(2, '0'), day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+function _adSum(rows, key) { return rows.reduce((s, r) => s + (Number(r[key]) || 0), 0); }
+
+function renderAdDashboard() {
+  const rows = _adFilteredRows();
+  const platformLabel = AD_STATE.platform === 'naver' ? '네이버 브랜드검색' : '메타 피드 광고';
+
+  const grid = document.getElementById('ad-metric-grid');
+  if (!rows.length) {
+    grid.innerHTML = '';
+    document.getElementById('ad-insights').innerHTML = `<div class="ad-empty-notice"><i class="ti ti-mood-empty" style="font-size:28px"></i><p style="margin-top:8px">${platformLabel} 데이터가 아직 없습니다. 수집 스크립트가 정상 동작 중인지, 시트에 데이터가 쌓였는지 확인해주세요.</p></div>`;
+    document.getElementById('ad-campaign-list').innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:24px">데이터가 없습니다.</td></tr>`;
+    if (AD_STATE.chart) { AD_STATE.chart.destroy(); AD_STATE.chart = null; }
+    return;
+  }
+
+  const impressions = _adSum(rows, '노출수');
+  const clicks      = _adSum(rows, '클릭수');
+  const cost        = _adSum(rows, '비용');
+  const conversions = _adSum(rows, '전환수');
+  const ctr = impressions ? (clicks / impressions * 100) : 0;
+  const cpc = clicks ? (cost / clicks) : 0;
+
+  grid.innerHTML = `
+    <div class="metric"><div class="metric-label">노출수</div><div class="metric-val">${impressions.toLocaleString()}</div><span class="metric-badge badge-blue">회</span></div>
+    <div class="metric"><div class="metric-label">클릭수</div><div class="metric-val">${clicks.toLocaleString()}</div><span class="metric-badge badge-blue">회</span></div>
+    <div class="metric"><div class="metric-label">총 비용</div><div class="metric-val" style="font-size:26px">${Math.round(cost).toLocaleString()}</div><span class="metric-badge badge-amber">원</span></div>
+    <div class="metric"><div class="metric-label">평균 CTR</div><div class="metric-val">${ctr.toFixed(2)}</div><span class="metric-badge badge-blue">%</span></div>
+    <div class="metric"><div class="metric-label">평균 CPC</div><div class="metric-val" style="font-size:26px">${Math.round(cpc).toLocaleString()}</div><span class="metric-badge badge-amber">원</span></div>
+    <div class="metric"><div class="metric-label">전환수</div><div class="metric-val">${conversions.toLocaleString()}</div><span class="metric-badge badge-blue">건</span></div>
+  `;
+
+  renderAdInsights(rows);
+  renderAdTrendChart(rows);
+  renderAdCampaignTable(rows);
+}
+
+function renderAdCampaignTable(rows) {
+  const byCampaign = {};
+  rows.forEach(r => {
+    const name = r['캠페인명'] || '(이름 없음)';
+    if (!byCampaign[name]) byCampaign[name] = { 노출수: 0, 클릭수: 0, 비용: 0, 전환수: 0 };
+    byCampaign[name].노출수 += Number(r['노출수']) || 0;
+    byCampaign[name].클릭수 += Number(r['클릭수']) || 0;
+    byCampaign[name].비용   += Number(r['비용']) || 0;
+    byCampaign[name].전환수 += Number(r['전환수']) || 0;
+  });
+  const list = Object.entries(byCampaign).map(([name, v]) => ({
+    name, ...v,
+    ctr: v.노출수 ? (v.클릭수 / v.노출수 * 100) : 0,
+    cpc: v.클릭수 ? (v.비용 / v.클릭수) : 0,
+  })).sort((a, b) => b.비용 - a.비용);
+
+  document.getElementById('ad-campaign-list').innerHTML = list.map(c => `
+    <tr>
+      <td>${c.name}</td>
+      <td style="text-align:right">${c.노출수.toLocaleString()}</td>
+      <td style="text-align:right">${c.클릭수.toLocaleString()}</td>
+      <td style="text-align:right">${Math.round(c.비용).toLocaleString()}원</td>
+      <td style="text-align:right">${c.ctr.toFixed(2)}%</td>
+      <td style="text-align:right">${Math.round(c.cpc).toLocaleString()}원</td>
+      <td style="text-align:right">${c.전환수.toLocaleString()}</td>
+    </tr>`).join('');
+}
+
+function renderAdTrendChart(rows) {
+  const byDate = {};
+  rows.forEach(r => {
+    const d = r['날짜'] || '';
+    if (!byDate[d]) byDate[d] = { 클릭수: 0, 비용: 0 };
+    byDate[d].클릭수 += Number(r['클릭수']) || 0;
+    byDate[d].비용   += Number(r['비용']) || 0;
+  });
+  const dates = Object.keys(byDate).sort();
+  const clicksData = dates.map(d => byDate[d].클릭수);
+  const costData   = dates.map(d => Math.round(byDate[d].비용));
+
+  const ctx = document.getElementById('ad-trend-chart');
+  if (!ctx || typeof Chart === 'undefined') return;
+  if (AD_STATE.chart) AD_STATE.chart.destroy();
+  AD_STATE.chart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: dates,
+      datasets: [
+        { label: '클릭수', data: clicksData, borderColor: '#1d9e75', backgroundColor: 'rgba(29,158,117,.08)', yAxisID: 'y', tension: 0.25 },
+        { label: '비용(원)', data: costData, borderColor: '#004386', backgroundColor: 'rgba(0,67,134,.06)', yAxisID: 'y1', tension: 0.25 },
+      ]
+    },
+    options: {
+      responsive: true,
+      interaction: { mode: 'index', intersect: false },
+      scales: {
+        y:  { position: 'left',  title: { display: true, text: '클릭수' } },
+        y1: { position: 'right', title: { display: true, text: '비용(원)' }, grid: { drawOnChartArea: false } },
+      }
+    }
+  });
+}
+
+// ── 규칙 기반 자동 인사이트 생성 ──────────────────────────
+function renderAdInsights(rows) {
+  const lines = [];
+  const impressions = _adSum(rows, '노출수'), clicks = _adSum(rows, '클릭수'), cost = _adSum(rows, '비용'), conversions = _adSum(rows, '전환수');
+  const ctr = impressions ? (clicks / impressions * 100) : 0;
+  const cpc = clicks ? (cost / clicks) : 0;
+
+  // 1) 이전 동일 기간 대비 추세
+  const prevRows = _adPrevPeriodRows();
+  if (prevRows.length) {
+    const pImp = _adSum(prevRows, '노출수'), pClk = _adSum(prevRows, '클릭수'), pCost = _adSum(prevRows, '비용');
+    const pCtr = pImp ? (pClk / pImp * 100) : 0;
+    const pctChange = (cur, prev) => prev ? ((cur - prev) / prev * 100) : (cur > 0 ? 100 : 0);
+
+    const clkChange = pctChange(clicks, pClk);
+    const costChange = pctChange(cost, pCost);
+    const ctrChange = ctr - pCtr;
+
+    lines.push({
+      dir: clkChange >= 0 ? 'up' : 'down',
+      icon: clkChange >= 0 ? 'ti-trending-up' : 'ti-trending-down',
+      html: `직전 동일 기간 대비 클릭수가 <b>${Math.abs(clkChange).toFixed(1)}%</b> ${clkChange >= 0 ? '증가' : '감소'}했습니다. (${pClk.toLocaleString()} → ${clicks.toLocaleString()}회)`
+    });
+    lines.push({
+      dir: costChange <= 0 ? 'up' : 'down',
+      icon: costChange <= 0 ? 'ti-trending-down' : 'ti-trending-up',
+      html: `광고비는 직전 기간 대비 <b>${Math.abs(costChange).toFixed(1)}%</b> ${costChange >= 0 ? '증가' : '감소'}했습니다. (${Math.round(pCost).toLocaleString()}원 → ${Math.round(cost).toLocaleString()}원)`
+    });
+    lines.push({
+      dir: ctrChange >= 0 ? 'up' : 'down',
+      icon: ctrChange >= 0 ? 'ti-trending-up' : 'ti-trending-down',
+      html: `CTR은 직전 기간 ${pCtr.toFixed(2)}%에서 이번 기간 <b>${ctr.toFixed(2)}%</b>로 ${ctrChange >= 0 ? '개선' : '하락'}됐습니다.`
+    });
+  } else {
+    lines.push({ dir: 'flat', icon: 'ti-info-circle', html: `비교할 직전 기간 데이터가 없어 추세는 "전체" 기간이 아닌 7·30·90일 필터에서 확인할 수 있어요.` });
+  }
+
+  // 2) 캠페인별 최고/최저 성과 (CTR 기준, 클릭 5회 이상인 캠페인만 비교)
+  const byCampaign = {};
+  rows.forEach(r => {
+    const name = r['캠페인명'] || '(이름 없음)';
+    if (!byCampaign[name]) byCampaign[name] = { 노출수: 0, 클릭수: 0, 비용: 0, 전환수: 0 };
+    byCampaign[name].노출수 += Number(r['노출수']) || 0;
+    byCampaign[name].클릭수 += Number(r['클릭수']) || 0;
+    byCampaign[name].비용   += Number(r['비용']) || 0;
+    byCampaign[name].전환수 += Number(r['전환수']) || 0;
+  });
+  const campaignList = Object.entries(byCampaign)
+    .map(([name, v]) => ({ name, ...v, ctr: v.노출수 ? (v.클릭수 / v.노출수 * 100) : 0 }))
+    .filter(c => c.클릭수 >= 5);
+
+  if (campaignList.length >= 2) {
+    const best  = [...campaignList].sort((a, b) => b.ctr - a.ctr)[0];
+    const worst = [...campaignList].sort((a, b) => a.ctr - b.ctr)[0];
+    if (best.name !== worst.name) {
+      lines.push({ dir: 'up', icon: 'ti-star', html: `'<b>${best.name}</b>' 캠페인이 CTR ${best.ctr.toFixed(2)}%로 가장 높은 성과를 보이고 있습니다.` });
+      lines.push({ dir: 'down', icon: 'ti-alert-triangle', html: `'<b>${worst.name}</b>' 캠페인은 CTR ${worst.ctr.toFixed(2)}%로 상대적으로 저조해 소재나 타겟팅 점검이 필요해 보입니다.` });
+    }
+  } else if (campaignList.length === 1) {
+    lines.push({ dir: 'flat', icon: 'ti-info-circle', html: `현재 기간에는 캠페인이 1개만 확인되어 캠페인 간 비교는 생략했습니다.` });
+  }
+
+  // 3) 효율(CPC) 코멘트 — 전환당 비용(CPA) 참고
+  if (conversions > 0) {
+    const cpa = cost / conversions;
+    lines.push({ dir: 'flat', icon: 'ti-calculator', html: `전환당 비용(CPA)은 약 <b>${Math.round(cpa).toLocaleString()}원</b>이며, 총 <b>${conversions.toLocaleString()}건</b>의 전환이 발생했습니다.` });
+  } else if (clicks > 0) {
+    lines.push({ dir: 'flat', icon: 'ti-calculator', html: `이번 기간 전환이 기록되지 않았습니다. 전환 추적(픽셀/서버사이드 전환 이벤트) 설정을 점검해보세요.` });
+  }
+
+  document.getElementById('ad-insights').innerHTML = lines.map(l => `
+    <div class="ad-insight-line ${l.dir}"><i class="ti ${l.icon}"></i><span>${l.html}</span></div>
+  `).join('');
+}
 
 </script>
 
