@@ -1454,6 +1454,24 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
         </div>
       </div>
 
+      <div class="card" id="ad-keyword-compare-card" style="margin-bottom:20px;display:none">
+        <div class="card-hd">
+          <h2><i class="ti ti-key"></i> 키워드 분석 (기간1 vs 기간2)</h2>
+          <input type="text" id="ad-keyword-compare-search" placeholder="키워드 검색" oninput="renderAdKeywordCompare()" style="max-width:220px;padding:7px 12px;border:1px solid var(--border);border-radius:var(--r-md);font-size:13.5px">
+        </div>
+        <div class="goods-tbl-wrap">
+          <table class="tbl tbl-compare" id="ad-keyword-compare-tbl">
+            <thead><tr>
+              <th>키워드</th>
+              <th style="text-align:right">노출(1)</th><th style="text-align:right">노출(2)</th><th style="text-align:right">증감</th>
+              <th style="text-align:right">클릭(1)</th><th style="text-align:right">클릭(2)</th><th style="text-align:right">증감</th>
+              <th style="text-align:right">CTR(1)</th><th style="text-align:right">CTR(2)</th>
+            </tr></thead>
+            <tbody id="ad-keyword-compare-list"></tbody>
+          </table>
+        </div>
+      </div>
+
       <div class="card" style="margin-bottom:32px">
         <div class="card-hd"><h2><i class="ti ti-checklist"></i> 개선 사항</h2></div>
         <div id="ad-improvements" class="ad-insights-body"></div>
@@ -5612,6 +5630,10 @@ function _adP2Rows() { return _adRowsInRange(_adRawRows(), AD_STATE.p2From, AD_S
 // 단일 기간 상세 조회용
 function _adSoloRows() { return _adRowsInRange(_adRawRows(), AD_STATE.soloFrom, AD_STATE.soloTo); }
 function _adSoloKeywordRows() { return _adRowsInRange(DATA.naverKeyword || [], AD_STATE.soloFrom, AD_STATE.soloTo); }
+// 비교 분석용 키워드 데이터 (네이버 전용)
+function _adP1KeywordRows() { return _adRowsInRange(DATA.naverKeyword || [], AD_STATE.p1From, AD_STATE.p1To); }
+function _adP2KeywordRows() { return _adRowsInRange(DATA.naverKeyword || [], AD_STATE.p2From, AD_STATE.p2To); }
+
 
 // 기존 코드 호환용 별칭 (키워드 표 등에서 "현재 조회 중인 기간"으로 사용)
 function _adFilteredRows() { return _adSoloRows(); }
@@ -6142,6 +6164,7 @@ function renderAdCompareSection() {
   const rows1 = _adP1Rows();
   const rows2 = _adP2Rows();
   const platformLabel = AD_STATE.platform === 'naver' ? '네이버 브랜드검색' : '메타 피드 광고';
+  const keywordCompareCard = document.getElementById('ad-keyword-compare-card');
 
   const gridP1 = document.getElementById('ad-metric-grid-p1');
   const gridP2 = document.getElementById('ad-metric-grid-p2');
@@ -6151,6 +6174,7 @@ function renderAdCompareSection() {
     document.getElementById('ad-insights').innerHTML = `<div class="ad-empty-notice"><i class="ti ti-mood-empty" style="font-size:28px"></i><p style="margin-top:8px">${platformLabel} 데이터가 아직 없습니다. 수집 스크립트가 정상 동작 중인지, 시트에 데이터가 쌓였는지 확인해주세요.</p></div>`;
     document.getElementById('ad-campaign-compare-list').innerHTML = `<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:24px">데이터가 없습니다.</td></tr>`;
     document.getElementById('ad-improvements').innerHTML = '';
+    keywordCompareCard.style.display = 'none';
     queueApplyMobileCards();
     return;
   }
@@ -6162,6 +6186,15 @@ function renderAdCompareSection() {
 
   renderAdInsights(rows1, rows2, a1, a2);
   renderAdCampaignCompare(rows1, rows2);
+
+  // 키워드별 분석은 네이버 탭에서만 노출 (메타는 키워드 데이터가 없음)
+  if (AD_STATE.platform === 'naver') {
+    keywordCompareCard.style.display = '';
+    renderAdKeywordCompare();
+  } else {
+    keywordCompareCard.style.display = 'none';
+  }
+
   renderAdImprovements(rows1, rows2, a1, a2);
   queueApplyMobileCards();
 }
@@ -6593,6 +6626,67 @@ function renderAdCampaignCompare(rows, rows2) {
   el.innerHTML = list.map(c => `
     <tr>
       <td>${c.name}</td>
+      <td style="text-align:right">${c.imp1.toLocaleString()}</td>
+      <td style="text-align:right;color:var(--muted)">${c.imp2.toLocaleString()}</td>
+      <td style="text-align:right">${changeBadge(c.impChange)}</td>
+      <td style="text-align:right">${c.clk1.toLocaleString()}</td>
+      <td style="text-align:right;color:var(--muted)">${c.clk2.toLocaleString()}</td>
+      <td style="text-align:right">${changeBadge(c.clkChange)}</td>
+      <td style="text-align:right">${c.ctr1.toFixed(2)}%</td>
+      <td style="text-align:right;color:var(--muted)">${c.ctr2.toFixed(2)}%</td>
+    </tr>`).join('');
+}
+
+// ── 키워드 분석: 기간1 vs 기간2 키워드별 비교 표 (네이버 전용) ──
+function renderAdKeywordCompare() {
+  const el = document.getElementById('ad-keyword-compare-list');
+  if (!el) return;
+  const search = (document.getElementById('ad-keyword-compare-search')?.value || '').trim().toLowerCase();
+
+  const groupByKeyword = (list) => {
+    const map = {};
+    list.forEach(r => {
+      const kw = r['키워드'] || '(키워드 없음)';
+      if (!map[kw]) map[kw] = { 노출수: 0, 클릭수: 0 };
+      map[kw].노출수 += Number(r['노출수']) || 0;
+      map[kw].클릭수 += Number(r['클릭수']) || 0;
+    });
+    return map;
+  };
+
+  const g1 = groupByKeyword(_adP1KeywordRows());
+  const g2 = groupByKeyword(_adP2KeywordRows());
+  let allKeywords = Array.from(new Set([...Object.keys(g1), ...Object.keys(g2)]));
+  if (search) allKeywords = allKeywords.filter(k => k.toLowerCase().includes(search));
+
+  if (!allKeywords.length) {
+    el.innerHTML = `<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:24px">데이터가 없습니다.</td></tr>`;
+    return;
+  }
+
+  const list = allKeywords.map(kw => {
+    const v1 = g1[kw] || { 노출수: 0, 클릭수: 0 };
+    const v2 = g2[kw] || { 노출수: 0, 클릭수: 0 };
+    return {
+      kw,
+      imp1: v1.노출수, imp2: v2.노출수,
+      clk1: v1.클릭수, clk2: v2.클릭수,
+      ctr1: v1.노출수 ? (v1.클릭수 / v1.노출수 * 100) : 0,
+      ctr2: v2.노출수 ? (v2.클릭수 / v2.노출수 * 100) : 0,
+      impChange: _adPctChange(v1.노출수, v2.노출수),
+      clkChange: _adPctChange(v1.클릭수, v2.클릭수),
+    };
+  }).sort((a, b) => b.imp1 - a.imp1);
+
+  const changeBadge = (pct) => {
+    const color = pct > 0 ? '#1d9e75' : (pct < 0 ? '#A32D2D' : 'var(--muted)');
+    const sign = pct > 0 ? '+' : '';
+    return `<span style="color:${color};font-weight:600">${sign}${pct.toFixed(1)}%</span>`;
+  };
+
+  el.innerHTML = list.map(c => `
+    <tr>
+      <td>${c.kw}</td>
       <td style="text-align:right">${c.imp1.toLocaleString()}</td>
       <td style="text-align:right;color:var(--muted)">${c.imp2.toLocaleString()}</td>
       <td style="text-align:right">${changeBadge(c.impChange)}</td>
