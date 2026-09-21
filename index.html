@@ -5885,30 +5885,83 @@ function renderMetaInsights(cur, prev, currentSet, previousSet) {
     return;
   }
   const lines = [];
-  const reachPct = _adPctChange(cur.reach, prev.reach);
-  const impPct   = _adPctChange(cur.impressions, prev.impressions);
-  const clkPct   = _adPctChange(cur.clicks, prev.clicks);
-  const ctrPct   = _adPctChange(cur.ctr, prev.ctr);
-  const cpcPct   = _adPctChange(cur.cpc, prev.cpc);
 
-  lines.push({ dir: 'flat', icon: 'ti-chart-bar', html: `현재 세트는 도달 <b>${cur.reach.toLocaleString()}명</b>(${reachPct > 0 ? '+' : ''}${reachPct.toFixed(1)}%), 노출 <b>${cur.impressions.toLocaleString()}회</b>(${impPct > 0 ? '+' : ''}${impPct.toFixed(1)}%)로 직전 세트 대비 변화했습니다.` });
+  // 성과 비교표의 모든 지표에 대한 증감률을 한 번에 계산 (아래에서 조합해서 해석)
+  const p = {
+    reach:          _adPctChange(cur.reach, prev.reach),
+    impressions:    _adPctChange(cur.impressions, prev.impressions),
+    frequency:      _adPctChange(cur.frequency, prev.frequency),
+    clicks:         _adPctChange(cur.clicks, prev.clicks),
+    ctr:            _adPctChange(cur.ctr, prev.ctr),
+    cpc:            _adPctChange(cur.cpc, prev.cpc),
+    cpm:            _adPctChange(cur.cpm, prev.cpm),
+    landingViews:   _adPctChange(cur.landingViews, prev.landingViews),
+    landingCost:    _adPctChange(cur.landingCost, prev.landingCost),
+    clickToLanding: _adPctChange(cur.clickToLanding, prev.clickToLanding),
+    cost:           _adPctChange(cur.cost, prev.cost),
+  };
+  const sign = (v) => (v > 0 ? '+' : '');
 
-  if (reachPct > 5 && clkPct < -5) {
-    lines.push({ dir: 'down', icon: 'ti-alert-triangle', html: `도달·노출은 늘었는데 링크 클릭은 ${clkPct.toFixed(1)}% 줄었습니다. 타겟 범위 확장으로 도달은 늘었지만, 새로 포함된 사용자의 반응은 낮아진 것으로 보입니다 (광고 피로도 누적 가능성).` });
-  }
-  if (ctrPct < -10) {
-    lines.push({ dir: 'down', icon: 'ti-trending-down', html: `CTR이 ${ctrPct.toFixed(1)}% 하락했습니다 (${prev.ctr.toFixed(2)}% → ${cur.ctr.toFixed(2)}%). 같은 소재를 계속 노출했다면 피로도가 쌓였을 수 있어 소재 교체를 검토할 시점입니다.` });
-  } else if (ctrPct > 10) {
-    lines.push({ dir: 'up', icon: 'ti-trending-up', html: `CTR이 ${ctrPct.toFixed(1)}% 상승했습니다 (${prev.ctr.toFixed(2)}% → ${cur.ctr.toFixed(2)}%). 소재나 타겟 조정이 효과가 있었던 것으로 보입니다.` });
-  }
-  if (cpcPct > 20) {
-    lines.push({ dir: 'down', icon: 'ti-coin', html: `CPC가 ${cpcPct.toFixed(1)}% 상승했습니다 (${Math.round(prev.cpc).toLocaleString()}원 → ${Math.round(cur.cpc).toLocaleString()}원). 같은 예산으로 확보할 수 있는 클릭 수가 줄어드는 추세입니다.` });
-  }
-  const landingPct = _adPctChange(cur.clickToLanding, prev.clickToLanding);
-  if (Math.abs(landingPct) > 5) {
-    lines.push({ dir: landingPct > 0 ? 'up' : 'down', icon: 'ti-click', html: `클릭 → 랜딩 전환율이 ${prev.clickToLanding.toFixed(1)}% → ${cur.clickToLanding.toFixed(1)}%로 변화했습니다. 페이지 로딩 속도나 랜딩 링크 설정에 변화가 없었는지 점검해볼 만합니다.` });
+  // 1) 핵심 지표 요약
+  lines.push({ dir: 'flat', icon: 'ti-chart-bar', html: `현재 세트는 도달 <b>${cur.reach.toLocaleString()}명</b>(${sign(p.reach)}${p.reach.toFixed(1)}%), 노출 <b>${cur.impressions.toLocaleString()}회</b>(${sign(p.impressions)}${p.impressions.toFixed(1)}%)로 직전 세트 대비 변화했습니다.` });
+
+  // 2) 노출-클릭 효율 종합: 노출과 클릭이 반대로 움직였는지가 가장 중요한 신호
+  if (p.impressions < -5 && p.clicks > 5) {
+    lines.push({ dir: 'up', icon: 'ti-sparkles', html: `노출은 ${p.impressions.toFixed(1)}% 줄었는데 링크 클릭은 오히려 <b>${p.clicks.toFixed(1)}%</b> 늘었습니다. 같은 노출이라도 더 관심 있는 사용자에게 도달했거나 소재 반응이 좋아졌다는 신호로, 타겟팅·소재 효율이 개선된 것으로 보입니다.` });
+  } else if (p.impressions > 5 && p.clicks < -5) {
+    lines.push({ dir: 'down', icon: 'ti-alert-triangle', html: `노출은 ${sign(p.impressions)}${p.impressions.toFixed(1)}% 늘었는데 링크 클릭은 오히려 ${p.clicks.toFixed(1)}% 줄었습니다. 타겟 범위 확장으로 도달은 늘었지만 관심도가 낮은 사용자까지 포함되며 반응은 떨어진 것으로 보입니다 (광고 피로도 누적 가능성).` });
+  } else if (p.clicks > 5) {
+    lines.push({ dir: 'up', icon: 'ti-trending-up', html: `링크 클릭이 ${sign(p.clicks)}${p.clicks.toFixed(1)}% 늘었습니다 (${prev.clicks.toLocaleString()} → ${cur.clicks.toLocaleString()}회).` });
+  } else if (p.clicks < -5) {
+    lines.push({ dir: 'down', icon: 'ti-trending-down', html: `링크 클릭이 ${p.clicks.toFixed(1)}% 줄었습니다 (${prev.clicks.toLocaleString()} → ${cur.clicks.toLocaleString()}회).` });
   }
 
+  // 3) CTR 변화
+  if (p.ctr < -10) {
+    lines.push({ dir: 'down', icon: 'ti-trending-down', html: `CTR이 ${p.ctr.toFixed(1)}% 하락했습니다 (${prev.ctr.toFixed(2)}% → ${cur.ctr.toFixed(2)}%). 같은 소재를 계속 노출했다면 피로도가 쌓였을 수 있어 소재 교체를 검토할 시점입니다.` });
+  } else if (p.ctr > 10) {
+    lines.push({ dir: 'up', icon: 'ti-trending-up', html: `CTR이 ${sign(p.ctr)}${p.ctr.toFixed(1)}% 상승했습니다 (${prev.ctr.toFixed(2)}% → ${cur.ctr.toFixed(2)}%). 소재나 타겟 조정이 효과가 있었던 것으로 보입니다.` });
+  }
+
+  // 4) CPM vs CPC 상반 해석: 노출 단가와 클릭 단가가 반대로 움직이면 그 이유를 설명해줌
+  if (p.cpm > 15 && p.cpc < -10) {
+    lines.push({ dir: 'up', icon: 'ti-arrows-exchange', html: `CPM(노출당 단가)은 ${sign(p.cpm)}${p.cpm.toFixed(1)}% 올랐지만, CTR이 크게 오르면서 CPC(클릭당 단가)는 오히려 ${p.cpc.toFixed(1)}% 낮아졌습니다. 노출 자체는 비싸졌지만 클릭 전환이 좋아져 결과적으로 더 저렴하게 클릭을 확보하고 있다는 뜻입니다.` });
+  } else if (p.cpc > 20) {
+    lines.push({ dir: 'down', icon: 'ti-coin', html: `CPC가 ${sign(p.cpc)}${p.cpc.toFixed(1)}% 상승했습니다 (${Math.round(prev.cpc).toLocaleString()}원 → ${Math.round(cur.cpc).toLocaleString()}원). 같은 예산으로 확보할 수 있는 클릭 수가 줄어드는 추세입니다.` });
+  } else if (p.cpc < -15) {
+    lines.push({ dir: 'up', icon: 'ti-coin', html: `CPC가 ${p.cpc.toFixed(1)}% 낮아졌습니다 (${Math.round(prev.cpc).toLocaleString()}원 → ${Math.round(cur.cpc).toLocaleString()}원). 같은 예산으로 더 많은 클릭을 확보하고 있습니다.` });
+  }
+
+  // 5) 빈도(피로도) 해석: 업계 통상 2~3회 이상이면 과다 노출로 보는 경우가 많음
+  if (cur.frequency >= 2.5) {
+    lines.push({ dir: 'down', icon: 'ti-repeat', html: `현재 세트의 빈도(같은 사람에게 노출된 평균 횟수)가 <b>${cur.frequency.toFixed(2)}회</b>로 높은 편입니다. 같은 사람에게 광고가 반복 노출되고 있다는 뜻이라, CTR이 함께 떨어지고 있다면 소재를 교체하거나 타겟을 넓혀볼 시점입니다.` });
+  } else if (p.frequency > 10 && p.ctr < 0) {
+    lines.push({ dir: 'down', icon: 'ti-repeat', html: `빈도가 ${sign(p.frequency)}${p.frequency.toFixed(1)}% 오르는 동안 CTR은 하락했습니다. 반복 노출로 인한 피로도가 쌓이고 있는 신호일 수 있습니다.` });
+  }
+
+  // 6) 랜딩 유입 효율 종합
+  if (p.landingViews > 5 && p.landingCost < -5) {
+    lines.push({ dir: 'up', icon: 'ti-click', html: `랜딩 조회수는 ${sign(p.landingViews)}${p.landingViews.toFixed(1)}% 늘고 랜딩 조회 단가는 ${p.landingCost.toFixed(1)}% 낮아졌습니다. 클릭 이후 실제 웹사이트 유입까지 이어지는 효율이 함께 좋아졌습니다.` });
+  } else if (Math.abs(p.clickToLanding) > 5) {
+    lines.push({ dir: p.clickToLanding > 0 ? 'up' : 'down', icon: 'ti-click', html: `클릭 → 랜딩 전환율이 ${prev.clickToLanding.toFixed(1)}% → ${cur.clickToLanding.toFixed(1)}%로 변화했습니다. 페이지 로딩 속도나 랜딩 링크 설정에 변화가 없었는지 점검해볼 만합니다.` });
+  }
+
+  // 7) 비용 대비 효율 총평: 비용 증감과 성과(클릭) 증감을 함께 봐야 진짜 효율을 알 수 있음
+  if (Math.abs(p.cost) > 3) {
+    const better = p.clicks - p.cost; // 클릭 증가율이 비용 증가율보다 얼마나 앞섰는지
+    if (better > 15) {
+      lines.push({ dir: 'up', icon: 'ti-report-money', html: `총 비용은 ${sign(p.cost)}${p.cost.toFixed(1)}% 변화했는데 클릭은 ${sign(p.clicks)}${p.clicks.toFixed(1)}% 변화해, 쓴 비용 대비 얻은 클릭이 더 늘었습니다. 예산 대비 효율이 개선된 세트입니다.` });
+    } else if (better < -15) {
+      lines.push({ dir: 'down', icon: 'ti-report-money', html: `총 비용은 ${sign(p.cost)}${p.cost.toFixed(1)}% 변화했는데 클릭은 ${sign(p.clicks)}${p.clicks.toFixed(1)}%에 그쳐, 쓴 비용 대비 얻은 클릭은 오히려 줄었습니다. 예산 대비 효율은 다소 나빠진 세트입니다.` });
+    }
+  }
+
+  // 8) 전환 이슈 (지속적으로 0건이면 데이터 관점에서 짚어줌)
+  if (cur.conversions === 0 && prev.conversions === 0 && cur.clicks > 0) {
+    lines.push({ dir: 'flat', icon: 'ti-target-arrow', html: `직전·현재 세트 모두 전환 기록이 0건입니다. 클릭은 꾸준히 발생하고 있어서, 전환 추적(픽셀/이벤트) 설정이 제대로 되어 있는지 확인해볼 필요가 있습니다.` });
+  }
+
+  // 9) 기간 길이 차이 안내
   const daysCur  = _metaDaysBetween(currentSet['시작일'], currentSet['종료일']) || cur.dayCount;
   const daysPrev = _metaDaysBetween(previousSet['시작일'], previousSet['종료일']) || prev.dayCount;
   if (daysCur && daysPrev && daysCur !== daysPrev) {
