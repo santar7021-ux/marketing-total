@@ -4328,15 +4328,16 @@ async function submitModal() {
     }
   }
 
-  // 디자인 시안: 여러 장의 새 이미지를 순차 업로드 후 기존 이미지와 합쳐서 저장
+  // 디자인 시안: 여러 장의 새 이미지를 병렬 업로드 후 기존 이미지와 합쳐서 저장
+  // (순차 업로드는 장수만큼 시간이 그대로 곱해져서 느렸음 — 동시에 보내면 전체 시간이 가장 느린 한 장 수준으로 줄어듦)
   if (t === 'designDraft' && currentUploadFilesMulti.length) {
     try {
-      for (let i = 0; i < currentUploadFilesMulti.length; i++) {
-        const f = currentUploadFilesMulti[i];
-        banner(`이미지 업로드 중… (${i + 1}/${currentUploadFilesMulti.length})`, 'loading');
-        const uploaded = await uploadFileViaForm(f);
-        existingDesignImages.push({ id: uploaded.fileId || '', name: f.name });
-      }
+      const filesToUpload = currentUploadFilesMulti;
+      banner(`이미지 ${filesToUpload.length}장 업로드 중…`, 'loading');
+      const uploadedList = await Promise.all(filesToUpload.map(f => uploadFileViaForm(f, true)));
+      uploadedList.forEach((uploaded, i) => {
+        existingDesignImages.push({ id: uploaded.fileId || '', name: filesToUpload[i].name });
+      });
       currentUploadFilesMulti = [];
     } catch (e) {
       banner('이미지 업로드 실패: ' + e.message, 'error');
@@ -5027,10 +5028,56 @@ function clearUpload() {
   if (nameEl) nameEl.value = '';
 }
 
-async function uploadFileViaForm(file) {
-  const msg  = document.getElementById('f-msg');
-  const bar  = document.getElementById('f-bar');
-  const prog = document.getElementById('f-progress');
+// ── 이미지 자동 압축 (업로드 전, 큰 사진의 전송 시간을 크게 줄여줌) ──
+// 스마트폰 원본 사진(3000~4000px, 몇 MB)을 1920px/JPEG 85%로 재인코딩해서
+// 화질 저하는 거의 없이 용량만 대폭 줄입니다. PDF 등 이미지가 아닌 파일이나
+// 이미 충분히 작은 파일, GIF(애니메이션 깨짐 방지)는 그대로 둡니다.
+async function compressImageIfNeeded(file) {
+  if (!file.type || !file.type.startsWith('image/')) return file;
+  if (file.type === 'image/gif') return file;
+  if (file.size <= 800 * 1024) return file; // 800KB 이하는 압축 실익이 적어 생략
+
+  let imgUrl;
+  try {
+    imgUrl = URL.createObjectURL(file);
+    const img = await new Promise((res, rej) => {
+      const el = new Image();
+      el.onload = () => res(el);
+      el.onerror = rej;
+      el.src = imgUrl;
+    });
+
+    const MAX_DIM = 1920;
+    const { width, height } = img;
+    if (width <= MAX_DIM && height <= MAX_DIM) return file; // 크기는 이미 적당함
+
+    const scale = Math.min(MAX_DIM / width, MAX_DIM / height);
+    const newW = Math.round(width * scale);
+    const newH = Math.round(height * scale);
+
+    const canvas = document.createElement('canvas');
+    canvas.width = newW; canvas.height = newH;
+    canvas.getContext('2d').drawImage(img, 0, 0, newW, newH);
+
+    const blob = await new Promise(res => canvas.toBlob(res, 'image/jpeg', 0.85));
+    if (!blob || blob.size >= file.size) return file; // 압축이 오히려 안 좋으면 원본 유지
+
+    console.log(`🗜️ 이미지 압축: ${(file.size/1024).toFixed(0)}KB → ${(blob.size/1024).toFixed(0)}KB (${newW}x${newH})`);
+    return new File([blob], file.name.replace(/\.\w+$/, '.jpg'), { type: 'image/jpeg' });
+  } catch (e) {
+    console.warn('이미지 압축 실패, 원본으로 업로드:', e.message);
+    return file;
+  } finally {
+    if (imgUrl) URL.revokeObjectURL(imgUrl);
+  }
+}
+
+async function uploadFileViaForm(file, quiet) {
+  file = await compressImageIfNeeded(file);
+
+  const msg  = quiet ? null : document.getElementById('f-msg');
+  const bar  = quiet ? null : document.getElementById('f-bar');
+  const prog = quiet ? null : document.getElementById('f-progress');
 
   if (file.size > 50 * 1024 * 1024) {
     if (msg) { msg.textContent = '⚠️ 최대 50MB까지 업로드 가능합니다.'; msg.className = 'upload-msg err'; }
@@ -5056,19 +5103,45 @@ async function uploadFileViaForm(file) {
   if (msg) { msg.textContent = '드라이브에 업로드 중…'; msg.className = 'upload-msg'; }
 
   // fetch POST + text/plain → CORS preflight 없이 단일 요청으로 전체 전송
-  const res = await fetch(API_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'text/plain' },
-    body: JSON.stringify({
-      action:   'uploadFile',
-      fileName: file.name,
-      mimeType: file.type || 'application/octet-stream',
-      base64:   base64Full,
-      sheet:    currentUploadSheet || '',  // 카테고리 폴더 지정
-    }),
-  });
+  // 응답이 영영 안 올 경우를 대비해 90초 타임아웃을 둡니다 (그냥 멈춰있는 것처럼 보이는 것 방지)
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 90000);
 
-  const result = await res.json();
+  let res;
+  try {
+    res = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({
+        action:   'uploadFile',
+        fileName: file.name,
+        mimeType: file.type || 'application/octet-stream',
+        base64:   base64Full,
+        sheet:    currentUploadSheet || '',  // 카테고리 폴더 지정
+      }),
+      signal: controller.signal,
+    });
+  } catch (fetchErr) {
+    if (prog) prog.classList.remove('show');
+    const timedOut = fetchErr.name === 'AbortError';
+    const errMsg = timedOut
+      ? '업로드 응답이 90초 넘게 오지 않아 중단했습니다. 파일 용량을 줄이거나 네트워크 상태를 확인한 뒤 다시 시도해주세요.'
+      : '네트워크 오류로 업로드에 실패했습니다: ' + fetchErr.message;
+    if (msg) { msg.textContent = '⚠️ ' + errMsg; msg.className = 'upload-msg err'; }
+    throw new Error(errMsg);
+  } finally {
+    clearTimeout(timeoutId);
+  }
+
+  let result;
+  try {
+    result = await res.json();
+  } catch (parseErr) {
+    if (prog) prog.classList.remove('show');
+    const errMsg = '서버 응답을 해석하지 못했습니다 (상태 코드 ' + res.status + '). 배포된 Code.gs 버전을 확인해주세요.';
+    if (msg) { msg.textContent = '⚠️ ' + errMsg; msg.className = 'upload-msg err'; }
+    throw new Error(errMsg);
+  }
   console.log('✅ 업로드 응답:', result);
 
   if (!result || result.error) {
