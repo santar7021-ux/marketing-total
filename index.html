@@ -868,6 +868,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
   .ad-meta-setcard-row span { font-size: 12px; }
   .ad-meta-setcard-hd { flex-wrap: wrap; }
   .ad-period-row button.btn.sm { margin-left: 0 !important; width: 100%; justify-content: center; }
+  .ad-period-actions { margin-left: 0 !important; width: 100%; }
 
   /* ── 지표 카드: 한 줄에 하나씩, "인증 7건" 형태로 세로 나열 ── */
   .metric-grid {
@@ -1349,9 +1350,10 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
         <div class="ad-period-row">
           <div class="ad-period-block">
             <label><span class="ad-period-dot solo"></span> 조회 기간</label>
-            <input type="date" id="ad-solo-from" onchange="applyAdSoloPeriod()">
+            <input type="date" id="ad-solo-from">
             <span class="ad-period-tilde">~</span>
-            <input type="date" id="ad-solo-to" onchange="applyAdSoloPeriod()">
+            <input type="date" id="ad-solo-to">
+            <button class="btn sm primary" onclick="applyAdSoloPeriod()"><i class="ti ti-search"></i> 조회</button>
           </div>
         </div>
       </div>
@@ -1404,17 +1406,20 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
         <div class="ad-period-row">
           <div class="ad-period-block">
             <label><span class="ad-period-dot p1"></span> 기간 1</label>
-            <input type="date" id="ad-p1-from" onchange="applyAdPeriods()">
+            <input type="date" id="ad-p1-from">
             <span class="ad-period-tilde">~</span>
-            <input type="date" id="ad-p1-to" onchange="applyAdPeriods()">
+            <input type="date" id="ad-p1-to">
           </div>
           <div class="ad-period-block">
             <label><span class="ad-period-dot p2"></span> 기간 2 (비교 대상)</label>
-            <input type="date" id="ad-p2-from" onchange="applyAdPeriods()">
+            <input type="date" id="ad-p2-from">
             <span class="ad-period-tilde">~</span>
-            <input type="date" id="ad-p2-to" onchange="applyAdPeriods()">
+            <input type="date" id="ad-p2-to">
           </div>
-          <button class="btn sm" style="margin-left:auto" onclick="refreshAdData()"><i class="ti ti-refresh"></i> 새로고침</button>
+          <div style="margin-left:auto;display:flex;gap:8px" class="ad-period-actions">
+            <button class="btn sm primary" onclick="applyAdPeriods()"><i class="ti ti-search"></i> 조회</button>
+            <button class="btn sm" onclick="refreshAdData()"><i class="ti ti-refresh"></i> 새로고침</button>
+          </div>
         </div>
       </div>
 
@@ -1464,9 +1469,10 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
           <div class="ad-period-row">
             <div class="ad-period-block">
               <label><span class="ad-period-dot solo"></span> 조회 기간 <span id="ad-meta-solo-range-hint" style="font-weight:400;color:var(--muted);font-size:12.5px;margin-left:4px"></span></label>
-              <input type="date" id="ad-meta-solo-from" onchange="applyMetaSoloPeriod()">
+              <input type="date" id="ad-meta-solo-from">
               <span class="ad-period-tilde">~</span>
-              <input type="date" id="ad-meta-solo-to" onchange="applyMetaSoloPeriod()">
+              <input type="date" id="ad-meta-solo-to">
+              <button class="btn sm primary" onclick="applyMetaSoloPeriod()"><i class="ti ti-search"></i> 조회</button>
             </div>
           </div>
         </div>
