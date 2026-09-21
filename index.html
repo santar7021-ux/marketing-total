@@ -550,6 +550,9 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
 .tbl-goods { table-layout: fixed; min-width: 760px; }
 .tbl-goods td, .tbl-goods th { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .goods-tbl-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+/* ── 광고 관리 차트 박스: 화면 너비와 무관하게 항상 충분한 높이를 확보 ── */
+.ad-chart-box { position: relative; height: 260px; padding: 18px; box-sizing: border-box; }
 .goods-tbl-wrap::-webkit-scrollbar { height: 6px; }
 .goods-tbl-wrap::-webkit-scrollbar-track { background: var(--bg); }
 .goods-tbl-wrap::-webkit-scrollbar-thumb { background: var(--border-md); border-radius: 3px; }
@@ -859,6 +862,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
   .ad-section-hd { flex-direction: column; align-items: flex-start; gap: 2px; font-size: 15px; }
   .ad-period-block { flex-wrap: wrap; }
   .ad-compare-grid { grid-template-columns: 1fr; }
+  .ad-chart-box { height: 210px; padding: 10px 6px 26px; }
   .ad-meta-setinfo-grid { grid-template-columns: 1fr; }
   .ad-meta-setcard-row { flex-direction: column; align-items: flex-start; gap: 1px; }
   .ad-meta-setcard-row span { font-size: 12px; }
@@ -1361,7 +1365,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
 
       <div class="card" style="margin-bottom:20px">
         <div class="card-hd"><h2><i class="ti ti-chart-line"></i> 일별 추세 (클릭수 · 비용)</h2></div>
-        <div style="padding:18px"><canvas id="ad-trend-chart" height="90"></canvas></div>
+        <div class="ad-chart-box"><canvas id="ad-trend-chart"></canvas></div>
       </div>
 
       <div class="card">
@@ -1471,7 +1475,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
 
         <div class="card" style="margin-bottom:32px">
           <div class="card-hd"><h2><i class="ti ti-chart-line"></i> 일별 추세 (클릭수 · 비용)</h2></div>
-          <div style="padding:18px"><canvas id="ad-meta-solo-chart" height="90"></canvas></div>
+          <div class="ad-chart-box"><canvas id="ad-meta-solo-chart"></canvas></div>
         </div>
 
         <!-- ══════════════ 광고 세트 비교 (현재 세트 vs 직전 세트) ══════════════ -->
@@ -1491,7 +1495,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
 
         <div class="card" style="margin-bottom:20px">
           <div class="card-hd"><h2><i class="ti ti-chart-bar"></i> 세트별 성과 그래프</h2></div>
-          <div style="padding:18px"><canvas id="ad-meta-chart" height="100"></canvas></div>
+          <div class="ad-chart-box"><canvas id="ad-meta-chart"></canvas></div>
         </div>
 
         <div class="card" style="margin-bottom:20px">
@@ -5816,22 +5820,54 @@ function renderMetaCompareTable(cur, prev) {
 function renderMetaChart(cur, prev, currentSet, previousSet) {
   const canvas = document.getElementById('ad-meta-chart');
   if (AD_STATE.metaChart) { AD_STATE.metaChart.destroy(); AD_STATE.metaChart = null; }
-  const labels = ['CTR(%)', 'CPC(원)', 'CPM(원)', '랜딩조회수', '랜딩조회단가(원)'];
   const prevLabel = previousSet ? (_metaFmtDate(previousSet['시작일']) || '직전 세트') : '직전 세트';
   const curLabel  = currentSet  ? (_metaFmtDate(currentSet['시작일'])  || '현재 세트') : '현재 세트';
+
+  // CTR(%)·CPC/CPM(원, 수천 단위)·랜딩조회수(건, 수백 단위)처럼 단위가 완전히 다른 값을
+  // 같은 축에 그대로 그리면 큰 값 기준으로 축이 잡혀 작은 값의 막대가 안 보입니다.
+  // 그래서 실제 값 대신 "두 값 중 큰 쪽을 100으로 뒀을 때 상대적인 비율"로 막대 높이를 그리고,
+  // 실제 값(단위 포함)은 툴팁으로만 보여줍니다.
+  const metrics = [
+    { label: 'CTR',        unit: '%', dec: 2, cur: cur.ctr,          prev: prev.ctr },
+    { label: 'CPC',        unit: '원', dec: 0, cur: cur.cpc,          prev: prev.cpc },
+    { label: 'CPM',        unit: '원', dec: 0, cur: cur.cpm,          prev: prev.cpm },
+    { label: '랜딩조회수', unit: '건', dec: 0, cur: cur.landingViews, prev: prev.landingViews },
+    { label: '랜딩조회단가', unit: '원', dec: 0, cur: cur.landingCost, prev: prev.landingCost },
+  ];
+  const labels   = metrics.map(m => m.label);
+  const relOf    = (v, m) => { const max = Math.max(m.cur, m.prev) || 1; return Math.round(v / max * 100); };
+  const relPrev  = metrics.map(m => relOf(m.prev, m));
+  const relCur   = metrics.map(m => relOf(m.cur, m));
+  const rawPrev  = metrics.map(m => ({ v: m.prev, u: m.unit, d: m.dec }));
+  const rawCur   = metrics.map(m => ({ v: m.cur,  u: m.unit, d: m.dec }));
+
   AD_STATE.metaChart = new Chart(canvas.getContext('2d'), {
     type: 'bar',
     data: {
       labels,
       datasets: [
-        { label: prevLabel, data: [prev.ctr, prev.cpc, prev.cpm, prev.landingViews, prev.landingCost], backgroundColor: '#b8c4d9' },
-        { label: curLabel,  data: [cur.ctr, cur.cpc, cur.cpm, cur.landingViews, cur.landingCost],       backgroundColor: '#2f6fed' },
+        { label: prevLabel, data: relPrev, backgroundColor: '#b8c4d9', raw: rawPrev },
+        { label: curLabel,  data: relCur,  backgroundColor: '#2f6fed', raw: rawCur },
       ]
     },
     options: {
       responsive: true,
-      plugins: { legend: { position: 'bottom' } },
-      scales: { y: { beginAtZero: true } }
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom', labels: { boxWidth: 14, font: { size: 11 } } },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => {
+              const r = ctx.dataset.raw[ctx.dataIndex];
+              return `${ctx.dataset.label}: ${r.v.toFixed(r.d)}${r.u}`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: { ticks: { maxRotation: 0, autoSkip: false, font: { size: 10 } } },
+        y: { display: false, beginAtZero: true, max: 115 },
+      }
     }
   });
 }
@@ -5970,6 +6006,21 @@ function _metaSoloMetricGridHtml(a) {
   `;
 }
 
+// 클릭수·비용 일별 추세선 차트에 공통으로 쓰는 옵션 (모바일에서도 항상 충분한 그래프 영역을 확보)
+function _adTrendChartOptions() {
+  return {
+    responsive: true,
+    maintainAspectRatio: false,
+    interaction: { mode: 'index', intersect: false },
+    plugins: { legend: { position: 'bottom', labels: { boxWidth: 14, font: { size: 11 } } } },
+    scales: {
+      x:  { ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 6, font: { size: 10 } } },
+      y:  { position: 'left',  title: { display: false }, ticks: { font: { size: 10 } } },
+      y1: { position: 'right', title: { display: false }, grid: { drawOnChartArea: false }, ticks: { font: { size: 10 } } },
+    }
+  };
+}
+
 function renderMetaSoloChart(rows) {
   const byDate = {};
   rows.forEach(r => {
@@ -5994,14 +6045,7 @@ function renderMetaSoloChart(rows) {
         { label: '비용(원)', data: costData, borderColor: '#004386', backgroundColor: 'rgba(0,67,134,.06)', yAxisID: 'y1', tension: 0.25 },
       ]
     },
-    options: {
-      responsive: true,
-      interaction: { mode: 'index', intersect: false },
-      scales: {
-        y:  { position: 'left',  title: { display: true, text: '클릭수' } },
-        y1: { position: 'right', title: { display: true, text: '비용(원)' }, grid: { drawOnChartArea: false } },
-      }
-    }
+    options: _adTrendChartOptions()
   });
 }
 
@@ -6341,14 +6385,7 @@ function renderAdTrendChart(rows) {
         { label: '비용(원)', data: costData, borderColor: '#004386', backgroundColor: 'rgba(0,67,134,.06)', yAxisID: 'y1', tension: 0.25 },
       ]
     },
-    options: {
-      responsive: true,
-      interaction: { mode: 'index', intersect: false },
-      scales: {
-        y:  { position: 'left',  title: { display: true, text: '클릭수' } },
-        y1: { position: 'right', title: { display: true, text: '비용(원)' }, grid: { drawOnChartArea: false } },
-      }
-    }
+    options: _adTrendChartOptions()
   });
 }
 
