@@ -378,20 +378,10 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
 .ad-improve-line i { flex-shrink: 0; margin-top: 3px; font-size: 16px; color: var(--accent); }
 .ad-improve-line b { color: var(--accent-dk); }
 
-/* ── 브랜드 검색 광고 최적화 가이드 (아코디언) ── */
-.ad-tip-group { border-bottom: 1px solid var(--border); }
-.ad-tip-group:last-child { border-bottom: none; }
-.ad-tip-group summary {
-  cursor: pointer; list-style: none; padding: 12px 4px;
-  font-size: 15px; font-weight: 600; color: var(--text);
-  display: flex; align-items: center; gap: 8px;
+.ad-action-badge {
+  display: inline-block; font-size: 11px; font-weight: 600; padding: 2px 8px;
+  border-radius: 100px; background: var(--accent-lt); color: var(--accent-dk); margin-right: 6px;
 }
-.ad-tip-group summary::-webkit-details-marker { display: none; }
-.ad-tip-group summary .ad-tip-chevron { color: var(--muted); font-size: 15px; transition: transform .15s; }
-.ad-tip-group[open] summary .ad-tip-chevron { transform: rotate(90deg); }
-.ad-tip-group .ad-tip-body { padding: 0 4px 12px 26px; }
-.ad-tip-group .ad-improve-line { padding: 6px 0; font-size: 14px; border-bottom: none; }
-.ad-tip-group .ad-improve-line i { color: #1d9e75; font-size: 14px; }
 
 .metric {
   background: var(--surface); border: 1px solid var(--border);
@@ -1341,75 +1331,6 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
       <div class="card" style="margin-bottom:20px">
         <div class="card-hd"><h2><i class="ti ti-bulb"></i> 분석 인사이트</h2></div>
         <div id="ad-solo-insights" class="ad-insights-body"></div>
-      </div>
-
-      <div class="card" style="margin-bottom:20px">
-        <div class="card-hd"><h2><i class="ti ti-rocket"></i> 브랜드 검색 광고 최적화 가이드</h2></div>
-        <div style="padding:6px 18px 8px">
-          <details class="ad-tip-group">
-            <summary><i class="ti ti-chevron-right ad-tip-chevron"></i> 시각적 임팩트 극대화하기</summary>
-            <div class="ad-tip-body">
-              <div class="ad-improve-line"><i class="ti ti-circle-check"></i><span>브랜드 아이덴티티가 명확히 드러나는 로고와 이미지 사용</span></div>
-              <div class="ad-improve-line"><i class="ti ti-circle-check"></i><span>시선을 사로잡는 컬러 대비와 구도 적용</span></div>
-              <div class="ad-improve-line"><i class="ti ti-circle-check"></i><span>이미지 영역을 최대한 활용한 정보 압축</span></div>
-              <div class="ad-improve-line"><i class="ti ti-circle-check"></i><span>모바일 화면에서의 가독성 특별히 고려</span></div>
-            </div>
-          </details>
-          <details class="ad-tip-group">
-            <summary><i class="ti ti-chevron-right ad-tip-chevron"></i> 효과적인 키워드 조합 전략</summary>
-            <div class="ad-tip-body">
-              <div class="ad-improve-line"><i class="ti ti-circle-check"></i><span>브랜드명과 함께 주요 제품/서비스 키워드 포함</span></div>
-              <div class="ad-improve-line"><i class="ti ti-circle-check"></i><span>검색량과 전환 가능성을 고려한 키워드 선정</span></div>
-              <div class="ad-improve-line"><i class="ti ti-circle-check"></i><span>지역 특화 비즈니스의 경우 지역명 포함</span></div>
-              <div class="ad-improve-line"><i class="ti ti-circle-check"></i><span>경쟁사 키워드는 신중하게 접근 (법적 문제 발생 가능)</span></div>
-            </div>
-          </details>
-          <details class="ad-tip-group">
-            <summary><i class="ti ti-chevron-right ad-tip-chevron"></i> 행동 유도 극대화 팁</summary>
-            <div class="ad-tip-body">
-              <div class="ad-improve-line"><i class="ti ti-circle-check"></i><span>클릭을 유도하는 명확한 CTA(Call-to-Action) 문구 사용</span></div>
-              <div class="ad-improve-line"><i class="ti ti-circle-check"></i><span>링크별 특성에 맞는 버튼 텍스트 설정</span></div>
-              <div class="ad-improve-line"><i class="ti ti-circle-check"></i><span>주요 링크는 1~2개로 집중하여 선택 피로감 감소</span></div>
-              <div class="ad-improve-line"><i class="ti ti-circle-check"></i><span>실시간 프로모션이나 한정 혜택 강조</span></div>
-            </div>
-          </details>
-          <details class="ad-tip-group">
-            <summary><i class="ti ti-chevron-right ad-tip-chevron"></i> 계절/트렌드 반영 전략</summary>
-            <div class="ad-tip-body">
-              <div class="ad-improve-line"><i class="ti ti-circle-check"></i><span>시즌별 이슈와 연계한 콘텐츠 교체</span></div>
-              <div class="ad-improve-line"><i class="ti ti-circle-check"></i><span>주요 이벤트 시기에 맞춘 소재 업데이트</span></div>
-              <div class="ad-improve-line"><i class="ti ti-circle-check"></i><span>트렌드 키워드를 활용한 연관검색어 확보</span></div>
-              <div class="ad-improve-line"><i class="ti ti-circle-check"></i><span>정기적인 콘텐츠 리뉴얼로 신선도 유지</span></div>
-            </div>
-          </details>
-          <details class="ad-tip-group">
-            <summary><i class="ti ti-chevron-right ad-tip-chevron"></i> 경쟁사 차별화 전략</summary>
-            <div class="ad-tip-body">
-              <div class="ad-improve-line"><i class="ti ti-circle-check"></i><span>경쟁사와 차별화된 고유한 USP(Unique Selling Point) 강조</span></div>
-              <div class="ad-improve-line"><i class="ti ti-circle-check"></i><span>독점적 혜택이나 특별 서비스 부각</span></div>
-              <div class="ad-improve-line"><i class="ti ti-circle-check"></i><span>경쟁사 대비 우위 요소를 시각적으로 표현</span></div>
-              <div class="ad-improve-line"><i class="ti ti-circle-check"></i><span>신뢰 요소(인증, 수상 내역, 고객 수 등) 강조</span></div>
-            </div>
-          </details>
-          <details class="ad-tip-group">
-            <summary><i class="ti ti-chevron-right ad-tip-chevron"></i> 성과 측정 및 최적화</summary>
-            <div class="ad-tip-body">
-              <div class="ad-improve-line"><i class="ti ti-circle-check"></i><span>주요 KPI 설정 및 정기적 모니터링</span></div>
-              <div class="ad-improve-line"><i class="ti ti-circle-check"></i><span>클릭 영역별 트래픽 분석으로 효과적인 요소 파악</span></div>
-              <div class="ad-improve-line"><i class="ti ti-circle-check"></i><span>A/B 테스트를 통한 소재 최적화</span></div>
-              <div class="ad-improve-line"><i class="ti ti-circle-check"></i><span>검색량과 전환율 변화에 따른 키워드 조정</span></div>
-            </div>
-          </details>
-          <details class="ad-tip-group">
-            <summary><i class="ti ti-chevron-right ad-tip-chevron"></i> 통합 마케팅 전략 연계</summary>
-            <div class="ad-tip-body">
-              <div class="ad-improve-line"><i class="ti ti-circle-check"></i><span>오프라인 캠페인과의 메시지 일치성 확보</span></div>
-              <div class="ad-improve-line"><i class="ti ti-circle-check"></i><span>SNS 마케팅과 브랜드검색광고의 시너지 창출</span></div>
-              <div class="ad-improve-line"><i class="ti ti-circle-check"></i><span>이메일 마케팅과 연계한 리마케팅 전략 활용</span></div>
-              <div class="ad-improve-line"><i class="ti ti-circle-check"></i><span>다른 광고 채널과의 예산 배분 최적화</span></div>
-            </div>
-          </details>
-        </div>
       </div>
 
       <div class="card" style="margin-bottom:20px">
@@ -5685,6 +5606,11 @@ function renderAdSoloInsights(rows, a) {
   const lines = [];
   const platformLabel = AD_STATE.platform === 'naver' ? '네이버 브랜드검색' : '메타 피드 광고';
 
+  // 액션 추론에 재사용할 변수들 (아래에서 채워짐)
+  let bestDay = null, avgDailyClicks = 0;
+  let bestCampaign = null, worstCampaign = null;
+  let topKeyword = null, opportunityKw = null;
+
   // 1) 기본 성과 지표 요약 (노출·클릭·CTR·총 광고비)
   lines.push({
     dir: 'flat', icon: 'ti-chart-bar',
@@ -5700,8 +5626,11 @@ function renderAdSoloInsights(rows, a) {
     byDate[d].클릭수 += Number(r['클릭수']) || 0;
   });
   const dateList = Object.entries(byDate).map(([d, v]) => ({ d, ...v }));
+  if (dateList.length) {
+    avgDailyClicks = dateList.reduce((s, v) => s + v.클릭수, 0) / dateList.length;
+  }
   if (dateList.length >= 2) {
-    const bestDay = [...dateList].sort((x, y) => y.클릭수 - x.클릭수)[0];
+    bestDay = [...dateList].sort((x, y) => y.클릭수 - x.클릭수)[0];
     if (bestDay.클릭수 > 0) {
       lines.push({ dir: 'up', icon: 'ti-calendar-stats', html: `<b>${bestDay.d}</b>에 클릭수 ${bestDay.클릭수.toLocaleString()}회로 이 기간 중 가장 높은 성과를 기록했습니다.` });
     }
@@ -5719,11 +5648,13 @@ function renderAdSoloInsights(rows, a) {
     .map(([name, v]) => ({ name, ...v, ctr: v.노출수 ? (v.클릭수 / v.노출수 * 100) : 0 }))
     .filter(c => c.클릭수 >= 5);
   if (campaignList.length >= 2) {
-    const best  = [...campaignList].sort((x, y) => y.ctr - x.ctr)[0];
-    const worst = [...campaignList].sort((x, y) => x.ctr - y.ctr)[0];
-    if (best.name !== worst.name) {
-      lines.push({ dir: 'up', icon: 'ti-star', html: `'<b>${best.name}</b>' 캠페인이 CTR ${best.ctr.toFixed(2)}%로 가장 높은 성과를 보이고 있습니다.` });
-      lines.push({ dir: 'down', icon: 'ti-alert-triangle', html: `'<b>${worst.name}</b>' 캠페인은 CTR ${worst.ctr.toFixed(2)}%로 상대적으로 저조해 소재나 타겟팅 점검이 필요해 보입니다.` });
+    bestCampaign  = [...campaignList].sort((x, y) => y.ctr - x.ctr)[0];
+    worstCampaign = [...campaignList].sort((x, y) => x.ctr - y.ctr)[0];
+    if (bestCampaign.name !== worstCampaign.name) {
+      lines.push({ dir: 'up', icon: 'ti-star', html: `'<b>${bestCampaign.name}</b>' 캠페인이 CTR ${bestCampaign.ctr.toFixed(2)}%로 가장 높은 성과를 보이고 있습니다.` });
+      lines.push({ dir: 'down', icon: 'ti-alert-triangle', html: `'<b>${worstCampaign.name}</b>' 캠페인은 CTR ${worstCampaign.ctr.toFixed(2)}%로 상대적으로 저조해 소재나 타겟팅 점검이 필요해 보입니다.` });
+    } else {
+      bestCampaign = worstCampaign = null;
     }
   }
 
@@ -5739,15 +5670,17 @@ function renderAdSoloInsights(rows, a) {
     });
     const kwList = Object.entries(byKeyword).map(([kw, v]) => ({ kw, ...v }));
 
-    const topKw = [...kwList].sort((x, y) => y.클릭수 - x.클릭수)[0];
-    if (topKw && topKw.클릭수 > 0) {
-      lines.push({ dir: 'up', icon: 'ti-key', html: `키워드 중에서는 '<b>${topKw.kw}</b>'가 클릭 ${topKw.클릭수.toLocaleString()}회로 가장 많은 유입을 만들어냈습니다.` });
+    topKeyword = [...kwList].sort((x, y) => y.클릭수 - x.클릭수)[0] || null;
+    if (topKeyword && topKeyword.클릭수 > 0) {
+      lines.push({ dir: 'up', icon: 'ti-key', html: `키워드 중에서는 '<b>${topKeyword.kw}</b>'가 클릭 ${topKeyword.클릭수.toLocaleString()}회로 가장 많은 유입을 만들어냈습니다.` });
+    } else {
+      topKeyword = null;
     }
 
     // 월간검색수는 높은데 이 기간 동안 클릭이 0인 키워드 → 기회 요소
-    const opportunity = kwList.filter(v => v.검색수 >= 50 && v.클릭수 === 0).sort((x, y) => y.검색수 - x.검색수)[0];
-    if (opportunity) {
-      lines.push({ dir: 'flat', icon: 'ti-bulb', html: `'<b>${opportunity.kw}</b>'는 월간검색수가 ${opportunity.검색수.toLocaleString()}건으로 꽤 있는데도 이 기간 클릭이 없었습니다. 소재 노출 순위나 입찰가를 점검해볼 만합니다.` });
+    opportunityKw = kwList.filter(v => v.검색수 >= 50 && v.클릭수 === 0).sort((x, y) => y.검색수 - x.검색수)[0] || null;
+    if (opportunityKw) {
+      lines.push({ dir: 'flat', icon: 'ti-bulb', html: `'<b>${opportunityKw.kw}</b>'는 월간검색수가 ${opportunityKw.검색수.toLocaleString()}건으로 꽤 있는데도 이 기간 클릭이 없었습니다. 소재 노출 순위나 입찰가를 점검해볼 만합니다.` });
     }
   }
 
@@ -5759,8 +5692,37 @@ function renderAdSoloInsights(rows, a) {
     lines.push({ dir: 'flat', icon: 'ti-calculator', html: `이 기간에는 전환이 기록되지 않았습니다. 전환 추적(픽셀/서버사이드 전환 이벤트) 설정을 점검해보세요.` });
   }
 
+  // ── 추천 액션: 위 관찰 결과를 브랜드검색광고 운영 전략 7가지 관점(시각적 임팩트,
+  // 키워드 조합, 행동 유도, 계절/트렌드, 경쟁사 차별화, 성과 측정, 통합 마케팅)에 대입해
+  // 다음에 무엇을 해보면 좋을지 추론합니다. 데이터 조건이 맞을 때만 등장합니다.
+  const actions = [];
+
+  if (a.ctr < 2 && a.impressions >= 30) {
+    actions.push({ cat: '시각적 임팩트', icon: 'ti-photo', html: `전체 CTR이 ${a.ctr.toFixed(2)}%로 낮은 편입니다. 로고·이미지 구도나 컬러 대비를 점검해 첫 화면에서 브랜드가 더 눈에 띄도록 소재를 손봐보세요.` });
+  }
+  if (opportunityKw) {
+    actions.push({ cat: '키워드 전략', icon: 'ti-key', html: `'<b>${opportunityKw.kw}</b>' 같이 검색량은 있는데 클릭이 없는 키워드는 입찰가를 올리거나, 관련 확장 키워드를 추가해보는 게 좋겠습니다.` });
+  }
+  if (a.clicks > 0 && a.conversions === 0) {
+    actions.push({ cat: '행동 유도', icon: 'ti-click', html: `클릭은 발생했지만 전환은 0건입니다. 랜딩 링크의 CTA 문구를 더 명확하게 하고, 노출 링크를 1~2개 핵심 링크로 좁혀 선택 피로감을 줄여보세요.` });
+  }
+  if (bestDay && avgDailyClicks > 0 && bestDay.클릭수 >= avgDailyClicks * 2) {
+    actions.push({ cat: '계절/트렌드', icon: 'ti-calendar-event', html: `<b>${bestDay.d}</b>에 클릭이 평소보다 크게 튀었습니다. 그날 어떤 이벤트·프로모션·이슈가 있었는지 확인해서, 반응이 좋았던 요소를 다음 소재에도 반영해보세요.` });
+  }
+  if (bestCampaign && worstCampaign && worstCampaign.ctr < bestCampaign.ctr * 0.5) {
+    actions.push({ cat: '경쟁사 차별화', icon: 'ti-target-arrow', html: `'<b>${worstCampaign.name}</b>' 캠페인은 '${bestCampaign.name}' 대비 CTR이 절반 이하입니다. 소재에 우리만의 차별점(USP)이나 신뢰 요소(인증·수상·고객 수)가 드러나는지 점검해보세요.` });
+  }
+  if (topKeyword) {
+    actions.push({ cat: '통합 마케팅', icon: 'ti-share', html: `가장 반응이 좋았던 키워드 '<b>${topKeyword.kw}</b>'의 메시지를 SNS 포스팅이나 이메일 리마케팅 문구에도 동일하게 사용해 시너지를 노려볼 수 있습니다.` });
+  }
+  actions.push({ cat: '성과 측정', icon: 'ti-chart-bar', html: `이번 기간 CTR ${a.ctr.toFixed(2)}%, 평균 CPC ${Math.round(a.cpc).toLocaleString()}원을 다음 기간과 비교할 기준선으로 삼아, 위 항목을 조정한 뒤 다시 확인해보세요.` });
+
   el.innerHTML = lines.map(l => `
     <div class="ad-insight-line ${l.dir}"><i class="ti ${l.icon}"></i><span>${l.html}</span></div>
+  `).join('') + `
+    <div class="ad-section-hd" style="margin-top:14px;padding:10px 0 6px;border-top:1px solid var(--border)"><i class="ti ti-list-check"></i> 추천 액션</div>
+  ` + actions.map(t => `
+    <div class="ad-improve-line"><i class="ti ${t.icon}"></i><span><span class="ad-action-badge">${t.cat}</span>${t.html}</span></div>
   `).join('');
 }
 
