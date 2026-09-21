@@ -5610,12 +5610,33 @@ function renderAdDashboard() {
 
 function _metaSortKey(s) { return (s['시작일'] || s['종료일'] || ''); }
 
+// 시트 값이 'yyyy-MM-dd' 텍스트든, 구글 시트가 자동 변환해버린 날짜/시간 문자열이든
+// 항상 앞의 'yyyy-MM-dd' 10자리만 뽑아 화면에 짧고 일관되게 표시합니다.
+function _metaFmtDate(v) {
+  if (!v) return '';
+  const m = String(v).match(/^\d{4}-\d{2}-\d{2}/);
+  return m ? m[0] : String(v);
+}
+
+
+// 메타는 세트 기간이 지나도 API의 '상태(effective_status)' 값이 그대로 ACTIVE로 남아있는 경우가 많습니다.
+// (광고관리자 화면의 "완료됨" 표시는 상태 값이 아니라 종료일과 오늘 날짜를 비교해서 화면에서만 계산해주는 라벨입니다.)
+// 그래서 상태 문자열만 보지 않고, 종료일이 이미 지났으면 켜져 있어도 "종료"로 판단합니다.
+function _metaIsSetOn(s) {
+  if (!s) return false;
+  if (!/ACTIVE/i.test(s['상태'] || '')) return false;
+  const endStr = _metaFmtDate(s['종료일']);
+  if (!endStr) return true; // 종료일이 없으면 계속 진행 중인 세트
+  const todayStr = _metaFmtDate(new Date().toISOString());
+  return endStr >= todayStr;
+}
+
 // DATA.metaAdSets(세트 목록 스냅샷)에서 지금 켜져 있는 세트와, 그 바로 직전에 운영됐던 세트를 골라낸다.
 function _metaPickCurrentAndPrevious() {
   const sets = (DATA.metaAdSets || []).filter(s => s['캠페인명'] || s['광고세트명']);
   if (!sets.length) return { current: null, previous: null };
   const sorted = [...sets].sort((a, b) => _metaSortKey(b).localeCompare(_metaSortKey(a)));
-  let current = sorted.find(s => /ACTIVE/i.test(s['상태'] || ''));
+  let current = sorted.find(s => _metaIsSetOn(s));
   if (!current) current = sorted[0];
   const rest = sorted.filter(s => s !== current);
   const curStart = current['시작일'] || '';
@@ -5653,14 +5674,16 @@ function _metaAggRows(rows) {
 }
 
 function _metaDaysBetween(from, to) {
-  if (!from || !to) return null;
-  const d1 = new Date(from), d2 = new Date(to);
+  const f = _metaFmtDate(from), t = _metaFmtDate(to);
+  if (!f || !t) return null;
+  // 시간대 영향 없이 순수하게 달력 날짜 차이만 계산 (둘 다 UTC 자정 기준으로 파싱)
+  const d1 = new Date(f + 'T00:00:00Z'), d2 = new Date(t + 'T00:00:00Z');
   if (isNaN(d1) || isNaN(d2)) return null;
   return Math.round((d2 - d1) / 86400000) + 1;
 }
 
-function _metaStatusBadge(status) {
-  const on = /ACTIVE/i.test(status || '');
+function _metaStatusBadge(s) {
+  const on = _metaIsSetOn(s);
   return `<span class="ad-status-badge ${on ? 'on' : 'off'}">${on ? 'ON' : '종료'}</span>`;
 }
 
@@ -5688,11 +5711,11 @@ function renderMetaSetInfoCards(current, previous) {
       <div class="ad-meta-setcard ${isCurrent ? 'current' : ''}">
         <div class="ad-meta-setcard-hd">
           <i class="ti ${isCurrent ? 'ti-bolt' : 'ti-history'}"></i> ${isCurrent ? '현재 광고 세트' : '직전 광고 세트'}
-          ${_metaStatusBadge(s['상태'])}
+          ${_metaStatusBadge(s)}
         </div>
         <div class="ad-meta-setcard-name">${s['광고세트명'] || '(이름 없음)'}</div>
         <div class="ad-meta-setcard-row"><span>캠페인</span><b>${s['캠페인명'] || '-'}</b></div>
-        <div class="ad-meta-setcard-row"><span>기간</span><b>${s['시작일'] || '?'} ~ ${s['종료일'] || '진행중'}${days ? ` (${days}일간)` : ''}</b></div>
+        <div class="ad-meta-setcard-row"><span>기간</span><b>${_metaFmtDate(s['시작일']) || '?'} ~ ${_metaFmtDate(s['종료일']) || '진행중'}${days ? ` (${days}일간)` : ''}</b></div>
         <div class="ad-meta-setcard-row"><span>예산</span><b>${_metaBudgetText(s)}</b></div>
       </div>`;
   };
@@ -5748,8 +5771,8 @@ function renderMetaChart(cur, prev, currentSet, previousSet) {
   const canvas = document.getElementById('ad-meta-chart');
   if (AD_STATE.metaChart) { AD_STATE.metaChart.destroy(); AD_STATE.metaChart = null; }
   const labels = ['CTR(%)', 'CPC(원)', 'CPM(원)', '랜딩조회수', '랜딩조회단가(원)'];
-  const prevLabel = previousSet ? (previousSet['시작일'] || '직전 세트') : '직전 세트';
-  const curLabel  = currentSet  ? (currentSet['시작일']  || '현재 세트') : '현재 세트';
+  const prevLabel = previousSet ? (_metaFmtDate(previousSet['시작일']) || '직전 세트') : '직전 세트';
+  const curLabel  = currentSet  ? (_metaFmtDate(currentSet['시작일'])  || '현재 세트') : '현재 세트';
   AD_STATE.metaChart = new Chart(canvas.getContext('2d'), {
     type: 'bar',
     data: {
