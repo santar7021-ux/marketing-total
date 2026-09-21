@@ -1390,8 +1390,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
             <thead><tr>
               <th>키워드</th><th>캠페인/광고그룹</th>
               <th style="text-align:right">노출수</th><th style="text-align:right">클릭수</th>
-              <th style="text-align:right">클릭률</th><th style="text-align:right">CPC</th>
-              <th style="text-align:right">비용</th><th style="text-align:right">전환수</th>
+              <th style="text-align:right">클릭률</th>
               <th style="text-align:right">월간검색수</th>
             </tr></thead>
             <tbody id="ad-keyword-list"></tbody>
@@ -1435,11 +1434,6 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
       </div>
 
       <div class="card" style="margin-bottom:20px">
-        <div class="card-hd"><h2><i class="ti ti-bulb"></i> 분석 인사이트</h2></div>
-        <div id="ad-insights" class="ad-insights-body"></div>
-      </div>
-
-      <div class="card" style="margin-bottom:20px">
         <div class="card-hd"><h2><i class="ti ti-chart-bar"></i> 캠페인 분석 (기간1 vs 기간2)</h2></div>
         <div class="goods-tbl-wrap">
           <table class="tbl tbl-compare" id="ad-campaign-compare-tbl">
@@ -1454,7 +1448,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
         </div>
       </div>
 
-      <div class="card" id="ad-keyword-compare-card" style="margin-bottom:20px;display:none">
+      <div class="card" id="ad-keyword-compare-card" style="margin-bottom:32px;display:none">
         <div class="card-hd">
           <h2><i class="ti ti-key"></i> 키워드 분석 (기간1 vs 기간2)</h2>
           <input type="text" id="ad-keyword-compare-search" placeholder="키워드 검색" oninput="renderAdKeywordCompare()" style="max-width:220px;padding:7px 12px;border:1px solid var(--border);border-radius:var(--r-md);font-size:13.5px">
@@ -1465,16 +1459,10 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
               <th>키워드</th>
               <th style="text-align:right">노출(1)</th><th style="text-align:right">노출(2)</th><th style="text-align:right">증감</th>
               <th style="text-align:right">클릭(1)</th><th style="text-align:right">클릭(2)</th><th style="text-align:right">증감</th>
-              <th style="text-align:right">CTR(1)</th><th style="text-align:right">CTR(2)</th>
             </tr></thead>
             <tbody id="ad-keyword-compare-list"></tbody>
           </table>
         </div>
-      </div>
-
-      <div class="card" style="margin-bottom:32px">
-        <div class="card-hd"><h2><i class="ti ti-checklist"></i> 개선 사항</h2></div>
-        <div id="ad-improvements" class="ad-insights-body"></div>
       </div>
       </div><!-- /ad-generic-view -->
 
@@ -6171,9 +6159,7 @@ function renderAdCompareSection() {
 
   if (!rows1.length && !rows2.length) {
     gridP1.innerHTML = ''; gridP2.innerHTML = '';
-    document.getElementById('ad-insights').innerHTML = `<div class="ad-empty-notice"><i class="ti ti-mood-empty" style="font-size:28px"></i><p style="margin-top:8px">${platformLabel} 데이터가 아직 없습니다. 수집 스크립트가 정상 동작 중인지, 시트에 데이터가 쌓였는지 확인해주세요.</p></div>`;
-    document.getElementById('ad-campaign-compare-list').innerHTML = `<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:24px">데이터가 없습니다.</td></tr>`;
-    document.getElementById('ad-improvements').innerHTML = '';
+    document.getElementById('ad-campaign-compare-list').innerHTML = `<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:24px">${platformLabel} 데이터가 없습니다. 수집 스크립트가 정상 동작 중인지, 시트에 데이터가 쌓였는지 확인해주세요.</td></tr>`;
     keywordCompareCard.style.display = 'none';
     queueApplyMobileCards();
     return;
@@ -6184,7 +6170,6 @@ function renderAdCompareSection() {
   gridP1.innerHTML = _adMetricGridHtml(a1);
   gridP2.innerHTML = _adMetricGridHtml(a2);
 
-  renderAdInsights(rows1, rows2, a1, a2);
   renderAdCampaignCompare(rows1, rows2);
 
   // 키워드별 분석은 네이버 탭에서만 노출 (메타는 키워드 데이터가 없음)
@@ -6195,7 +6180,6 @@ function renderAdCompareSection() {
     keywordCompareCard.style.display = 'none';
   }
 
-  renderAdImprovements(rows1, rows2, a1, a2);
   queueApplyMobileCards();
 }
 
@@ -6425,7 +6409,6 @@ function renderAdKeywordTable() {
   let list = Object.values(byKey).map(v => ({
     ...v,
     ctr: v.노출수 ? (v.클릭수 / v.노출수 * 100) : 0,
-    cpc: v.클릭수 ? (v.비용 / v.클릭수) : 0,
     검색수합계: v.검색수PC + v.검색수모바일,
   }));
 
@@ -6435,7 +6418,7 @@ function renderAdKeywordTable() {
   countEl.textContent = list.length ? `(${list.length}개)` : '';
 
   if (!list.length) {
-    el.innerHTML = `<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:24px">${search ? '검색 결과가 없습니다.' : '키워드 데이터가 없습니다.'}</td></tr>`;
+    el.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:24px">${search ? '검색 결과가 없습니다.' : '키워드 데이터가 없습니다.'}</td></tr>`;
     return;
   }
 
@@ -6446,9 +6429,6 @@ function renderAdKeywordTable() {
       <td style="text-align:right">${v.노출수.toLocaleString()}</td>
       <td style="text-align:right">${v.클릭수.toLocaleString()}</td>
       <td style="text-align:right">${v.ctr.toFixed(2)}%</td>
-      <td style="text-align:right">${Math.round(v.cpc).toLocaleString()}원</td>
-      <td style="text-align:right">${Math.round(v.비용).toLocaleString()}원</td>
-      <td style="text-align:right">${v.전환수.toLocaleString()}</td>
       <td style="text-align:right">${v.검색수합계.toLocaleString()}</td>
     </tr>`).join('');
 }
@@ -6482,104 +6462,6 @@ function renderAdTrendChart(rows) {
 }
 
 // ── 규칙 기반 자동 인사이트 생성 ──────────────────────────
-function renderAdInsights(rows, rows2, a1, a2) {
-  const lines = [];
-
-  if (!rows2.length) {
-    lines.push({ dir: 'flat', icon: 'ti-info-circle', html: `기간2에 해당하는 데이터가 없어 비교할 수 없어요. 기간2 날짜를 조정해보세요.` });
-    document.getElementById('ad-insights').innerHTML = lines.map(l => `<div class="ad-insight-line ${l.dir}"><i class="ti ${l.icon}"></i><span>${l.html}</span></div>`).join('');
-    return;
-  }
-
-  // 기간1 vs 기간2 모든 핵심 지표의 증감률을 한 번에 계산 (아래에서 조합해서 해석)
-  const p = {
-    impressions: _adPctChange(a1.impressions, a2.impressions),
-    clicks:      _adPctChange(a1.clicks, a2.clicks),
-    ctr:         _adPctChange(a1.ctr, a2.ctr),
-    cpc:         _adPctChange(a1.cpc, a2.cpc),
-    cost:        _adPctChange(a1.cost, a2.cost),
-    conversions: _adPctChange(a1.conversions, a2.conversions),
-  };
-  const sign = (v) => (v > 0 ? '+' : '');
-
-  // 1) 핵심 지표 요약
-  lines.push({ dir: 'flat', icon: 'ti-chart-bar', html: `기간1은 노출 <b>${a1.impressions.toLocaleString()}회</b>(${sign(p.impressions)}${p.impressions.toFixed(1)}%), 클릭 <b>${a1.clicks.toLocaleString()}회</b>(${sign(p.clicks)}${p.clicks.toFixed(1)}%)로 기간2 대비 변화했습니다.`
-  });
-
-  // 2) 노출-클릭 효율 종합: 노출과 클릭이 반대로 움직였는지가 가장 중요한 신호
-  if (p.impressions < -5 && p.clicks > 5) {
-    lines.push({ dir: 'up', icon: 'ti-sparkles', html: `노출은 ${p.impressions.toFixed(1)}% 줄었는데 클릭은 오히려 <b>${p.clicks.toFixed(1)}%</b> 늘었습니다. 노출의 질이 좋아졌거나 소재·키워드 반응이 개선된 것으로 보입니다.` });
-  } else if (p.impressions > 5 && p.clicks < -5) {
-    lines.push({ dir: 'down', icon: 'ti-alert-triangle', html: `노출은 ${sign(p.impressions)}${p.impressions.toFixed(1)}% 늘었는데 클릭은 오히려 ${p.clicks.toFixed(1)}% 줄었습니다. 노출은 늘었지만 클릭으로 이어지는 비율은 낮아진 것으로, 키워드·소재 재점검이 필요해 보입니다.` });
-  }
-
-  // 3) CTR 변화
-  if (p.ctr < -10) {
-    lines.push({ dir: 'down', icon: 'ti-trending-down', html: `CTR이 ${p.ctr.toFixed(1)}% 하락했습니다 (${a2.ctr.toFixed(2)}% → ${a1.ctr.toFixed(2)}%). 소재나 노출 순위 점검이 필요해 보입니다.` });
-  } else if (p.ctr > 10) {
-    lines.push({ dir: 'up', icon: 'ti-trending-up', html: `CTR이 ${sign(p.ctr)}${p.ctr.toFixed(1)}% 상승했습니다 (${a2.ctr.toFixed(2)}% → ${a1.ctr.toFixed(2)}%). 키워드·소재 조정이 효과가 있었던 것으로 보입니다.` });
-  }
-
-  // 4) CPC 변화 (클릭·CTR 흐름과 함께 볼 때 의미가 커짐)
-  if (p.cpc > 20) {
-    lines.push({ dir: 'down', icon: 'ti-coin', html: `CPC가 ${sign(p.cpc)}${p.cpc.toFixed(1)}% 상승했습니다 (${Math.round(a2.cpc).toLocaleString()}원 → ${Math.round(a1.cpc).toLocaleString()}원). 같은 예산으로 확보할 수 있는 클릭 수가 줄어드는 추세입니다.` });
-  } else if (p.cpc < -15) {
-    lines.push({ dir: 'up', icon: 'ti-coin', html: `CPC가 ${p.cpc.toFixed(1)}% 낮아졌습니다 (${Math.round(a2.cpc).toLocaleString()}원 → ${Math.round(a1.cpc).toLocaleString()}원). 같은 예산으로 더 많은 클릭을 확보하고 있습니다.` });
-  }
-
-  // 5) 비용 대비 효율 총평: 비용 증감과 클릭 증감을 함께 봐야 진짜 효율을 알 수 있음
-  if (Math.abs(p.cost) > 3) {
-    const better = p.clicks - p.cost; // 클릭 증가율이 비용 증가율보다 얼마나 앞섰는지
-    if (better > 15) {
-      lines.push({ dir: 'up', icon: 'ti-report-money', html: `광고비는 ${sign(p.cost)}${p.cost.toFixed(1)}% 변화했는데 클릭은 ${sign(p.clicks)}${p.clicks.toFixed(1)}% 변화해, 쓴 비용 대비 얻은 클릭이 더 늘었습니다. 예산 대비 효율이 개선됐습니다.` });
-    } else if (better < -15) {
-      lines.push({ dir: 'down', icon: 'ti-report-money', html: `광고비는 ${sign(p.cost)}${p.cost.toFixed(1)}% 변화했는데 클릭은 ${sign(p.clicks)}${p.clicks.toFixed(1)}%에 그쳐, 쓴 비용 대비 얻은 클릭은 오히려 줄었습니다. 예산 대비 효율은 다소 나빠졌습니다.` });
-    } else {
-      lines.push({ dir: p.cost <= 0 ? 'up' : 'down', icon: 'ti-trending-up', html: `광고비는 기간2 대비 <b>${Math.abs(p.cost).toFixed(1)}%</b> ${p.cost >= 0 ? '증가' : '감소'}했습니다. (${Math.round(a2.cost).toLocaleString()}원 → ${Math.round(a1.cost).toLocaleString()}원)` });
-    }
-  }
-
-  // 6) 전환 변화 / 전환 이슈
-  if (a2.conversions || a1.conversions) {
-    lines.push({
-      dir: p.conversions >= 0 ? 'up' : 'down',
-      icon: p.conversions >= 0 ? 'ti-trending-up' : 'ti-trending-down',
-      html: `전환수는 기간2 ${a2.conversions.toLocaleString()}건에서 기간1 <b>${a1.conversions.toLocaleString()}건</b>으로 ${p.conversions >= 0 ? '증가' : '감소'}했습니다.`
-    });
-  } else if (a1.clicks > 0) {
-    lines.push({ dir: 'flat', icon: 'ti-target-arrow', html: `기간1·기간2 모두 전환 기록이 0건입니다. 클릭은 발생하고 있어서, 전환 추적(픽셀/서버사이드 전환 이벤트) 설정이 제대로 되어 있는지 확인해볼 필요가 있습니다.` });
-  }
-
-  // 7) 캠페인별 최고/최저 성과 (기간1 기준, CTR 기준, 클릭 5회 이상인 캠페인만 비교)
-  const byCampaign = {};
-  rows.forEach(r => {
-    const name = r['캠페인명'] || '(이름 없음)';
-    if (!byCampaign[name]) byCampaign[name] = { 노출수: 0, 클릭수: 0, 비용: 0, 전환수: 0 };
-    byCampaign[name].노출수 += Number(r['노출수']) || 0;
-    byCampaign[name].클릭수 += Number(r['클릭수']) || 0;
-    byCampaign[name].비용   += Number(r['비용']) || 0;
-    byCampaign[name].전환수 += Number(r['전환수']) || 0;
-  });
-  const campaignList = Object.entries(byCampaign)
-    .map(([name, v]) => ({ name, ...v, ctr: v.노출수 ? (v.클릭수 / v.노출수 * 100) : 0 }))
-    .filter(c => c.클릭수 >= 5);
-
-  if (campaignList.length >= 2) {
-    const best  = [...campaignList].sort((a, b) => b.ctr - a.ctr)[0];
-    const worst = [...campaignList].sort((a, b) => a.ctr - b.ctr)[0];
-    if (best.name !== worst.name) {
-      lines.push({ dir: 'up', icon: 'ti-star', html: `기간1 기준 '<b>${best.name}</b>' 캠페인이 CTR ${best.ctr.toFixed(2)}%로 가장 높은 성과를 보이고 있습니다.` });
-      lines.push({ dir: 'down', icon: 'ti-alert-triangle', html: `'<b>${worst.name}</b>' 캠페인은 CTR ${worst.ctr.toFixed(2)}%로 상대적으로 저조해 소재나 타겟팅 점검이 필요해 보입니다.` });
-    }
-  } else if (campaignList.length === 1) {
-    lines.push({ dir: 'flat', icon: 'ti-info-circle', html: `기간1에는 캠페인이 1개만 확인되어 캠페인 간 비교는 생략했습니다.` });
-  }
-
-  document.getElementById('ad-insights').innerHTML = lines.map(l => `
-    <div class="ad-insight-line ${l.dir}"><i class="ti ${l.icon}"></i><span>${l.html}</span></div>
-  `).join('');
-}
-
 // ── 캠페인 분석: 기간1 vs 기간2 캠페인별 비교 표 ──────────
 function renderAdCampaignCompare(rows, rows2) {
   const groupByCampaign = (list) => {
@@ -6660,7 +6542,7 @@ function renderAdKeywordCompare() {
   if (search) allKeywords = allKeywords.filter(k => k.toLowerCase().includes(search));
 
   if (!allKeywords.length) {
-    el.innerHTML = `<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:24px">데이터가 없습니다.</td></tr>`;
+    el.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:24px">데이터가 없습니다.</td></tr>`;
     return;
   }
 
@@ -6671,8 +6553,6 @@ function renderAdKeywordCompare() {
       kw,
       imp1: v1.노출수, imp2: v2.노출수,
       clk1: v1.클릭수, clk2: v2.클릭수,
-      ctr1: v1.노출수 ? (v1.클릭수 / v1.노출수 * 100) : 0,
-      ctr2: v2.노출수 ? (v2.클릭수 / v2.노출수 * 100) : 0,
       impChange: _adPctChange(v1.노출수, v2.노출수),
       clkChange: _adPctChange(v1.클릭수, v2.클릭수),
     };
@@ -6693,81 +6573,10 @@ function renderAdKeywordCompare() {
       <td style="text-align:right">${c.clk1.toLocaleString()}</td>
       <td style="text-align:right;color:var(--muted)">${c.clk2.toLocaleString()}</td>
       <td style="text-align:right">${changeBadge(c.clkChange)}</td>
-      <td style="text-align:right">${c.ctr1.toFixed(2)}%</td>
-      <td style="text-align:right;color:var(--muted)">${c.ctr2.toFixed(2)}%</td>
     </tr>`).join('');
 }
 
 // ── 개선 사항: 인사이트와 별개로, 실행 가능한 제안 위주로 구성 ──
-function renderAdImprovements(rows, rows2, a1, a2) {
-  const tips = [];
-
-  // 1) CTR 벤치마크 대비 키워드/캠페인 점검 제안 (기간1의 평균 CTR을 자체 기준선으로 사용)
-  const byCampaign = {};
-  rows.forEach(r => {
-    const name = r['캠페인명'] || '(이름 없음)';
-    if (!byCampaign[name]) byCampaign[name] = { 노출수: 0, 클릭수: 0 };
-    byCampaign[name].노출수 += Number(r['노출수']) || 0;
-    byCampaign[name].클릭수 += Number(r['클릭수']) || 0;
-  });
-  const belowAvg = Object.entries(byCampaign)
-    .map(([name, v]) => ({ name, ctr: v.노출수 ? (v.클릭수 / v.노출수 * 100) : 0, 노출수: v.노출수 }))
-    .filter(c => c.노출수 >= 10 && c.ctr < a1.ctr * 0.7);
-  if (belowAvg.length) {
-    tips.push({ icon: 'ti-adjustments', html: `평균 CTR(${a1.ctr.toFixed(2)}%) 대비 70% 미만인 캠페인이 <b>${belowAvg.length}개</b> 있습니다 (${belowAvg.map(c => c.name).join(', ')}). 소재 문구나 랜딩 페이지 연관성을 점검해보세요.` });
-  }
-
-  // 2) 예산 소진 여부 — 비용이 0이거나 매우 낮은데 노출이 있는 경우(무료 소진 구조일 수도 있음을 안내)
-  if (a1.cost === 0 && a1.impressions > 0) {
-    tips.push({ icon: 'ti-coin', html: `현재 기간 광고비가 0원으로 집계되고 있습니다. 브랜드검색광고 계약 방식(정액/정률)에 따라 정상일 수 있으나, 과금 데이터가 필요하면 계약 정보를 확인해보세요.` });
-  }
-
-  // 3) 전환 추적 여부
-  if (a1.clicks > 0 && a1.conversions === 0) {
-    tips.push({ icon: 'ti-target-arrow', html: `클릭이 ${a1.clicks.toLocaleString()}회 발생했지만 전환은 0건입니다. 전환 추적(전환 스크립트/픽셀)이 정상 설치되어 있는지 확인해보세요. 추적이 정상이라면 랜딩 페이지의 전환 유도 요소를 개선해볼 수 있어요.` });
-  }
-
-  // 4) 기간2 대비 클릭이 줄었는데 노출은 늘어난 경우 → 소재/카피 피로도 의심
-  if (rows2.length) {
-    const impChange = _adPctChange(a1.impressions, a2.impressions);
-    const clkChange = _adPctChange(a1.clicks, a2.clicks);
-    if (impChange > 5 && clkChange < 0) {
-      tips.push({ icon: 'ti-refresh-alert', html: `노출은 ${impChange.toFixed(1)}% 늘었는데 클릭은 오히려 ${Math.abs(clkChange).toFixed(1)}% 줄었습니다. 광고 소재가 반복 노출되며 피로도가 쌓였을 수 있어요 — 카피나 확장 소재를 교체해보는 걸 추천해요.` });
-    }
-    if (clkChange > 20 && a1.cost > 0) {
-      tips.push({ icon: 'ti-trending-up', html: `클릭수가 기간2 대비 ${clkChange.toFixed(1)}% 크게 늘었습니다. 지금 반응이 좋은 키워드·소재 조합을 확인해서 예산을 추가 배분하는 것도 고려해보세요.` });
-    }
-  }
-
-  // 5) 키워드 단위 기회 요소 (네이버, 기간1 기준, 클릭 0인데 월간검색수가 높은 키워드)
-  if (AD_STATE.platform === 'naver') {
-    const kwRows = _adRowsInRange(DATA.naverKeyword || [], AD_STATE.p1From, AD_STATE.p1To);
-    const byKw = {};
-    kwRows.forEach(r => {
-      const kw = r['키워드'] || '';
-      if (!kw) return;
-      if (!byKw[kw]) byKw[kw] = { 클릭수: 0, 검색수: (Number(r['월간검색수(PC)']) || 0) + (Number(r['월간검색수(모바일)']) || 0) };
-      byKw[kw].클릭수 += Number(r['클릭수']) || 0;
-    });
-    const missedOpportunity = Object.entries(byKw)
-      .map(([kw, v]) => ({ kw, ...v }))
-      .filter(v => v.클릭수 === 0 && v.검색수 >= 50)
-      .sort((a, b) => b.검색수 - a.검색수)
-      .slice(0, 3);
-    if (missedOpportunity.length) {
-      tips.push({ icon: 'ti-search', html: `월간 검색수는 있지만 클릭이 발생하지 않은 키워드가 있습니다: <b>${missedOpportunity.map(v => v.kw + '(' + v.검색수 + ')').join(', ')}</b>. 입찰가나 소재 노출 조건을 점검해보세요.` });
-    }
-  }
-
-  if (!tips.length) {
-    tips.push({ icon: 'ti-mood-smile', html: `현재 뚜렷한 개선 필요 신호는 발견되지 않았습니다. 지금 흐름을 유지하면서 지켜보시면 좋을 것 같아요.` });
-  }
-
-  document.getElementById('ad-improvements').innerHTML = tips.map(t => `
-    <div class="ad-improve-line"><i class="ti ${t.icon}"></i><span>${t.html}</span></div>
-  `).join('');
-}
-
 </script>
 
 </body>
