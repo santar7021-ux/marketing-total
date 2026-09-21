@@ -65,6 +65,36 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
 .nav-main.active { color: var(--accent); background: var(--accent-lt); border-left-color: var(--accent); font-weight: 600; }
 .nav-main i { font-size: 21.2px; flex-shrink: 0; }
 .nav-arrow { margin-left: auto; font-size: 16.2px; transition: transform .2s; }
+
+/* ── 3D 픽토그램 아이콘 배지 ── */
+.nav-icon3d {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 30px; height: 30px; border-radius: 9px; flex-shrink: 0;
+  box-shadow:
+    inset 0 1px 1px rgba(255,255,255,.55),
+    inset 0 -3px 4px rgba(0,0,0,.16),
+    0 3px 6px rgba(0,0,0,.16),
+    0 1px 2px rgba(0,0,0,.10);
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+.nav-main .nav-icon3d i.ti {
+  font-size: 16px !important; color: #fff;
+  filter: drop-shadow(0 1px 1px rgba(0,0,0,.28));
+}
+.nav-main:hover .nav-icon3d { transform: translateY(-1px) scale(1.05); }
+.nav-main.active .nav-icon3d {
+  box-shadow:
+    inset 0 1px 1px rgba(255,255,255,.65),
+    inset 0 -3px 4px rgba(0,0,0,.20),
+    0 4px 8px rgba(0,0,0,.22),
+    0 1px 3px rgba(0,0,0,.14);
+}
+.ic-main    { background: linear-gradient(150deg, #6FC2FF 0%, #0075C2 60%, #004386 100%); }
+.ic-budget  { background: linear-gradient(150deg, #7BE0A8 0%, #21A15C 60%, #0F7A40 100%); }
+.ic-ad      { background: linear-gradient(150deg, #FFB27A 0%, #F2762B 60%, #C4571A 100%); }
+.ic-res     { background: linear-gradient(150deg, #C6A6F5 0%, #8C4FE0 60%, #6A2FBF 100%); }
+.ic-content { background: linear-gradient(150deg, #7FE3D8 0%, #17A398 60%, #0C7A72 100%); }
+.ic-goods   { background: linear-gradient(150deg, #FFD37A 0%, #E5A415 60%, #B67A0A 100%); }
 .nav-item.open .nav-arrow { transform: rotate(180deg); }
 .nav-sub { display: none; background: #FAFBFC; }
 .nav-item.open .nav-sub { display: block; }
@@ -1152,7 +1182,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
     <div class="nav-group">
       <div class="nav-item">
         <div class="nav-main active" data-page="main" onclick="go('main',this)">
-          <i class="ti ti-home"></i> 메인
+          <span class="nav-icon3d ic-main"><i class="ti ti-home"></i></span> 메인
         </div>
       </div>
     </div>
@@ -1160,7 +1190,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
     <div class="nav-group">
       <div class="nav-item" id="ni-budget">
         <div class="nav-main" onclick="toggle('ni-budget','budget')">
-          <i class="ti ti-wallet"></i> 예산 관리
+          <span class="nav-icon3d ic-budget"><i class="ti ti-wallet"></i></span> 예산 관리
           <i class="ti ti-chevron-down nav-arrow"></i>
         </div>
         <div class="nav-sub">
@@ -1174,7 +1204,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
     <div class="nav-group">
       <div class="nav-item" id="ni-ad">
         <div class="nav-main" onclick="toggle('ni-ad','ad-homepage')">
-          <i class="ti ti-speakerphone"></i> 광고홍보
+          <span class="nav-icon3d ic-ad"><i class="ti ti-speakerphone"></i></span> 광고홍보
           <i class="ti ti-chevron-down nav-arrow"></i>
         </div>
         <div class="nav-sub">
@@ -1188,7 +1218,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
     <div class="nav-group">
       <div class="nav-item" id="ni-res">
         <div class="nav-main" onclick="toggle('ni-res','res-intro')">
-          <i class="ti ti-folder"></i> 자원 관리
+          <span class="nav-icon3d ic-res"><i class="ti ti-folder"></i></span> 자원 관리
           <i class="ti ti-chevron-down nav-arrow"></i>
         </div>
         <div class="nav-sub">
@@ -1211,7 +1241,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
     <div class="nav-group">
       <div class="nav-item" id="ni-content">
         <div class="nav-main" onclick="toggle('ni-content','content-press')">
-          <i class="ti ti-news"></i> 콘텐츠 관리
+          <span class="nav-icon3d ic-content"><i class="ti ti-news"></i></span> 콘텐츠 관리
           <i class="ti ti-chevron-down nav-arrow"></i>
         </div>
         <div class="nav-sub">
@@ -1225,7 +1255,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
     <div class="nav-group">
       <div class="nav-item" id="ni-goods">
         <div class="nav-main" onclick="toggle('ni-goods','goods-stock')">
-          <i class="ti ti-package"></i> 마케팅 물품 관리
+          <span class="nav-icon3d ic-goods"><i class="ti ti-package"></i></span> 마케팅 물품 관리
           <i class="ti ti-chevron-down nav-arrow"></i>
         </div>
         <div class="nav-sub">
