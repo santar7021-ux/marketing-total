@@ -1435,7 +1435,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
       </div>
 
       <div class="card" style="margin-bottom:20px">
-        <div class="card-hd"><h2><i class="ti ti-bulb"></i> 비교 분석 인사이트</h2></div>
+        <div class="card-hd"><h2><i class="ti ti-bulb"></i> 분석 인사이트</h2></div>
         <div id="ad-insights" class="ad-insights-body"></div>
       </div>
 
@@ -6452,40 +6452,72 @@ function renderAdTrendChart(rows) {
 function renderAdInsights(rows, rows2, a1, a2) {
   const lines = [];
 
-  // 1) 기간1 vs 기간2 핵심 지표 비교
-  if (rows2.length) {
-    const clkChange = _adPctChange(a1.clicks, a2.clicks);
-    const costChange = _adPctChange(a1.cost, a2.cost);
-    const ctrChange = a1.ctr - a2.ctr;
-
-    lines.push({
-      dir: clkChange >= 0 ? 'up' : 'down',
-      icon: clkChange >= 0 ? 'ti-trending-up' : 'ti-trending-down',
-      html: `기간2 대비 기간1의 클릭수가 <b>${Math.abs(clkChange).toFixed(1)}%</b> ${clkChange >= 0 ? '증가' : '감소'}했습니다. (${a2.clicks.toLocaleString()} → ${a1.clicks.toLocaleString()}회)`
-    });
-    lines.push({
-      dir: costChange <= 0 ? 'up' : 'down',
-      icon: costChange <= 0 ? 'ti-trending-down' : 'ti-trending-up',
-      html: `광고비는 기간2 대비 <b>${Math.abs(costChange).toFixed(1)}%</b> ${costChange >= 0 ? '증가' : '감소'}했습니다. (${Math.round(a2.cost).toLocaleString()}원 → ${Math.round(a1.cost).toLocaleString()}원)`
-    });
-    lines.push({
-      dir: ctrChange >= 0 ? 'up' : 'down',
-      icon: ctrChange >= 0 ? 'ti-trending-up' : 'ti-trending-down',
-      html: `CTR은 기간2 ${a2.ctr.toFixed(2)}%에서 기간1 <b>${a1.ctr.toFixed(2)}%</b>로 ${ctrChange >= 0 ? '개선' : '하락'}됐습니다.`
-    });
-    if (a2.conversions || a1.conversions) {
-      const convChange = _adPctChange(a1.conversions, a2.conversions);
-      lines.push({
-        dir: convChange >= 0 ? 'up' : 'down',
-        icon: convChange >= 0 ? 'ti-trending-up' : 'ti-trending-down',
-        html: `전환수는 기간2 ${a2.conversions.toLocaleString()}건에서 기간1 <b>${a1.conversions.toLocaleString()}건</b>으로 ${convChange >= 0 ? '증가' : '감소'}했습니다.`
-      });
-    }
-  } else {
+  if (!rows2.length) {
     lines.push({ dir: 'flat', icon: 'ti-info-circle', html: `기간2에 해당하는 데이터가 없어 비교할 수 없어요. 기간2 날짜를 조정해보세요.` });
+    document.getElementById('ad-insights').innerHTML = lines.map(l => `<div class="ad-insight-line ${l.dir}"><i class="ti ${l.icon}"></i><span>${l.html}</span></div>`).join('');
+    return;
   }
 
-  // 2) 캠페인별 최고/최저 성과 (기간1 기준, CTR 기준, 클릭 5회 이상인 캠페인만 비교)
+  // 기간1 vs 기간2 모든 핵심 지표의 증감률을 한 번에 계산 (아래에서 조합해서 해석)
+  const p = {
+    impressions: _adPctChange(a1.impressions, a2.impressions),
+    clicks:      _adPctChange(a1.clicks, a2.clicks),
+    ctr:         _adPctChange(a1.ctr, a2.ctr),
+    cpc:         _adPctChange(a1.cpc, a2.cpc),
+    cost:        _adPctChange(a1.cost, a2.cost),
+    conversions: _adPctChange(a1.conversions, a2.conversions),
+  };
+  const sign = (v) => (v > 0 ? '+' : '');
+
+  // 1) 핵심 지표 요약
+  lines.push({ dir: 'flat', icon: 'ti-chart-bar', html: `기간1은 노출 <b>${a1.impressions.toLocaleString()}회</b>(${sign(p.impressions)}${p.impressions.toFixed(1)}%), 클릭 <b>${a1.clicks.toLocaleString()}회</b>(${sign(p.clicks)}${p.clicks.toFixed(1)}%)로 기간2 대비 변화했습니다.`
+  });
+
+  // 2) 노출-클릭 효율 종합: 노출과 클릭이 반대로 움직였는지가 가장 중요한 신호
+  if (p.impressions < -5 && p.clicks > 5) {
+    lines.push({ dir: 'up', icon: 'ti-sparkles', html: `노출은 ${p.impressions.toFixed(1)}% 줄었는데 클릭은 오히려 <b>${p.clicks.toFixed(1)}%</b> 늘었습니다. 노출의 질이 좋아졌거나 소재·키워드 반응이 개선된 것으로 보입니다.` });
+  } else if (p.impressions > 5 && p.clicks < -5) {
+    lines.push({ dir: 'down', icon: 'ti-alert-triangle', html: `노출은 ${sign(p.impressions)}${p.impressions.toFixed(1)}% 늘었는데 클릭은 오히려 ${p.clicks.toFixed(1)}% 줄었습니다. 노출은 늘었지만 클릭으로 이어지는 비율은 낮아진 것으로, 키워드·소재 재점검이 필요해 보입니다.` });
+  }
+
+  // 3) CTR 변화
+  if (p.ctr < -10) {
+    lines.push({ dir: 'down', icon: 'ti-trending-down', html: `CTR이 ${p.ctr.toFixed(1)}% 하락했습니다 (${a2.ctr.toFixed(2)}% → ${a1.ctr.toFixed(2)}%). 소재나 노출 순위 점검이 필요해 보입니다.` });
+  } else if (p.ctr > 10) {
+    lines.push({ dir: 'up', icon: 'ti-trending-up', html: `CTR이 ${sign(p.ctr)}${p.ctr.toFixed(1)}% 상승했습니다 (${a2.ctr.toFixed(2)}% → ${a1.ctr.toFixed(2)}%). 키워드·소재 조정이 효과가 있었던 것으로 보입니다.` });
+  }
+
+  // 4) CPC 변화 (클릭·CTR 흐름과 함께 볼 때 의미가 커짐)
+  if (p.cpc > 20) {
+    lines.push({ dir: 'down', icon: 'ti-coin', html: `CPC가 ${sign(p.cpc)}${p.cpc.toFixed(1)}% 상승했습니다 (${Math.round(a2.cpc).toLocaleString()}원 → ${Math.round(a1.cpc).toLocaleString()}원). 같은 예산으로 확보할 수 있는 클릭 수가 줄어드는 추세입니다.` });
+  } else if (p.cpc < -15) {
+    lines.push({ dir: 'up', icon: 'ti-coin', html: `CPC가 ${p.cpc.toFixed(1)}% 낮아졌습니다 (${Math.round(a2.cpc).toLocaleString()}원 → ${Math.round(a1.cpc).toLocaleString()}원). 같은 예산으로 더 많은 클릭을 확보하고 있습니다.` });
+  }
+
+  // 5) 비용 대비 효율 총평: 비용 증감과 클릭 증감을 함께 봐야 진짜 효율을 알 수 있음
+  if (Math.abs(p.cost) > 3) {
+    const better = p.clicks - p.cost; // 클릭 증가율이 비용 증가율보다 얼마나 앞섰는지
+    if (better > 15) {
+      lines.push({ dir: 'up', icon: 'ti-report-money', html: `광고비는 ${sign(p.cost)}${p.cost.toFixed(1)}% 변화했는데 클릭은 ${sign(p.clicks)}${p.clicks.toFixed(1)}% 변화해, 쓴 비용 대비 얻은 클릭이 더 늘었습니다. 예산 대비 효율이 개선됐습니다.` });
+    } else if (better < -15) {
+      lines.push({ dir: 'down', icon: 'ti-report-money', html: `광고비는 ${sign(p.cost)}${p.cost.toFixed(1)}% 변화했는데 클릭은 ${sign(p.clicks)}${p.clicks.toFixed(1)}%에 그쳐, 쓴 비용 대비 얻은 클릭은 오히려 줄었습니다. 예산 대비 효율은 다소 나빠졌습니다.` });
+    } else {
+      lines.push({ dir: p.cost <= 0 ? 'up' : 'down', icon: 'ti-trending-up', html: `광고비는 기간2 대비 <b>${Math.abs(p.cost).toFixed(1)}%</b> ${p.cost >= 0 ? '증가' : '감소'}했습니다. (${Math.round(a2.cost).toLocaleString()}원 → ${Math.round(a1.cost).toLocaleString()}원)` });
+    }
+  }
+
+  // 6) 전환 변화 / 전환 이슈
+  if (a2.conversions || a1.conversions) {
+    lines.push({
+      dir: p.conversions >= 0 ? 'up' : 'down',
+      icon: p.conversions >= 0 ? 'ti-trending-up' : 'ti-trending-down',
+      html: `전환수는 기간2 ${a2.conversions.toLocaleString()}건에서 기간1 <b>${a1.conversions.toLocaleString()}건</b>으로 ${p.conversions >= 0 ? '증가' : '감소'}했습니다.`
+    });
+  } else if (a1.clicks > 0) {
+    lines.push({ dir: 'flat', icon: 'ti-target-arrow', html: `기간1·기간2 모두 전환 기록이 0건입니다. 클릭은 발생하고 있어서, 전환 추적(픽셀/서버사이드 전환 이벤트) 설정이 제대로 되어 있는지 확인해볼 필요가 있습니다.` });
+  }
+
+  // 7) 캠페인별 최고/최저 성과 (기간1 기준, CTR 기준, 클릭 5회 이상인 캠페인만 비교)
   const byCampaign = {};
   rows.forEach(r => {
     const name = r['캠페인명'] || '(이름 없음)';
@@ -6508,14 +6540,6 @@ function renderAdInsights(rows, rows2, a1, a2) {
     }
   } else if (campaignList.length === 1) {
     lines.push({ dir: 'flat', icon: 'ti-info-circle', html: `기간1에는 캠페인이 1개만 확인되어 캠페인 간 비교는 생략했습니다.` });
-  }
-
-  // 3) 효율(CPC) 코멘트 — 전환당 비용(CPA) 참고 (기간1 기준)
-  if (a1.conversions > 0) {
-    const cpa = a1.cost / a1.conversions;
-    lines.push({ dir: 'flat', icon: 'ti-calculator', html: `기간1 전환당 비용(CPA)은 약 <b>${Math.round(cpa).toLocaleString()}원</b>이며, 총 <b>${a1.conversions.toLocaleString()}건</b>의 전환이 발생했습니다.` });
-  } else if (a1.clicks > 0) {
-    lines.push({ dir: 'flat', icon: 'ti-calculator', html: `기간1에는 전환이 기록되지 않았습니다. 전환 추적(픽셀/서버사이드 전환 이벤트) 설정을 점검해보세요.` });
   }
 
   document.getElementById('ad-insights').innerHTML = lines.map(l => `
