@@ -860,6 +860,10 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
   .ad-period-block { flex-wrap: wrap; }
   .ad-compare-grid { grid-template-columns: 1fr; }
   .ad-meta-setinfo-grid { grid-template-columns: 1fr; }
+  .ad-meta-setcard-row { flex-direction: column; align-items: flex-start; gap: 1px; }
+  .ad-meta-setcard-row span { font-size: 12px; }
+  .ad-meta-setcard-hd { flex-wrap: wrap; }
+  .ad-period-row button.btn.sm { margin-left: 0 !important; width: 100%; justify-content: center; }
 
   /* ── 지표 카드: 한 줄에 하나씩, "인증 7건" 형태로 세로 나열 ── */
   .metric-grid {
@@ -906,6 +910,14 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
   .tbl th, .tbl td { padding: 8px 8px; }
   table.tbl.mtbl-hidden { display: none; }
   .post-card.mtbl-hidden { display: none; }
+
+  /* ── 비교표(기간1 vs 기간2, 직전 세트 vs 현재 세트): 카드로 안 바꾸고 압축된 표로 유지 ── */
+  .tbl-compare { font-size: 11.5px; white-space: nowrap; }
+  .tbl-compare th, .tbl-compare td { padding: 7px 6px; }
+  .tbl-compare th:first-child, .tbl-compare td:first-child {
+    position: sticky; left: 0; background: var(--surface);
+    white-space: normal; max-width: 108px;
+  }
 
   .mobile-card-list { display: flex; flex-direction: column; }
   .mcard {
@@ -1421,7 +1433,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
       <div class="card" style="margin-bottom:20px">
         <div class="card-hd"><h2><i class="ti ti-chart-bar"></i> 캠페인 분석 (기간1 vs 기간2)</h2></div>
         <div class="goods-tbl-wrap">
-          <table class="tbl" id="ad-campaign-compare-tbl">
+          <table class="tbl tbl-compare" id="ad-campaign-compare-tbl">
             <thead><tr>
               <th>캠페인명</th>
               <th style="text-align:right">노출(1)</th><th style="text-align:right">노출(2)</th><th style="text-align:right">증감</th>
@@ -1470,7 +1482,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
         <div class="card" style="margin-bottom:20px">
           <div class="card-hd"><h2><i class="ti ti-table"></i> 성과 비교</h2></div>
           <div class="goods-tbl-wrap">
-            <table class="tbl" id="ad-meta-compare-tbl">
+            <table class="tbl tbl-compare" id="ad-meta-compare-tbl">
               <thead><tr><th>항목</th><th style="text-align:right">직전 세트</th><th style="text-align:right">현재 세트</th><th style="text-align:right">증감</th></tr></thead>
               <tbody id="ad-meta-compare-list"></tbody>
             </table>
@@ -5192,6 +5204,17 @@ function applyMobileCards() {
   const mobile = isMobileView();
   if (!mobile) closeMobileDetail();
   document.querySelectorAll('table.tbl').forEach(table => {
+    // 비교표(예: 기간1 vs 기간2, 직전 세트 vs 현재 세트)는 항목이 적고 한눈에 숫자를
+    // 비교하는 게 핵심이라, 탭해서 펼치는 카드 대신 가로 스크롤 표 그대로 두는 게 낫습니다.
+    if (table.classList.contains('tbl-compare')) {
+      table.classList.remove('mtbl-hidden');
+      const existing = table.nextElementSibling;
+      if (existing && existing.classList && existing.classList.contains('mobile-card-list')) {
+        existing.innerHTML = '';
+        existing.style.display = 'none';
+      }
+      return;
+    }
     let cardList = table.nextElementSibling;
     if (!cardList || !cardList.classList || !cardList.classList.contains('mobile-card-list')) {
       cardList = document.createElement('div');
@@ -5319,7 +5342,7 @@ function buildCardsForTable(table, cardList) {
     // 2) 헤더가 정확히 "내용(대외홍보)"인 컬럼 (연혁)
     // 3) 그 외엔 텍스트가 가장 긴 셀 (짧은 분류/날짜보다 실제 내용 우선)
     let title = '';
-    let titleIdx = headers.findIndex((h, i) => h && h.includes('제목') && !(actionTd && tds[i] === actionTd));
+    let titleIdx = headers.findIndex((h, i) => h && (h.includes('제목') || h === '키워드' || h === '품목') && !(actionTd && tds[i] === actionTd));
     if (titleIdx === -1) {
       titleIdx = headers.findIndex((h, i) => h === '내용(대외홍보)' && !(actionTd && tds[i] === actionTd));
     }
@@ -5898,6 +5921,7 @@ function renderMetaAdSetView() {
     document.getElementById('ad-meta-solo-range-hint').textContent = '';
     if (AD_STATE.metaChart) { AD_STATE.metaChart.destroy(); AD_STATE.metaChart = null; }
     if (AD_STATE.metaSoloChart) { AD_STATE.metaSoloChart.destroy(); AD_STATE.metaSoloChart = null; }
+    queueApplyMobileCards();
     return;
   }
 
@@ -5926,6 +5950,7 @@ function renderMetaAdSetView() {
   renderMetaChart(curAgg, prevAgg, current, previous);
   renderMetaInsights(curAgg, prevAgg, current, previous);
   renderMetaActions(curAgg, prevAgg, current, previous);
+  queueApplyMobileCards();
 }
 
 // ── 현재 세트 내 기간별 상세 조회 ──────────────────────────
@@ -6023,6 +6048,7 @@ function renderAdCompareSection() {
     document.getElementById('ad-insights').innerHTML = `<div class="ad-empty-notice"><i class="ti ti-mood-empty" style="font-size:28px"></i><p style="margin-top:8px">${platformLabel} 데이터가 아직 없습니다. 수집 스크립트가 정상 동작 중인지, 시트에 데이터가 쌓였는지 확인해주세요.</p></div>`;
     document.getElementById('ad-campaign-compare-list').innerHTML = `<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:24px">데이터가 없습니다.</td></tr>`;
     document.getElementById('ad-improvements').innerHTML = '';
+    queueApplyMobileCards();
     return;
   }
 
@@ -6034,6 +6060,7 @@ function renderAdCompareSection() {
   renderAdInsights(rows1, rows2, a1, a2);
   renderAdCampaignCompare(rows1, rows2);
   renderAdImprovements(rows1, rows2, a1, a2);
+  queueApplyMobileCards();
 }
 
 function renderAdSoloSection() {
@@ -6048,6 +6075,7 @@ function renderAdSoloSection() {
     document.getElementById('ad-campaign-list').innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:24px">${platformLabel} 데이터가 없습니다.</td></tr>`;
     if (AD_STATE.chart) { AD_STATE.chart.destroy(); AD_STATE.chart = null; }
     keywordCard.style.display = 'none';
+    queueApplyMobileCards();
     return;
   }
 
@@ -6065,6 +6093,7 @@ function renderAdSoloSection() {
   } else {
     keywordCard.style.display = 'none';
   }
+  queueApplyMobileCards();
 }
 
 // ── 분석 인사이트 (기간별 상세 조회 전용, 단일 기간 기준) ──────
