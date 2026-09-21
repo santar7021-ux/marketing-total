@@ -367,6 +367,18 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
 .ad-compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 .ad-compare-col { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 16px; }
 .ad-compare-hd { display: flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 600; margin-bottom: 12px; }
+
+/* ── 메타 광고세트 정보 카드 ── */
+.ad-meta-setinfo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.ad-meta-setcard { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 16px 18px; }
+.ad-meta-setcard.current { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; }
+.ad-meta-setcard-hd { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--muted); margin-bottom: 8px; }
+.ad-meta-setcard-name { font-size: 16.5px; font-weight: 700; margin-bottom: 10px; word-break: break-all; }
+.ad-meta-setcard-row { display: flex; justify-content: space-between; font-size: 13.5px; padding: 4px 0; color: var(--muted); }
+.ad-meta-setcard-row b { color: var(--text); font-weight: 600; }
+.ad-status-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 11.5px; font-weight: 700; padding: 2px 9px; border-radius: 100px; }
+.ad-status-badge.on { background: #dcfce7; color: #15803d; }
+.ad-status-badge.off { background: var(--bg); color: var(--muted); border: 1px solid var(--border); }
 .ad-metric-grid-compare { grid-template-columns: repeat(auto-fit, minmax(110px,1fr)); margin-bottom: 0; }
 .ad-metric-grid-compare .metric { padding: 10px 12px; }
 .ad-metric-grid-compare .metric-val { font-size: 21px; }
@@ -847,6 +859,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
   .ad-section-hd { flex-direction: column; align-items: flex-start; gap: 2px; font-size: 15px; }
   .ad-period-block { flex-wrap: wrap; }
   .ad-compare-grid { grid-template-columns: 1fr; }
+  .ad-meta-setinfo-grid { grid-template-columns: 1fr; }
 
   /* ── 지표 카드: 한 줄에 하나씩, "인증 7건" 형태로 세로 나열 ── */
   .metric-grid {
@@ -1312,6 +1325,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
         <button class="ad-tab" id="ad-tab-meta" onclick="switchAdPlatform('meta')"><i class="ti ti-brand-facebook"></i> 메타 피드 광고</button>
       </div>
 
+      <div id="ad-generic-view">
       <!-- ══════════════ 단일 기간 상세 조회 그룹 ══════════════ -->
       <div class="ad-section-hd"><i class="ti ti-calendar-search"></i> 기간별 상세 조회 <span>기간 하나를 골라 추세·캠페인·키워드를 자세히 봅니다</span></div>
 
@@ -1422,6 +1436,39 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
       <div class="card" style="margin-bottom:32px">
         <div class="card-hd"><h2><i class="ti ti-checklist"></i> 개선 사항</h2></div>
         <div id="ad-improvements" class="ad-insights-body"></div>
+      </div>
+      </div><!-- /ad-generic-view -->
+
+      <!-- ══════════════ 메타 피드 광고 전용 뷰 (광고 세트 기준) ══════════════ -->
+      <div id="ad-meta-view" style="display:none">
+        <div class="ad-section-hd"><i class="ti ti-brand-facebook"></i> 광고 세트 비교 <span>현재 ON된 광고 세트와 직전 광고 세트의 성과를 비교합니다</span></div>
+
+        <div id="ad-meta-setinfo" class="ad-meta-setinfo-grid" style="margin-bottom:20px"></div>
+
+        <div class="card" style="margin-bottom:20px">
+          <div class="card-hd"><h2><i class="ti ti-table"></i> 성과 비교</h2></div>
+          <div class="goods-tbl-wrap">
+            <table class="tbl" id="ad-meta-compare-tbl">
+              <thead><tr><th>항목</th><th style="text-align:right">직전 세트</th><th style="text-align:right">현재 세트</th><th style="text-align:right">증감</th></tr></thead>
+              <tbody id="ad-meta-compare-list"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom:20px">
+          <div class="card-hd"><h2><i class="ti ti-chart-bar"></i> 세트별 성과 그래프</h2></div>
+          <div style="padding:18px"><canvas id="ad-meta-chart" height="100"></canvas></div>
+        </div>
+
+        <div class="card" style="margin-bottom:20px">
+          <div class="card-hd"><h2><i class="ti ti-bulb"></i> 분석 인사이트</h2></div>
+          <div id="ad-meta-insights" class="ad-insights-body"></div>
+        </div>
+
+        <div class="card" style="margin-bottom:32px">
+          <div class="card-hd"><h2><i class="ti ti-list-check"></i> 추천 액션</h2></div>
+          <div id="ad-meta-actions" class="ad-insights-body"></div>
+        </div>
       </div>
     </div>
 
@@ -5392,7 +5439,7 @@ const AD_STATE = {
   p1From: null, p1To: null,
   p2From: null, p2To: null,
   soloFrom: null, soloTo: null,
-  loaded: { naver: false, meta: false, naverKeyword: false },
+  loaded: { naver: false, meta: false, naverKeyword: false, metaAdSets: false },
   chart: null
 };
 
@@ -5435,12 +5482,20 @@ async function loadAdData(platform) {
     DATA.naverKeyword = kwRows || [];
     AD_STATE.loaded.naverKeyword = true;
   }
+  // 광고세트 정보(현재/직전 세트 구분용)는 메타 탭에서만 필요
+  if (platform === 'meta' && !AD_STATE.loaded.metaAdSets) {
+    const setRows = await apiFetch({ action: 'metaAdSets' }, true);
+    DATA.metaAdSets = setRows || [];
+    AD_STATE.loaded.metaAdSets = true;
+  }
 }
 
 async function switchAdPlatform(p) {
   AD_STATE.platform = p;
   document.getElementById('ad-tab-naver').classList.toggle('active', p === 'naver');
   document.getElementById('ad-tab-meta').classList.toggle('active', p === 'meta');
+  document.getElementById('ad-generic-view').style.display = p === 'naver' ? '' : 'none';
+  document.getElementById('ad-meta-view').style.display = p === 'meta' ? '' : 'none';
   await loadAdData(p);
   renderAdDashboard();
 }
@@ -5470,6 +5525,7 @@ function applyAdSoloPeriod() {
 async function refreshAdData() {
   AD_STATE.loaded[AD_STATE.platform] = false;
   if (AD_STATE.platform === 'naver') AD_STATE.loaded.naverKeyword = false;
+  if (AD_STATE.platform === 'meta') AD_STATE.loaded.metaAdSets = false;
   await loadAdData(AD_STATE.platform);
   renderAdDashboard();
 }
@@ -5538,8 +5594,273 @@ function _adMetricGridHtml(a) {
 }
 
 function renderAdDashboard() {
+  if (AD_STATE.platform === 'meta') {
+    renderMetaAdSetView();
+    return;
+  }
   renderAdCompareSection();
   renderAdSoloSection();
+}
+
+// ════════════════════════════════════════════════════════════
+//  메타 피드 광고 전용: 광고 세트(캠페인 집행 구간) 기준 비교
+//  네이버처럼 매일 계속 도는 게 아니라 특정 기간만 켜서 운영하므로,
+//  임의의 날짜 두 개를 고르는 대신 "현재 ON 세트" vs "직전 세트"를 자동으로 찾아 비교합니다.
+// ════════════════════════════════════════════════════════════
+
+function _metaSortKey(s) { return (s['시작일'] || s['종료일'] || ''); }
+
+// DATA.metaAdSets(세트 목록 스냅샷)에서 지금 켜져 있는 세트와, 그 바로 직전에 운영됐던 세트를 골라낸다.
+function _metaPickCurrentAndPrevious() {
+  const sets = (DATA.metaAdSets || []).filter(s => s['캠페인명'] || s['광고세트명']);
+  if (!sets.length) return { current: null, previous: null };
+  const sorted = [...sets].sort((a, b) => _metaSortKey(b).localeCompare(_metaSortKey(a)));
+  let current = sorted.find(s => /ACTIVE/i.test(s['상태'] || ''));
+  if (!current) current = sorted[0];
+  const rest = sorted.filter(s => s !== current);
+  const curStart = current['시작일'] || '';
+  let previous = rest.find(s => !curStart || _metaSortKey(s) < curStart) || rest[0] || null;
+  return { current, previous };
+}
+
+// 특정 광고세트(캠페인명+세트명)에 해당하는 일별 성과 행만 추림
+function _metaSetRows(setMeta) {
+  if (!setMeta) return [];
+  return (DATA.metaAd || []).filter(r => r['캠페인명'] === setMeta['캠페인명'] && r['광고세트명'] === setMeta['광고세트명']);
+}
+
+// 일별 행들을 하나의 기간 합계/평균 지표로 집계
+// ※ '도달'은 원래 겹치는 사용자를 제외한 고유값이라 하루하루를 그대로 더하면 실제보다 부풀려집니다.
+//   여기서는 여러 날짜의 시트 값을 단순 합산한 근사치이며, 정확한 기간 합계 도달을 보려면
+//   메타 광고관리자에서 해당 기간을 직접 지정해 조회하는 값을 참고하세요.
+function _metaAggRows(rows) {
+  const impressions  = _adSum(rows, '노출수');
+  const clicks       = _adSum(rows, '클릭수');
+  const cost         = _adSum(rows, '비용');
+  const conversions  = _adSum(rows, '전환수');
+  const reach        = _adSum(rows, '도달');
+  const landingViews = _adSum(rows, '랜딩조회수');
+  return {
+    impressions, clicks, cost, conversions, reach, landingViews,
+    ctr: impressions ? (clicks / impressions * 100) : 0,
+    cpc: clicks ? (cost / clicks) : 0,
+    cpm: impressions ? (cost / impressions * 1000) : 0,
+    frequency: reach ? (impressions / reach) : 0,
+    landingCost: landingViews ? (cost / landingViews) : 0,
+    clickToLanding: clicks ? (landingViews / clicks * 100) : 0,
+    dayCount: new Set(rows.map(r => _adNormDate(r['날짜']))).size,
+  };
+}
+
+function _metaDaysBetween(from, to) {
+  if (!from || !to) return null;
+  const d1 = new Date(from), d2 = new Date(to);
+  if (isNaN(d1) || isNaN(d2)) return null;
+  return Math.round((d2 - d1) / 86400000) + 1;
+}
+
+function _metaStatusBadge(status) {
+  const on = /ACTIVE/i.test(status || '');
+  return `<span class="ad-status-badge ${on ? 'on' : 'off'}">${on ? 'ON' : '종료'}</span>`;
+}
+
+function _metaBudgetText(s) {
+  if (!s) return '-';
+  const daily = Number(s['일예산']) || 0;
+  const total = Number(s['총예산']) || 0;
+  const days  = _metaDaysBetween(s['시작일'], s['종료일']);
+  if (daily) return `일 예산 ${daily.toLocaleString()}원${days ? ` × ${days}일 = ${(daily * days).toLocaleString()}원` : ''}`;
+  if (total) return `총 예산 ${total.toLocaleString()}원`;
+  return '예산 정보 없음';
+}
+
+function renderMetaSetInfoCards(current, previous) {
+  const el = document.getElementById('ad-meta-setinfo');
+  const card = (s, isCurrent) => {
+    if (!s) {
+      return `<div class="ad-meta-setcard">
+        <div class="ad-meta-setcard-hd"><i class="ti ti-history"></i> 직전 광고 세트</div>
+        <div style="color:var(--muted);font-size:14px;padding:8px 0">비교할 이전 광고 세트가 아직 없습니다.</div>
+      </div>`;
+    }
+    const days = _metaDaysBetween(s['시작일'], s['종료일']);
+    return `
+      <div class="ad-meta-setcard ${isCurrent ? 'current' : ''}">
+        <div class="ad-meta-setcard-hd">
+          <i class="ti ${isCurrent ? 'ti-bolt' : 'ti-history'}"></i> ${isCurrent ? '현재 광고 세트' : '직전 광고 세트'}
+          ${_metaStatusBadge(s['상태'])}
+        </div>
+        <div class="ad-meta-setcard-name">${s['광고세트명'] || '(이름 없음)'}</div>
+        <div class="ad-meta-setcard-row"><span>캠페인</span><b>${s['캠페인명'] || '-'}</b></div>
+        <div class="ad-meta-setcard-row"><span>기간</span><b>${s['시작일'] || '?'} ~ ${s['종료일'] || '진행중'}${days ? ` (${days}일간)` : ''}</b></div>
+        <div class="ad-meta-setcard-row"><span>예산</span><b>${_metaBudgetText(s)}</b></div>
+      </div>`;
+  };
+  el.innerHTML = card(current, true) + card(previous, false);
+}
+
+const META_METRIC_DEFS = [
+  { key: 'reach',          label: '도달',                        dir: 'up',   unit: 'count' },
+  { key: 'impressions',    label: '노출수',                      dir: null,   unit: 'count' },
+  { key: 'frequency',      label: '빈도',                        dir: null,   unit: 'num2' },
+  { key: 'clicks',         label: '링크 클릭',                   dir: 'up',   unit: 'count' },
+  { key: 'ctr',            label: 'CTR (클릭률)',                dir: 'up',   unit: 'pct2' },
+  { key: 'cpc',            label: 'CPC (클릭당 단가)',           dir: 'down', unit: 'won' },
+  { key: 'cpm',            label: 'CPM (1,000회 노출당 단가)',   dir: 'down', unit: 'won' },
+  { key: 'landingViews',   label: '랜딩 조회수',                 dir: 'up',   unit: 'count' },
+  { key: 'landingCost',    label: '랜딩 조회 단가',              dir: 'down', unit: 'won' },
+  { key: 'clickToLanding', label: '클릭 → 랜딩 전환율',          dir: 'up',   unit: 'pct1' },
+  { key: 'cost',           label: '총 비용',                     dir: null,   unit: 'won' },
+  { key: 'conversions',    label: '전환수',                      dir: 'up',   unit: 'count' },
+];
+
+function _metaFmt(v, unit) {
+  v = v || 0;
+  if (unit === 'won') return Math.round(v).toLocaleString() + '원';
+  if (unit === 'pct2') return v.toFixed(2) + '%';
+  if (unit === 'pct1') return v.toFixed(1) + '%';
+  if (unit === 'num2') return v.toFixed(2);
+  return Math.round(v).toLocaleString();
+}
+
+function renderMetaCompareTable(cur, prev) {
+  const rows = META_METRIC_DEFS.map(d => {
+    const cv = cur[d.key] || 0, pv = prev[d.key] || 0;
+    const pct = _adPctChange(cv, pv);
+    let color = 'var(--muted)';
+    if (d.dir && pv !== 0 && cv !== pv) {
+      const increased = cv > pv;
+      const good = d.dir === 'up' ? increased : !increased;
+      color = good ? '#1d9e75' : '#A32D2D';
+    }
+    const sign = pct > 0 ? '+' : '';
+    return `<tr>
+      <td>${d.label}</td>
+      <td style="text-align:right;color:var(--muted)">${_metaFmt(pv, d.unit)}</td>
+      <td style="text-align:right">${_metaFmt(cv, d.unit)}</td>
+      <td style="text-align:right"><span style="color:${color};font-weight:600">${sign}${pct.toFixed(1)}%</span></td>
+    </tr>`;
+  }).join('');
+  document.getElementById('ad-meta-compare-list').innerHTML = rows;
+}
+
+function renderMetaChart(cur, prev, currentSet, previousSet) {
+  const canvas = document.getElementById('ad-meta-chart');
+  if (AD_STATE.metaChart) { AD_STATE.metaChart.destroy(); AD_STATE.metaChart = null; }
+  const labels = ['CTR(%)', 'CPC(원)', 'CPM(원)', '랜딩조회수', '랜딩조회단가(원)'];
+  const prevLabel = previousSet ? (previousSet['시작일'] || '직전 세트') : '직전 세트';
+  const curLabel  = currentSet  ? (currentSet['시작일']  || '현재 세트') : '현재 세트';
+  AD_STATE.metaChart = new Chart(canvas.getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        { label: prevLabel, data: [prev.ctr, prev.cpc, prev.cpm, prev.landingViews, prev.landingCost], backgroundColor: '#b8c4d9' },
+        { label: curLabel,  data: [cur.ctr, cur.cpc, cur.cpm, cur.landingViews, cur.landingCost],       backgroundColor: '#2f6fed' },
+      ]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { position: 'bottom' } },
+      scales: { y: { beginAtZero: true } }
+    }
+  });
+}
+
+function renderMetaInsights(cur, prev, currentSet, previousSet) {
+  const el = document.getElementById('ad-meta-insights');
+  if (!previousSet) {
+    el.innerHTML = `<div class="ad-insight-line flat"><i class="ti ti-info-circle"></i><span>비교할 직전 광고 세트가 없어 이번 세트 단독 지표만 참고할 수 있습니다. 도달 <b>${cur.reach.toLocaleString()}명</b>, 노출 <b>${cur.impressions.toLocaleString()}회</b>, CTR <b>${cur.ctr.toFixed(2)}%</b>, 총 비용 <b>${Math.round(cur.cost).toLocaleString()}원</b>이 집행됐습니다.</span></div>`;
+    return;
+  }
+  const lines = [];
+  const reachPct = _adPctChange(cur.reach, prev.reach);
+  const impPct   = _adPctChange(cur.impressions, prev.impressions);
+  const clkPct   = _adPctChange(cur.clicks, prev.clicks);
+  const ctrPct   = _adPctChange(cur.ctr, prev.ctr);
+  const cpcPct   = _adPctChange(cur.cpc, prev.cpc);
+
+  lines.push({ dir: 'flat', icon: 'ti-chart-bar', html: `현재 세트는 도달 <b>${cur.reach.toLocaleString()}명</b>(${reachPct > 0 ? '+' : ''}${reachPct.toFixed(1)}%), 노출 <b>${cur.impressions.toLocaleString()}회</b>(${impPct > 0 ? '+' : ''}${impPct.toFixed(1)}%)로 직전 세트 대비 변화했습니다.` });
+
+  if (reachPct > 5 && clkPct < -5) {
+    lines.push({ dir: 'down', icon: 'ti-alert-triangle', html: `도달·노출은 늘었는데 링크 클릭은 ${clkPct.toFixed(1)}% 줄었습니다. 타겟 범위 확장으로 도달은 늘었지만, 새로 포함된 사용자의 반응은 낮아진 것으로 보입니다 (광고 피로도 누적 가능성).` });
+  }
+  if (ctrPct < -10) {
+    lines.push({ dir: 'down', icon: 'ti-trending-down', html: `CTR이 ${ctrPct.toFixed(1)}% 하락했습니다 (${prev.ctr.toFixed(2)}% → ${cur.ctr.toFixed(2)}%). 같은 소재를 계속 노출했다면 피로도가 쌓였을 수 있어 소재 교체를 검토할 시점입니다.` });
+  } else if (ctrPct > 10) {
+    lines.push({ dir: 'up', icon: 'ti-trending-up', html: `CTR이 ${ctrPct.toFixed(1)}% 상승했습니다 (${prev.ctr.toFixed(2)}% → ${cur.ctr.toFixed(2)}%). 소재나 타겟 조정이 효과가 있었던 것으로 보입니다.` });
+  }
+  if (cpcPct > 20) {
+    lines.push({ dir: 'down', icon: 'ti-coin', html: `CPC가 ${cpcPct.toFixed(1)}% 상승했습니다 (${Math.round(prev.cpc).toLocaleString()}원 → ${Math.round(cur.cpc).toLocaleString()}원). 같은 예산으로 확보할 수 있는 클릭 수가 줄어드는 추세입니다.` });
+  }
+  const landingPct = _adPctChange(cur.clickToLanding, prev.clickToLanding);
+  if (Math.abs(landingPct) > 5) {
+    lines.push({ dir: landingPct > 0 ? 'up' : 'down', icon: 'ti-click', html: `클릭 → 랜딩 전환율이 ${prev.clickToLanding.toFixed(1)}% → ${cur.clickToLanding.toFixed(1)}%로 변화했습니다. 페이지 로딩 속도나 랜딩 링크 설정에 변화가 없었는지 점검해볼 만합니다.` });
+  }
+
+  const daysCur  = _metaDaysBetween(currentSet['시작일'], currentSet['종료일']) || cur.dayCount;
+  const daysPrev = _metaDaysBetween(previousSet['시작일'], previousSet['종료일']) || prev.dayCount;
+  if (daysCur && daysPrev && daysCur !== daysPrev) {
+    lines.push({ dir: 'flat', icon: 'ti-calendar', html: `직전 세트는 ${daysPrev}일간, 현재 세트는 ${daysCur}일간 운영되어 기간 길이가 달라 총량 지표(노출수·클릭수 등)는 기간을 감안해서 봐야 합니다. 일 평균으로 보면 노출 ${(cur.impressions / daysCur).toFixed(0)}회/일 vs ${(prev.impressions / daysPrev).toFixed(0)}회/일입니다.` });
+  }
+
+  el.innerHTML = lines.map(l => `<div class="ad-insight-line ${l.dir}"><i class="ti ${l.icon}"></i><span>${l.html}</span></div>`).join('');
+}
+
+function renderMetaActions(cur, prev, currentSet, previousSet) {
+  const el = document.getElementById('ad-meta-actions');
+  const actions = [];
+
+  if (!previousSet) {
+    actions.push({ cat: '성과 측정', icon: 'ti-chart-bar', html: `이번 세트가 끝나면 도달 ${cur.reach.toLocaleString()}명, CTR ${cur.ctr.toFixed(2)}%를 다음 세트와 비교할 기준선으로 삼아보세요.` });
+    el.innerHTML = actions.map(t => `<div class="ad-improve-line"><i class="ti ${t.icon}"></i><span><span class="ad-action-badge">${t.cat}</span>${t.html}</span></div>`).join('');
+    return;
+  }
+
+  const ctrPct = _adPctChange(cur.ctr, prev.ctr);
+  const cpcPct = _adPctChange(cur.cpc, prev.cpc);
+  const reachPct = _adPctChange(cur.reach, prev.reach);
+  const clkPct = _adPctChange(cur.clicks, prev.clicks);
+
+  if (ctrPct < -10 || cpcPct > 20) {
+    actions.push({ cat: '시각적 임팩트', icon: 'ti-photo', html: `CTR 하락·CPC 상승은 소재 피로도의 대표적인 신호입니다. 이전 반응이 좋았던 소재를 참고해 새 이미지/문구로 A/B 테스트를 진행해보세요.` });
+  }
+  if (reachPct > 10 && clkPct <= 0) {
+    actions.push({ cat: '키워드/타겟 전략', icon: 'ti-target', html: `유사 타겟 범위를 넓혀 도달은 늘었지만 클릭이 따라오지 않고 있습니다. 타겟 범위(예: 유사 타겟 기간)를 다시 좁히거나, 관심사·행동 기반 세부 타겟을 추가해보세요.` });
+  }
+  if (cur.clickToLanding < 70) {
+    actions.push({ cat: '행동 유도', icon: 'ti-click', html: `클릭 대비 랜딩 페이지 도달률이 ${cur.clickToLanding.toFixed(1)}%로 낮은 편입니다. 랜딩 링크가 올바른지, 페이지 로딩이 느리지 않은지 확인해보세요.` });
+  }
+  if (cur.cost > 0 && cur.conversions === 0) {
+    actions.push({ cat: '성과 측정', icon: 'ti-target-arrow', html: `이번 세트는 전환 기록이 없습니다. 픽셀/전환 이벤트 설정이 살아있는지, 추적 중인 액션 타입이 실제 계정 이벤트와 일치하는지 점검해보세요.` });
+  }
+  actions.push({ cat: '통합 마케팅', icon: 'ti-share', html: `다음 세트를 준비할 때는 네이버 브랜드검색광고에서 반응이 좋았던 키워드·메시지를 메타 소재 문구에도 함께 반영해 채널 간 시너지를 노려보세요.` });
+  actions.push({ cat: '성과 측정', icon: 'ti-chart-bar', html: `이번 세트 CTR ${cur.ctr.toFixed(2)}%, CPC ${Math.round(cur.cpc).toLocaleString()}원을 다음 세트 집행 후 비교할 기준선으로 남겨두세요.` });
+
+  el.innerHTML = actions.map(t => `<div class="ad-improve-line"><i class="ti ${t.icon}"></i><span><span class="ad-action-badge">${t.cat}</span>${t.html}</span></div>`).join('');
+}
+
+function renderMetaAdSetView() {
+  const { current, previous } = _metaPickCurrentAndPrevious();
+  renderMetaSetInfoCards(current, previous);
+
+  if (!current) {
+    document.getElementById('ad-meta-compare-list').innerHTML = `<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:24px">메타 광고세트 정보가 없습니다. Apps Script에서 collectMetaAdSetsMeta()가 실행됐는지 확인해주세요.</td></tr>`;
+    document.getElementById('ad-meta-insights').innerHTML = '';
+    document.getElementById('ad-meta-actions').innerHTML = '';
+    if (AD_STATE.metaChart) { AD_STATE.metaChart.destroy(); AD_STATE.metaChart = null; }
+    return;
+  }
+
+  const curRows  = _metaSetRows(current);
+  const prevRows = previous ? _metaSetRows(previous) : [];
+  const curAgg   = _metaAggRows(curRows);
+  const prevAgg  = _metaAggRows(prevRows);
+
+  renderMetaCompareTable(curAgg, prevAgg);
+  renderMetaChart(curAgg, prevAgg, current, previous);
+  renderMetaInsights(curAgg, prevAgg, current, previous);
+  renderMetaActions(curAgg, prevAgg, current, previous);
 }
 
 function renderAdCompareSection() {
