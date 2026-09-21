@@ -1441,7 +1441,29 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
 
       <!-- ══════════════ 메타 피드 광고 전용 뷰 (광고 세트 기준) ══════════════ -->
       <div id="ad-meta-view" style="display:none">
-        <div class="ad-section-hd"><i class="ti ti-brand-facebook"></i> 광고 세트 비교 <span>현재 ON된 광고 세트와 직전 광고 세트의 성과를 비교합니다</span></div>
+        <!-- ══════════════ 현재 세트 내 기간별 상세 조회 ══════════════ -->
+        <div class="ad-section-hd"><i class="ti ti-calendar-search"></i> 기간별 상세 조회 <span>현재 운영 중인 세트의 실제 운영 기간 안에서만 구간을 골라 확인합니다</span></div>
+
+        <div class="card" style="padding:14px 18px;margin-bottom:20px">
+          <div class="ad-period-row">
+            <div class="ad-period-block">
+              <label><span class="ad-period-dot solo"></span> 조회 기간 <span id="ad-meta-solo-range-hint" style="font-weight:400;color:var(--muted);font-size:12.5px;margin-left:4px"></span></label>
+              <input type="date" id="ad-meta-solo-from" onchange="applyMetaSoloPeriod()">
+              <span class="ad-period-tilde">~</span>
+              <input type="date" id="ad-meta-solo-to" onchange="applyMetaSoloPeriod()">
+            </div>
+          </div>
+        </div>
+
+        <div class="metric-grid" id="ad-meta-solo-metrics" style="margin-bottom:20px"></div>
+
+        <div class="card" style="margin-bottom:32px">
+          <div class="card-hd"><h2><i class="ti ti-chart-line"></i> 일별 추세 (클릭수 · 비용)</h2></div>
+          <div style="padding:18px"><canvas id="ad-meta-solo-chart" height="90"></canvas></div>
+        </div>
+
+        <!-- ══════════════ 광고 세트 비교 (현재 세트 vs 직전 세트) ══════════════ -->
+        <div class="ad-section-hd" style="margin-top:32px"><i class="ti ti-brand-facebook"></i> 광고 세트 비교 <span>현재 ON된 광고 세트와 직전 광고 세트의 성과를 비교합니다</span></div>
 
         <div id="ad-meta-setinfo" class="ad-meta-setinfo-grid" style="margin-bottom:20px"></div>
 
@@ -5440,6 +5462,7 @@ const AD_STATE = {
   p2From: null, p2To: null,
   soloFrom: null, soloTo: null,
   loaded: { naver: false, meta: false, naverKeyword: false, metaAdSets: false },
+  metaSoloFrom: null, metaSoloTo: null, metaSoloChart: null,
   chart: null
 };
 
@@ -5871,9 +5894,28 @@ function renderMetaAdSetView() {
     document.getElementById('ad-meta-compare-list').innerHTML = `<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:24px">메타 광고세트 정보가 없습니다. Apps Script에서 collectMetaAdSetsMeta()가 실행됐는지 확인해주세요.</td></tr>`;
     document.getElementById('ad-meta-insights').innerHTML = '';
     document.getElementById('ad-meta-actions').innerHTML = '';
+    document.getElementById('ad-meta-solo-metrics').innerHTML = '';
+    document.getElementById('ad-meta-solo-range-hint').textContent = '';
     if (AD_STATE.metaChart) { AD_STATE.metaChart.destroy(); AD_STATE.metaChart = null; }
+    if (AD_STATE.metaSoloChart) { AD_STATE.metaSoloChart.destroy(); AD_STATE.metaSoloChart = null; }
     return;
   }
+
+  // 기간별 상세 조회: 조회 가능한 날짜 범위를 "현재 세트가 실제로 운영된 기간"으로 고정
+  const setFrom = _metaFmtDate(current['시작일']);
+  const setTo   = _metaFmtDate(current['종료일']) || _metaFmtDate(new Date().toISOString());
+  const fromInput = document.getElementById('ad-meta-solo-from');
+  const toInput   = document.getElementById('ad-meta-solo-to');
+  fromInput.min = setFrom; fromInput.max = setTo;
+  toInput.min   = setFrom; toInput.max   = setTo;
+  document.getElementById('ad-meta-solo-range-hint').textContent = setFrom ? `(세트 운영기간: ${setFrom} ~ ${setTo})` : '';
+
+  // 세트가 바뀌었거나 아직 고른 적 없으면 세트 전체 기간으로 초기화, 아니면 이전 선택 유지
+  if (!AD_STATE.metaSoloFrom || AD_STATE.metaSoloFrom < setFrom || AD_STATE.metaSoloFrom > setTo) AD_STATE.metaSoloFrom = setFrom;
+  if (!AD_STATE.metaSoloTo   || AD_STATE.metaSoloTo   > setTo   || AD_STATE.metaSoloTo   < setFrom) AD_STATE.metaSoloTo = setTo;
+  fromInput.value = AD_STATE.metaSoloFrom;
+  toInput.value   = AD_STATE.metaSoloTo;
+  renderMetaSoloSection(current);
 
   const curRows  = _metaSetRows(current);
   const prevRows = previous ? _metaSetRows(previous) : [];
@@ -5884,6 +5926,88 @@ function renderMetaAdSetView() {
   renderMetaChart(curAgg, prevAgg, current, previous);
   renderMetaInsights(curAgg, prevAgg, current, previous);
   renderMetaActions(curAgg, prevAgg, current, previous);
+}
+
+// ── 현재 세트 내 기간별 상세 조회 ──────────────────────────
+function _metaSoloMetricGridHtml(a) {
+  return `
+    <div class="metric"><div class="metric-label">도달</div><div class="metric-val">${a.reach.toLocaleString()}</div><span class="metric-badge badge-blue">명</span></div>
+    <div class="metric"><div class="metric-label">노출수</div><div class="metric-val">${a.impressions.toLocaleString()}</div><span class="metric-badge badge-blue">회</span></div>
+    <div class="metric"><div class="metric-label">빈도</div><div class="metric-val">${a.frequency.toFixed(2)}</div><span class="metric-badge badge-blue">회</span></div>
+    <div class="metric"><div class="metric-label">링크 클릭</div><div class="metric-val">${a.clicks.toLocaleString()}</div><span class="metric-badge badge-blue">회</span></div>
+    <div class="metric"><div class="metric-label">CTR</div><div class="metric-val">${a.ctr.toFixed(2)}</div><span class="metric-badge badge-blue">%</span></div>
+    <div class="metric"><div class="metric-label">CPC</div><div class="metric-val" style="font-size:20px">${Math.round(a.cpc).toLocaleString()}</div><span class="metric-badge badge-amber">원</span></div>
+    <div class="metric"><div class="metric-label">CPM</div><div class="metric-val" style="font-size:20px">${Math.round(a.cpm).toLocaleString()}</div><span class="metric-badge badge-amber">원</span></div>
+    <div class="metric"><div class="metric-label">랜딩 조회수</div><div class="metric-val">${a.landingViews.toLocaleString()}</div><span class="metric-badge badge-blue">건</span></div>
+    <div class="metric"><div class="metric-label">랜딩 조회 단가</div><div class="metric-val" style="font-size:20px">${Math.round(a.landingCost).toLocaleString()}</div><span class="metric-badge badge-amber">원</span></div>
+    <div class="metric"><div class="metric-label">총 비용</div><div class="metric-val" style="font-size:20px">${Math.round(a.cost).toLocaleString()}</div><span class="metric-badge badge-amber">원</span></div>
+    <div class="metric"><div class="metric-label">전환수</div><div class="metric-val">${a.conversions.toLocaleString()}</div><span class="metric-badge badge-blue">건</span></div>
+  `;
+}
+
+function renderMetaSoloChart(rows) {
+  const byDate = {};
+  rows.forEach(r => {
+    const d = _adNormDate(r['날짜']);
+    if (!byDate[d]) byDate[d] = { 클릭수: 0, 비용: 0 };
+    byDate[d].클릭수 += Number(r['클릭수']) || 0;
+    byDate[d].비용   += Number(r['비용']) || 0;
+  });
+  const dates = Object.keys(byDate).sort();
+  const clicksData = dates.map(d => byDate[d].클릭수);
+  const costData   = dates.map(d => Math.round(byDate[d].비용));
+
+  const ctx = document.getElementById('ad-meta-solo-chart');
+  if (!ctx || typeof Chart === 'undefined') return;
+  if (AD_STATE.metaSoloChart) AD_STATE.metaSoloChart.destroy();
+  AD_STATE.metaSoloChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: dates,
+      datasets: [
+        { label: '클릭수', data: clicksData, borderColor: '#1d9e75', backgroundColor: 'rgba(29,158,117,.08)', yAxisID: 'y', tension: 0.25 },
+        { label: '비용(원)', data: costData, borderColor: '#004386', backgroundColor: 'rgba(0,67,134,.06)', yAxisID: 'y1', tension: 0.25 },
+      ]
+    },
+    options: {
+      responsive: true,
+      interaction: { mode: 'index', intersect: false },
+      scales: {
+        y:  { position: 'left',  title: { display: true, text: '클릭수' } },
+        y1: { position: 'right', title: { display: true, text: '비용(원)' }, grid: { drawOnChartArea: false } },
+      }
+    }
+  });
+}
+
+function renderMetaSoloSection(currentSet) {
+  const from = AD_STATE.metaSoloFrom, to = AD_STATE.metaSoloTo;
+  const rows = _metaSetRows(currentSet).filter(r => {
+    const d = _adNormDate(r['날짜']);
+    return d >= from && d <= to;
+  });
+  const metricsEl = document.getElementById('ad-meta-solo-metrics');
+  if (!rows.length) {
+    metricsEl.innerHTML = `<div style="grid-column:1/-1;text-align:center;color:var(--muted);padding:24px">선택한 기간에 데이터가 없습니다.</div>`;
+  } else {
+    metricsEl.innerHTML = _metaSoloMetricGridHtml(_metaAggRows(rows));
+  }
+  renderMetaSoloChart(rows);
+}
+
+function applyMetaSoloPeriod() {
+  const fromInput = document.getElementById('ad-meta-solo-from');
+  const toInput   = document.getElementById('ad-meta-solo-to');
+  let from = fromInput.value, to = toInput.value;
+  if (!from || !to) return;
+  // 현재 세트의 실제 운영 기간(min~max) 밖으로는 못 나가게 보정
+  if (fromInput.min && from < fromInput.min) { from = fromInput.min; fromInput.value = from; }
+  if (toInput.max && to > toInput.max) { to = toInput.max; toInput.value = to; }
+  if (from > to) { banner('시작일이 종료일보다 늦을 수 없습니다.', 'error'); return; }
+  AD_STATE.metaSoloFrom = from;
+  AD_STATE.metaSoloTo = to;
+  const { current } = _metaPickCurrentAndPrevious();
+  if (current) renderMetaSoloSection(current);
 }
 
 function renderAdCompareSection() {
