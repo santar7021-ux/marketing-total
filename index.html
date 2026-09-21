@@ -201,19 +201,6 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
 }
 .ais-close-btn:hover { color: var(--text); }
 
-/* 모드 탭 */
-.ais-tabs {
-  display: flex; padding: 0 18px; gap: 0;
-  border-bottom: 1px solid var(--border); background: var(--bg);
-}
-.ais-tab {
-  padding: 8px 14px; font-size: 14px; color: var(--muted);
-  cursor: pointer; border-bottom: 2px solid transparent;
-  transition: color .12s, border-color .12s; user-select: none;
-  display: flex; align-items: center; gap: 5px;
-}
-.ais-tab.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 500; }
-
 /* 결과 영역 */
 .ais-results {
   overflow-y: auto; padding: 12px 0; min-height: 120px; max-height: 460px;
@@ -258,26 +245,6 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
   background: var(--accent-lt); color: #004386; flex-shrink: 0;
   align-self: center;
 }
-
-/* AI 응답 영역 */
-.ais-ai-section {
-  padding: 16px 18px; border-top: 1px solid var(--border);
-  background: linear-gradient(to bottom, var(--accent-lt), var(--surface));
-}
-.ais-ai-header {
-  display: flex; align-items: center; gap: 7px;
-  font-size: 13px; font-weight: 600; color: var(--accent);
-  margin-bottom: 8px;
-}
-.ais-ai-text {
-  font-size: 15px; line-height: 1.65; color: var(--text);
-  white-space: pre-wrap;
-}
-.ais-ai-thinking {
-  display: flex; align-items: center; gap: 8px;
-  font-size: 14px; color: var(--muted);
-}
-.ais-ai-thinking i { animation: spin 1s linear infinite; }
 
 .ais-more-btn {
   display: flex; align-items: center; gap: 5px;
@@ -1062,31 +1029,22 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
   </div>
 </div>
 
-<!-- ── AI 자원 검색 오버레이 ── -->
+<!-- ── 자원 검색 오버레이 ── -->
 <div id="ai-search-overlay" onclick="handleAisOverlayClick(event)">
   <div id="ai-search-box">
     <!-- 입력 -->
     <div class="ais-input-row">
       <i class="ti ti-search"></i>
-      <input id="ais-input" type="text" placeholder="제목, 내용, 날짜로 검색하거나 질문하세요…" autocomplete="off"
+      <input id="ais-input" type="text" placeholder="제목, 내용, 날짜로 검색하세요… (띄어쓰기·오타 자동 보정)" autocomplete="off"
              oninput="onAisInput()" onkeydown="onAisKey(event)">
       <span class="ais-close-btn" onclick="closeAiSearch()">×</span>
-    </div>
-    <!-- 모드 탭 -->
-    <div class="ais-tabs">
-      <div class="ais-tab active" id="ais-tab-search" onclick="setAisMode('search')">
-        <i class="ti ti-list-search"></i> 빠른 검색
-      </div>
-      <div class="ais-tab" id="ais-tab-ai" onclick="setAisMode('ai')">
-        <i class="ti ti-sparkles"></i> AI 질문
-      </div>
     </div>
     <!-- 결과 -->
     <div class="ais-results" id="ais-results">
       <div class="ais-empty">
         <i class="ti ti-search"></i>
         <span>검색어를 입력하세요</span>
-        <span style="font-size:12px">인증, 수상, 특허, 상표, 연혁, 소개 자료, 유튜브 영상, 프로그램 저작/등록 전체 검색</span>
+        <span style="font-size:12px">인증, 수상, 특허, 상표, 연혁, 소개 자료, 유튜브 영상, 프로그램 저작/등록, 디자인 시안, 마케팅 물품 전체 검색</span>
       </div>
     </div>
     <!-- 푸터 -->
@@ -1094,7 +1052,6 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
       <span class="ais-hint"><kbd>↑</kbd><kbd>↓</kbd> 이동</span>
       <span class="ais-hint"><kbd>Enter</kbd> 이동</span>
       <span class="ais-hint"><kbd>Esc</kbd> 닫기</span>
-      <span class="ais-hint" style="margin-left:auto;color:var(--accent)"><i class="ti ti-sparkles" style="font-size:13px"></i> AI 질문 탭에서 자연어 검색</span>
     </div>
   </div>
 </div>
@@ -5319,15 +5276,12 @@ style.textContent = '@keyframes spin { to { transform: rotate(360deg); } }';
 document.head.appendChild(style);
 
 // ═══════════════════════════════════════════════════════════
-//  AI 자원 검색 시스템
+//  자원 검색 시스템 (빠른 검색 전용)
 // ═══════════════════════════════════════════════════════════
 const AIS = {
-  mode: 'search',   // 'search' | 'ai'
   query: '',
   results: [],
   focusIdx: -1,
-  aiTimer: null,
-  aiAbort: null,
 };
 
 // 카테고리 메타
@@ -5378,32 +5332,12 @@ document.addEventListener('keydown', e => {
   }
 });
 
-function setAisMode(mode) {
-  AIS.mode = mode;
-  document.getElementById('ais-tab-search').classList.toggle('active', mode === 'search');
-  document.getElementById('ais-tab-ai').classList.toggle('active', mode === 'ai');
-  const q = document.getElementById('ais-input').value.trim();
-  if (q) {
-    if (mode === 'search') runAisSearch(q);
-    else runAisAi(q);
-  } else {
-    renderAisEmpty();
-  }
-  document.getElementById('ais-input').focus();
-}
-
 function onAisInput() {
   const q = document.getElementById('ais-input').value;
   AIS.query = q.trim();
   AIS.focusIdx = -1;
-  clearTimeout(AIS.aiTimer);
   if (!AIS.query) { renderAisEmpty(); return; }
-  if (AIS.mode === 'search') {
-    runAisSearch(AIS.query);
-  } else {
-    // AI 모드는 500ms 디바운스
-    AIS.aiTimer = setTimeout(() => runAisAi(AIS.query), 500);
-  }
+  runAisSearch(AIS.query);
 }
 
 function onAisKey(e) {
@@ -5431,13 +5365,40 @@ function updateAisFocus(items) {
 }
 
 // ── 빠른 검색 ─────────────────────────────────────────────
+// 문자열 정규화: 소문자 변환 + 공백 제거 (띄어쓰기 차이 무시)
+function aisNorm(s) {
+  return String(s || '').toLowerCase().replace(/\s+/g, '');
+}
+
+// 2-gram Dice 유사도 (오타 허용용) — 한두 글자 다른 경우를 근사 매칭
+function aisBigrams(s) {
+  if (s.length <= 1) return [s];
+  const arr = [];
+  for (let i = 0; i < s.length - 1; i++) arr.push(s.slice(i, i + 2));
+  return arr;
+}
+function aisSimilarity(a, b) {
+  const A = aisBigrams(a), B = aisBigrams(b);
+  if (!A.length || !B.length) return a === b ? 1 : 0;
+  const counts = new Map();
+  B.forEach(x => counts.set(x, (counts.get(x) || 0) + 1));
+  let inter = 0;
+  A.forEach(x => {
+    const c = counts.get(x) || 0;
+    if (c > 0) { inter++; counts.set(x, c - 1); }
+  });
+  return (2 * inter) / (A.length + B.length);
+}
+
 function runAisSearch(q) {
   if (!Object.keys(DATA).length) {
     renderAisResults([{ _ais_msg: '데이터를 불러오는 중입니다. 잠시 후 다시 시도해주세요.' }]);
     return;
   }
-  const lower = q.toLowerCase();
+  const qNorm  = aisNorm(q);
+  const tokens = q.trim().split(/\s+/).filter(Boolean).map(aisNorm);
   const hits = [];
+  const allRows = []; // 퍼지 폴백용으로 전체 행 보관
 
   Object.entries(AIS_CAT).forEach(([key, meta]) => {
     const rows = DATA[key] || [];
@@ -5446,20 +5407,34 @@ function runAisSearch(q) {
       const content = String(r['내용'] || r['내용2'] || '');
       const date    = String(r[meta.dateKey] || '');
       const extra   = String(r['비고'] || '') + String(r['분류'] || '') + String(r['상태'] || '') + String(r['구분'] || '') + String(r['소구분'] || '') + String(r['솔루션명'] || '');
-      const all     = (title + content + date + extra).toLowerCase();
-      if (all.includes(lower)) {
-        hits.push({ key, meta, row: r, title, date, content });
-      }
+      const allNorm = aisNorm(title + content + date + extra);
+      allRows.push({ key, meta, row: r, title, date, content, allNorm });
+
+      // 1) 공백 무시 전체 포함 매칭  2) 여러 단어를 각각 모두 포함하는지(AND) 매칭
+      const matched = allNorm.includes(qNorm) || (tokens.length > 1 && tokens.every(t => allNorm.includes(t)));
+      if (matched) hits.push({ key, meta, row: r, title, date, content });
     });
   });
 
-  renderAisResults(hits, q);
+  if (hits.length) {
+    renderAisResults(hits, q, false);
+    return;
+  }
+
+  // 정확히 일치하는 게 없으면 오타 허용 유사 검색으로 폴백
+  const scored = allRows
+    .map(r => ({ ...r, score: aisSimilarity(qNorm, aisNorm(r.title)) }))
+    .filter(r => r.score >= 0.3)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 8);
+
+  renderAisResults(scored, q, true);
 }
 
-function renderAisResults(hits, q = '') {
+function renderAisResults(hits, q = '', isFuzzy = false) {
   const el = document.getElementById('ais-results');
   if (!hits.length) {
-    el.innerHTML = `<div class="ais-empty"><i class="ti ti-search-off"></i><span>검색 결과가 없습니다</span><span style="font-size:12px">"${q}"와 일치하는 항목이 없어요. AI 질문 탭을 이용해보세요.</span></div>`;
+    el.innerHTML = `<div class="ais-empty"><i class="ti ti-search-off"></i><span>검색 결과가 없습니다</span><span style="font-size:12px">"${q}"와 일치하거나 비슷한 항목을 찾지 못했어요.</span></div>`;
     return;
   }
   if (hits[0]?._ais_msg) {
@@ -5481,11 +5456,14 @@ function renderAisResults(hits, q = '') {
   };
 
   let html = '';
+  if (isFuzzy) {
+    html += `<div class="ais-section-label" style="color:var(--accent);text-transform:none;letter-spacing:0"><i class="ti ti-wand" style="margin-right:4px"></i>정확히 일치하는 결과가 없어 비슷한 항목을 보여드려요</div>`;
+  }
   Object.entries(groups).forEach(([key, items]) => {
     const meta = AIS_CAT[key];
     html += `<div class="ais-section-label"><i class="ti ${meta.icon}" style="margin-right:4px"></i>${meta.label} (${items.length})</div>`;
     items.slice(0, 5).forEach(h => {
-      const titleHl   = hl(h.title || '(제목 없음)', q);
+      const titleHl   = isFuzzy ? (h.title || '(제목 없음)') : hl(h.title || '(제목 없음)', q);
       const metaText  = [h.date, h.content ? h.content.slice(0, 40) : ''].filter(Boolean).join(' · ');
       html += `<div class="ais-result-item" data-key="${key}" data-row="${h.row._row}" onclick="aisGo('${key}','${h.row._row}')">
         <div class="ais-result-icon"><i class="ti ${meta.icon}"></i></div>
@@ -5496,7 +5474,7 @@ function renderAisResults(hits, q = '') {
         <span class="ais-result-badge">${meta.label}</span>
       </div>`;
     });
-    if (items.length > 5) {
+    if (items.length > 5 && !isFuzzy) {
       html += `<div class="ais-more-btn" onclick="showAisMore(this,'${key}','${encodeURIComponent(q)}')">
         <i class="ti ti-chevrons-down" style="font-size:13px"></i> 외 ${items.length - 5}건 더 보기
       </div>`;
@@ -5510,13 +5488,15 @@ function showAisMore(btn, key, qEncoded) {
   const meta = AIS_CAT[key];
   if (!meta) return;
 
-  const lower  = q.toLowerCase();
+  const qNorm  = aisNorm(q);
+  const tokens = q.trim().split(/\s+/).filter(Boolean).map(aisNorm);
   const allHits = (DATA[key] || []).filter(r => {
     const title   = String(r[meta.titleKey] || '');
     const content = String(r['내용'] || '');
     const date    = String(r[meta.dateKey] || '');
-    const extra   = String(r['비고']||'') + String(r['분류']||'') + String(r['상태']||'') + String(r['구분']||'') + String(r['솔루션명']||'');
-    return (title + content + date + extra).toLowerCase().includes(lower);
+    const extra   = String(r['비고']||'') + String(r['분류']||'') + String(r['상태']||'') + String(r['구분']||'') + String(r['소구분']||'') + String(r['솔루션명']||'');
+    const allNorm = aisNorm(title + content + date + extra);
+    return allNorm.includes(qNorm) || (tokens.length > 1 && tokens.every(t => allNorm.includes(t)));
   });
 
   const hl = (str) => {
@@ -5580,107 +5560,6 @@ function aisGo(key, rowNum) {
       }
     }
   }, 300);
-}
-
-// ── AI 질문 모드 ───────────────────────────────────────────
-async function runAisAi(q) {
-  if (!q) return;
-  const el = document.getElementById('ais-results');
-  el.innerHTML = `
-    <div class="ais-ai-section">
-      <div class="ais-ai-header"><i class="ti ti-sparkles"></i> AI 답변 생성 중</div>
-      <div class="ais-ai-thinking"><i class="ti ti-loader-2"></i> 자원 데이터를 분석하고 있습니다…</div>
-    </div>`;
-
-  // DATA 요약 (토큰 절약 - 핵심 필드만 추출)
-  const summary = buildDataSummary();
-
-  const systemPrompt = `당신은 소프트힐스 마케팅 운영 대시보드의 자원 검색 도우미입니다.
-아래 자원 데이터를 바탕으로 사용자의 질문에 한국어로 간결하게 답변하세요.
-관련 항목이 있으면 카테고리명과 제목을 함께 언급해주세요.
-답변은 3-5문장 이내로 짧게, 핵심만 전달하세요.
-
-## 자원 데이터 요약
-${summary}`;
-
-  try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 1000,
-        system: systemPrompt,
-        messages: [{ role: 'user', content: q }],
-      }),
-    });
-    const data = await res.json();
-    const text = data?.content?.find(c => c.type === 'text')?.text || '답변을 생성하지 못했습니다.';
-
-    // 관련 항목도 빠른 검색으로 함께 표시
-    const searchHits = runAisSearchSilent(q);
-    let html = `<div class="ais-ai-section">
-      <div class="ais-ai-header"><i class="ti ti-sparkles"></i> AI 답변</div>
-      <div class="ais-ai-text">${text}</div>
-    </div>`;
-    if (searchHits.length) {
-      html += `<div class="ais-section-label" style="margin-top:8px">관련 항목</div>`;
-      searchHits.slice(0, 6).forEach(h => {
-        const meta = AIS_CAT[h.key];
-        html += `<div class="ais-result-item" onclick="aisGo('${h.key}','${h.row._row}')">
-          <div class="ais-result-icon"><i class="ti ${meta.icon}"></i></div>
-          <div class="ais-result-body">
-            <div class="ais-result-title">${h.title || '(제목 없음)'}</div>
-            <div class="ais-result-meta">${h.date || ''}</div>
-          </div>
-          <span class="ais-result-badge">${meta.label}</span>
-        </div>`;
-      });
-    }
-    el.innerHTML = html;
-  } catch(e) {
-    el.innerHTML = `<div class="ais-ai-section">
-      <div class="ais-ai-header"><i class="ti ti-alert-circle" style="color:#A32D2D"></i> 오류</div>
-      <div class="ais-ai-text" style="color:var(--muted)">AI 응답을 가져오지 못했습니다. 빠른 검색 탭을 이용해주세요.</div>
-    </div>`;
-  }
-}
-
-// 검색 결과만 반환 (렌더 없이)
-function runAisSearchSilent(q) {
-  if (!q || !Object.keys(DATA).length) return [];
-  const lower = q.toLowerCase();
-  const hits = [];
-  Object.entries(AIS_CAT).forEach(([key, meta]) => {
-    (DATA[key] || []).forEach(r => {
-      const title   = String(r[meta.titleKey] || '');
-      const content = String(r['내용'] || '');
-      const date    = String(r[meta.dateKey] || '');
-      const all     = (title + content + date).toLowerCase();
-      if (all.includes(lower)) hits.push({ key, meta, row: r, title, date });
-    });
-  });
-  return hits;
-}
-
-// AI에게 보낼 데이터 요약 빌드 (토큰 절약)
-function buildDataSummary() {
-  if (!Object.keys(DATA).length) return '데이터가 아직 로드되지 않았습니다.';
-  let lines = [];
-  Object.entries(AIS_CAT).forEach(([key, meta]) => {
-    const rows = DATA[key] || [];
-    if (!rows.length) return;
-    lines.push(`\n### ${meta.label} (${rows.length}건)`);
-    rows.slice(0, 30).forEach(r => {
-      const date    = r[meta.dateKey] || '';
-      const title   = r[meta.titleKey] || '';
-      const content = (r['내용'] || '').slice(0, 60);
-      const extra   = r['상태'] ? ` [${r['상태']}]` : '';
-      lines.push(`- ${date} | ${title}${extra}${content ? ' | ' + content : ''}`);
-    });
-    if (rows.length > 30) lines.push(`  ... 외 ${rows.length - 30}건`);
-  });
-  return lines.join('\n');
 }
 
 // ============================================================
