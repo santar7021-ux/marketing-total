@@ -551,6 +551,19 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
 .tbl-goods td, .tbl-goods th { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .goods-tbl-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 
+/* ── 광고 관리: 월별 세트 비교 (연도별 아코디언) ── */
+.ad-year-group { border-bottom: 1px solid var(--border); }
+.ad-year-group:last-child { border-bottom: none; }
+.ad-year-group summary {
+  cursor: pointer; list-style: none; padding: 10px 4px;
+  font-size: 14.5px; font-weight: 700; color: var(--text);
+  display: flex; align-items: center; gap: 8px;
+}
+.ad-year-group summary::-webkit-details-marker { display: none; }
+.ad-year-group summary .ad-tip-chevron { color: var(--muted); font-size: 15px; transition: transform .15s; }
+.ad-year-group[open] summary .ad-tip-chevron { transform: rotate(90deg); }
+.ad-year-group .ad-year-body { padding: 0 0 12px; }
+
 /* ── 광고 관리 차트 박스: 화면 너비와 무관하게 항상 충분한 높이를 확보 ── */
 .ad-chart-box { position: relative; height: 260px; padding: 18px; box-sizing: border-box; }
 .goods-tbl-wrap::-webkit-scrollbar { height: 6px; }
@@ -1513,6 +1526,11 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
         <div class="card" style="margin-bottom:20px">
           <div class="card-hd"><h2><i class="ti ti-bulb"></i> 분석 인사이트</h2></div>
           <div id="ad-meta-insights" class="ad-insights-body"></div>
+        </div>
+
+        <div class="card" style="margin-bottom:20px">
+          <div class="card-hd"><h2><i class="ti ti-calendar-stats"></i> 월별 세트 비교</h2></div>
+          <div id="ad-meta-monthly" style="padding:6px 4px 4px"></div>
         </div>
 
         <div class="card" style="margin-bottom:32px">
@@ -6014,9 +6032,78 @@ function renderMetaActions(cur, prev, currentSet, previousSet) {
   el.innerHTML = actions.map(t => `<div class="ad-improve-line"><i class="ti ${t.icon}"></i><span><span class="ad-action-badge">${t.cat}</span>${t.html}</span></div>`).join('');
 }
 
+// ── 월별 세트 비교: DATA.metaAd 전체를 달력 월 단위로 묶어서 보여줌 (세트 경계와 무관) ──
+// 연도가 늘어나면(예: 2027년 데이터가 쌓이면) 자동으로 "2027년" 아코디언이 새로 생깁니다.
+function _metaMonthKey(dateStr) {
+  const d = _metaFmtDate(dateStr);
+  return d ? d.slice(0, 7) : ''; // 'yyyy-MM'
+}
+
+const META_MONTHLY_METRIC_COLS = [
+  { key: 'reach',          label: '도달',        unit: 'count' },
+  { key: 'impressions',    label: '노출수',      unit: 'count' },
+  { key: 'frequency',      label: '빈도',        unit: 'num2' },
+  { key: 'clicks',         label: '링크클릭',    unit: 'count' },
+  { key: 'ctr',            label: 'CTR',         unit: 'pct2' },
+  { key: 'cpc',            label: 'CPC',         unit: 'won' },
+  { key: 'cpm',            label: 'CPM',         unit: 'won' },
+  { key: 'landingViews',   label: '랜딩조회수',  unit: 'count' },
+  { key: 'landingCost',    label: '랜딩단가',    unit: 'won' },
+  { key: 'clickToLanding', label: '클릭→랜딩전환율', unit: 'pct1' },
+  { key: 'cost',           label: '총비용',      unit: 'won' },
+  { key: 'conversions',    label: '전환수',      unit: 'count' },
+];
+
+function renderMetaMonthlyTable() {
+  const el = document.getElementById('ad-meta-monthly');
+  if (!el) return;
+  const rows = DATA.metaAd || [];
+  if (!rows.length) {
+    el.innerHTML = `<div style="text-align:center;color:var(--muted);padding:20px">데이터가 없습니다.</div>`;
+    return;
+  }
+
+  // 달력 월 단위로 그룹 (세트 경계와 무관하게 날짜만 기준으로 묶음)
+  const byMonth = {};
+  rows.forEach(r => {
+    const mk = _metaMonthKey(r['날짜']);
+    if (!mk) return;
+    if (!byMonth[mk]) byMonth[mk] = [];
+    byMonth[mk].push(r);
+  });
+
+  // 연도별로 재그룹 (새 연도의 데이터가 생기면 자동으로 그룹이 하나 더 생김)
+  const byYear = {};
+  Object.keys(byMonth).forEach(mk => {
+    const [y, m] = mk.split('-');
+    if (!byYear[y]) byYear[y] = [];
+    byYear[y].push({ month: m, agg: _metaAggRows(byMonth[mk]) });
+  });
+
+  const years = Object.keys(byYear).sort((a, b) => b.localeCompare(a)); // 최신 연도 먼저
+  years.forEach(y => byYear[y].sort((a, b) => a.month.localeCompare(b.month))); // 월은 1월→12월 순
+
+  const buildTable = (list) => {
+    const head = `<tr><th>월</th>${META_MONTHLY_METRIC_COLS.map(c => `<th style="text-align:right">${c.label}</th>`).join('')}</tr>`;
+    const body = list.map(item => {
+      const cells = META_MONTHLY_METRIC_COLS.map(c => `<td style="text-align:right">${_metaFmt(item.agg[c.key], c.unit)}</td>`).join('');
+      return `<tr><td>${Number(item.month)}월</td>${cells}</tr>`;
+    }).join('');
+    return `<div class="goods-tbl-wrap"><table class="tbl tbl-compare"><thead>${head}</thead><tbody>${body}</tbody></table></div>`;
+  };
+
+  el.innerHTML = years.map((y, idx) => `
+    <details class="ad-year-group" ${idx === 0 ? 'open' : ''}>
+      <summary><i class="ti ti-chevron-right ad-tip-chevron"></i> ${y}년 (${byYear[y].length}개월)</summary>
+      <div class="ad-year-body">${buildTable(byYear[y])}</div>
+    </details>
+  `).join('');
+}
+
 function renderMetaAdSetView() {
   const { current, previous } = _metaPickCurrentAndPrevious();
   renderMetaSetInfoCards(current, previous);
+  renderMetaMonthlyTable();
 
   if (!current) {
     document.getElementById('ad-meta-compare-list').innerHTML = `<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:24px">메타 광고세트 정보가 없습니다. Apps Script에서 collectMetaAdSetsMeta()가 실행됐는지 확인해주세요.</td></tr>`;
