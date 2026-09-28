@@ -5258,8 +5258,14 @@ function runAisSearch(q) {
   const hits = [];
   const allRows = []; // 퍼지 폴백용으로 전체 행 보관
 
+  // 검색어가 카테고리 이름과 정확히 일치하면("인증", "프로그램 저작/등록" 등) 그 카테고리의
+  // 모든 자료를 무조건 다 보여줌 (개별 항목 텍스트에 그 단어가 없어도 카테고리 전체를 원하는 경우가 많음)
+  const qCatNorm = aisNorm(q).replace(/[\/·,]/g, '');
+  const exactCatKey = Object.keys(AIS_CAT).find(k => aisNorm(AIS_CAT[k].label).replace(/[\/·,]/g, '') === qCatNorm);
+
   Object.entries(AIS_CAT).forEach(([key, meta]) => {
     const rows = DATA[key] || [];
+    const showAllForCategory = key === exactCatKey;
     rows.forEach(r => {
       const title   = String(r[meta.titleKey] || '');
       const content = String(r['내용'] || r['내용2'] || '');
@@ -5268,8 +5274,8 @@ function runAisSearch(q) {
       const allNorm = aisNorm(title + content + date + extra);
       allRows.push({ key, meta, row: r, title, date, content, allNorm });
 
-      // 1) 공백 무시 전체 포함 매칭  2) 여러 단어를 각각 모두 포함하는지(AND) 매칭
-      const matched = allNorm.includes(qNorm) || (tokens.length > 1 && tokens.every(t => allNorm.includes(t)));
+      // 1) 카테고리 이름과 정확히 일치하면 전체 표시  2) 공백 무시 전체 포함 매칭  3) 여러 단어를 각각 모두 포함하는지(AND) 매칭
+      const matched = showAllForCategory || allNorm.includes(qNorm) || (tokens.length > 1 && tokens.every(t => allNorm.includes(t)));
       if (matched) hits.push({ key, meta, row: r, title, date, content });
     });
   });
