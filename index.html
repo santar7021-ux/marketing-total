@@ -112,6 +112,61 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
 .gate-btn { width: 100%; padding: 12px; border-radius: var(--r-md); font-size: 14.5px; }
 .gate-error { color: #A32D2D; font-size: 12.5px; margin-top: 10px; min-height: 16px; }
 
+/* ── 다크 히어로 로그인 화면 (인트로) ── */
+.dark-gate {
+  background:
+    radial-gradient(ellipse 900px 700px at 78% 30%, rgba(0,117,194,.35) 0%, rgba(0,117,194,0) 60%),
+    radial-gradient(ellipse 1200px 900px at 50% 100%, rgba(0,67,134,.25) 0%, rgba(0,67,134,0) 55%),
+    linear-gradient(160deg, #060a14 0%, #0a1220 45%, #060a14 100%);
+  position: fixed; overflow: hidden;
+}
+.dark-gate::before {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background-image: radial-gradient(rgba(255,255,255,.35) 1px, transparent 1.4px);
+  background-size: 34px 34px; opacity: .18;
+}
+.dark-gate-glow {
+  position: absolute; top: -10%; right: -8%; width: 640px; height: 640px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(120,180,255,.55) 0%, rgba(120,180,255,0) 70%);
+  filter: blur(10px); pointer-events: none;
+}
+.dark-gate-content {
+  position: relative; z-index: 1;
+  display: flex; flex-direction: column; align-items: center;
+}
+.dark-gate-logo {
+  height: 40px; width: auto; margin-bottom: 22px;
+  filter: brightness(0) invert(1); opacity: .96;
+}
+.dark-gate-tagline {
+  font-size: 15.5px; color: rgba(255,255,255,.72); letter-spacing: .4px;
+  margin-bottom: 6px; font-weight: 500;
+}
+.dark-gate-subtitle {
+  font-size: 12.5px; color: rgba(255,255,255,.4); letter-spacing: .3px;
+  margin-bottom: 34px;
+}
+.dark-gate-login-btn {
+  min-width: 168px; padding: 12px 30px; border-radius: 100px;
+  background: transparent; border: 1.5px solid rgba(255,255,255,.55); color: #fff;
+  font-size: 14.5px; font-weight: 600; letter-spacing: .5px; cursor: pointer;
+  transition: background .15s, border-color .15s, transform .1s;
+}
+.dark-gate-login-btn:hover { background: var(--accent); border-color: var(--accent); }
+.dark-gate-login-btn:active { transform: scale(.97); }
+.dark-gate-form { display: flex; flex-direction: column; align-items: center; gap: 12px; width: 240px; }
+.gate-input.dark {
+  background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.28); color: #fff;
+  margin-bottom: 0;
+}
+.gate-input.dark::placeholder { color: rgba(255,255,255,.45); }
+.gate-input.dark:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0,117,194,.25); }
+.dark-gate .gate-error { color: #ff8a8a; }
+.dark-gate-copyright {
+  position: absolute; left: 24px; bottom: 18px; z-index: 1;
+  font-size: 11px; color: rgba(255,255,255,.4); letter-spacing: .2px;
+}
+
 /* ── 인트로 랜딩: 상단 헤더 + 하단 푸터가 있는 진짜 홈페이지 느낌으로 ── */
 .intro-landing-screen { flex-direction: column; justify-content: space-between; padding: 0; }
 .intro-landing-header {
@@ -975,6 +1030,11 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
 
   .intro-hero { padding: 32px 14px 26px; }
   .gate-card { padding: 30px 22px; }
+  .dark-gate-glow { width: 380px; height: 380px; }
+  .dark-gate-logo { height: 32px; }
+  .dark-gate-tagline { font-size: 13px; margin-bottom: 4px; text-align: center; padding: 0 12px; }
+  .dark-gate-subtitle { font-size: 11px; margin-bottom: 26px; text-align: center; }
+  .dark-gate-copyright { left: 16px; bottom: 12px; font-size: 10px; }
   .intro-landing-header { padding: 16px 18px; }
   .intro-landing-footer { font-size: 10.5px; padding: 12px 14px 18px; }
   .intro-landing-footer .dot { display: block; margin: 2px 0 0; }
@@ -1131,17 +1191,22 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
 <body>
 
 <!-- ── 로그인 게이트: 대시보드 진입 전 비밀번호 확인 ── -->
-<div id="login-gate" class="gate-screen">
-  <div class="gate-card">
-    <img id="gate-logo" class="gate-logo" alt="SOFTHILLS">
-    <div class="gate-title">마케팅 운영 대시보드</div>
-    <div class="gate-sub">비밀번호를 입력해주세요</div>
-    <form onsubmit="return submitLoginGate(event)">
-      <input type="password" id="gate-pw" class="gate-input" placeholder="비밀번호" autocomplete="current-password" autofocus>
-      <button type="submit" class="btn primary gate-btn">로그인</button>
+<div id="login-gate" class="gate-screen dark-gate">
+  <div class="dark-gate-glow"></div>
+  <div class="dark-gate-content">
+    <img id="gate-logo" class="dark-gate-logo" alt="SOFTHILLS">
+    <div class="dark-gate-tagline">Build Your 3D Infrastructure, Seamlessly.</div>
+    <div class="dark-gate-subtitle">소프트힐스 마케팅 운영 대시보드</div>
+
+    <button type="button" id="gate-login-btn" class="dark-gate-login-btn" onclick="showGateLoginForm()">Login</button>
+
+    <form id="gate-login-form" class="dark-gate-form" style="display:none" onsubmit="return submitLoginGate(event)">
+      <input type="password" id="gate-pw" class="gate-input dark" placeholder="비밀번호">
+      <button type="submit" class="btn dark-gate-login-btn">확인</button>
     </form>
     <div class="gate-error" id="gate-error"></div>
   </div>
+  <div class="dark-gate-copyright">Copyright 2026. Softhills Co., Ltd. All rights reserved.</div>
 </div>
 
 <!-- ── 인트로 랜딩: 구글 스타일 검색 화면 (로그인 후, 대시보드 진입 전) ── -->
@@ -5160,6 +5225,14 @@ function closeMobileNav() {
 
 // ── 초기화 ───────────────────────────────────────────────
 // ── 로그인 게이트 / 인트로 랜딩 ──────────────────────────
+function showGateLoginForm() {
+  document.getElementById('gate-login-btn').style.display = 'none';
+  const form = document.getElementById('gate-login-form');
+  form.style.display = 'flex';
+  const pw = document.getElementById('gate-pw');
+  pw.focus();
+}
+
 function submitLoginGate(e) {
   e.preventDefault();
   const pwInput = document.getElementById('gate-pw');
