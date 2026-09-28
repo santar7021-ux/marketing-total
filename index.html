@@ -269,10 +269,28 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
 
 /* 자원 검색: 선택 항목 다운로드 바 */
 .ais-select-bar {
-  display: flex; align-items: center; gap: 10px;
-  padding: 8px 18px; border-top: 1px solid var(--border);
-  background: var(--accent-lt); font-size: 13px; font-weight: 600; color: var(--accent-dk);
+  border-top: 1px solid var(--border);
+  background: var(--accent-lt);
+  max-height: 180px; overflow-y: auto;
 }
+.ais-select-bar-top {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 18px; font-size: 13px; font-weight: 600; color: var(--accent-dk);
+  position: sticky; top: 0; background: var(--accent-lt);
+}
+.ais-select-list { padding: 0 18px 8px; display: flex; flex-direction: column; gap: 4px; }
+.ais-select-item {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-md);
+  padding: 5px 10px; font-size: 13px;
+}
+.ais-select-item-badge {
+  flex-shrink: 0; font-size: 10.5px; font-weight: 600; color: var(--accent);
+  background: var(--accent-lt); padding: 1px 7px; border-radius: 100px;
+}
+.ais-select-item-title { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text); }
+.ais-select-item-remove { flex-shrink: 0; cursor: pointer; color: var(--muted); font-size: 16px; line-height: 1; padding: 0 2px; }
+.ais-select-item-remove:hover { color: #A32D2D; }
 .ais-check-wrap { padding: 2px 10px 0 0; display: flex; align-items: center; flex-shrink: 0; }
 .ais-check-wrap input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; accent-color: var(--accent); }
 
@@ -1042,11 +1060,14 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
     </div>
     <!-- 선택 항목 다운로드 바 -->
     <div class="ais-select-bar" id="ais-select-bar" style="display:none">
-      <span id="ais-select-count"></span>
-      <div style="display:flex;gap:8px;margin-left:auto">
-        <button class="btn sm" onclick="clearAisSelection()">선택 해제</button>
-        <button class="btn sm primary" onclick="downloadAisSelected()"><i class="ti ti-file-spreadsheet"></i> 선택 항목 엑셀 다운로드</button>
+      <div class="ais-select-bar-top">
+        <span id="ais-select-count"></span>
+        <div style="display:flex;gap:8px;margin-left:auto">
+          <button class="btn sm" onclick="clearAisSelection()">선택 해제</button>
+          <button class="btn sm primary" onclick="downloadAisSelected()"><i class="ti ti-file-spreadsheet"></i> 선택 항목 엑셀 다운로드</button>
+        </div>
       </div>
+      <div class="ais-select-list" id="ais-select-list"></div>
     </div>
     <!-- 푸터 -->
     <div class="ais-footer">
@@ -5290,7 +5311,7 @@ function renderAisResults(hits, q = '', isFuzzy = false) {
       const checkKey  = key + '_' + h.row._row;
       html += `<div class="ais-result-item" data-key="${key}" data-row="${h.row._row}" onclick="aisGo('${key}','${h.row._row}')">
         <label class="ais-check-wrap" onclick="event.stopPropagation()">
-          <input type="checkbox" class="ais-check" ${AIS.selected.has(checkKey) ? 'checked' : ''} onchange="toggleAisSelect('${key}','${h.row._row}', this.checked)">
+          <input type="checkbox" class="ais-check" data-checkkey="${checkKey}" ${AIS.selected.has(checkKey) ? 'checked' : ''} onchange="toggleAisSelect('${key}','${h.row._row}', this.checked)">
         </label>
         <div class="ais-result-icon"><i class="ti ${meta.icon}"></i></div>
         <div class="ais-result-body">
@@ -5342,7 +5363,7 @@ function showAisMore(btn, key, qEncoded) {
     const checkKey = key + '_' + h._row;
     return `<div class="ais-result-item" onclick="aisGo('${key}','${h._row}')">
       <label class="ais-check-wrap" onclick="event.stopPropagation()">
-        <input type="checkbox" class="ais-check" ${AIS.selected.has(checkKey) ? 'checked' : ''} onchange="toggleAisSelect('${key}','${h._row}', this.checked)">
+        <input type="checkbox" class="ais-check" data-checkkey="${checkKey}" ${AIS.selected.has(checkKey) ? 'checked' : ''} onchange="toggleAisSelect('${key}','${h._row}', this.checked)">
       </label>
       <div class="ais-result-icon"><i class="ti ${meta.icon}"></i></div>
       <div class="ais-result-body">
@@ -5367,16 +5388,46 @@ function toggleAisSelect(key, row, checked) {
   updateAisSelectBar();
 }
 
+// checkKey("카테고리_행번호")를 실제 데이터 행으로 해석
+function _aisResolveSelected(checkKey) {
+  const sep = checkKey.lastIndexOf('_');
+  const key = checkKey.slice(0, sep);
+  const row = checkKey.slice(sep + 1);
+  const meta = AIS_CAT[key];
+  if (!meta) return null;
+  const found = (DATA[key] || []).find(r => String(r._row) === row);
+  return { key, row, meta, found };
+}
+
 function updateAisSelectBar() {
   const bar   = document.getElementById('ais-select-bar');
   const count = document.getElementById('ais-select-count');
-  if (!bar || !count) return;
+  const list  = document.getElementById('ais-select-list');
+  if (!bar || !count || !list) return;
   if (AIS.selected.size > 0) {
-    bar.style.display = 'flex';
+    bar.style.display = 'block';
     count.textContent = `${AIS.selected.size}건 선택됨`;
+    list.innerHTML = Array.from(AIS.selected).map(checkKey => {
+      const r = _aisResolveSelected(checkKey);
+      if (!r) return '';
+      const title = r.found ? (r.found[r.meta.titleKey] || '(제목 없음)') : '(찾을 수 없는 항목)';
+      return `<div class="ais-select-item">
+        <span class="ais-select-item-badge">${r.meta.label}</span>
+        <span class="ais-select-item-title">${title}</span>
+        <span class="ais-select-item-remove" onclick="removeAisSelect('${checkKey}')" title="선택 해제">×</span>
+      </div>`;
+    }).join('');
   } else {
     bar.style.display = 'none';
+    list.innerHTML = '';
   }
+}
+
+function removeAisSelect(checkKey) {
+  AIS.selected.delete(checkKey);
+  const cb = document.querySelector(`.ais-check[data-checkkey="${checkKey}"]`);
+  if (cb) cb.checked = false;
+  updateAisSelectBar();
 }
 
 function clearAisSelection() {
@@ -5390,24 +5441,20 @@ function downloadAisSelected() {
 
   const rows = [];
   AIS.selected.forEach(checkKey => {
-    const sep = checkKey.lastIndexOf('_');
-    const key = checkKey.slice(0, sep);
-    const row = checkKey.slice(sep + 1);
-    const meta = AIS_CAT[key];
-    if (!meta) return;
-    const found = (DATA[key] || []).find(r => String(r._row) === row);
-    if (!found) return;
+    const r = _aisResolveSelected(checkKey);
+    if (!r || !r.found) return;
     rows.push({
-      '구분': meta.label,
-      '날짜': found[meta.dateKey] || '',
-      '제목': found[meta.titleKey] || '',
-      '공유폴더URL': found['공유폴더URL'] || '',
+      '구분': r.meta.label,
+      '날짜': r.found[r.meta.dateKey] || '',
+      '제목': r.found[r.meta.titleKey] || '',
+      '내용': r.found['내용'] || '',
+      '파일 경로': r.found['공유폴더URL'] || '',
     });
   });
 
   if (!rows.length) { banner('선택된 항목을 찾을 수 없습니다. 새로고침 후 다시 시도해주세요.', 'error'); return; }
 
-  const cols = ['구분', '날짜', '제목', '공유폴더URL'];
+  const cols = ['구분', '날짜', '제목', '내용', '파일 경로'];
   downloadAsXls(cols, rows, `소프트힐스_자원검색_선택항목_${new Date().toISOString().slice(0,10)}.xls`);
 }
 
