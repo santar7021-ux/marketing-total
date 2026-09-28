@@ -6072,21 +6072,40 @@ function renderMetaMonthlyTable() {
     byMonth[mk].push(r);
   });
 
-  // 연도별로 재그룹 (새 연도의 데이터가 생기면 자동으로 그룹이 하나 더 생김)
-  const byYear = {};
-  Object.keys(byMonth).forEach(mk => {
+  // 연도 경계와 상관없이 시간순으로 쭉 정렬한 뒤, 바로 전월 대비 증감률을 계산
+  // (예: 2027년 1월은 2026년 12월과 비교됩니다)
+  const monthKeysAsc = Object.keys(byMonth).sort((a, b) => a.localeCompare(b));
+  const monthList = monthKeysAsc.map((mk, idx) => {
+    const agg = _metaAggRows(byMonth[mk]);
+    const prevAgg = idx > 0 ? _metaAggRows(byMonth[monthKeysAsc[idx - 1]]) : null;
+    const change = {};
+    if (prevAgg) {
+      META_MONTHLY_METRIC_COLS.forEach(c => { change[c.key] = _adPctChange(agg[c.key], prevAgg[c.key]); });
+    }
     const [y, m] = mk.split('-');
-    if (!byYear[y]) byYear[y] = [];
-    byYear[y].push({ month: m, agg: _metaAggRows(byMonth[mk]) });
+    return { year: y, month: m, agg, change };
   });
 
+  // 연도별로 재그룹 (새 연도의 데이터가 생기면 자동으로 그룹이 하나 더 생김)
+  const byYear = {};
+  monthList.forEach(item => {
+    if (!byYear[item.year]) byYear[item.year] = [];
+    byYear[item.year].push(item);
+  });
   const years = Object.keys(byYear).sort((a, b) => b.localeCompare(a)); // 최신 연도 먼저
   years.forEach(y => byYear[y].sort((a, b) => a.month.localeCompare(b.month))); // 월은 1월→12월 순
 
+  const changeBadge = (pct) => {
+    if (pct === undefined || pct === null || isNaN(pct)) return '';
+    const color = pct > 0 ? '#1d9e75' : (pct < 0 ? '#A32D2D' : 'var(--muted)');
+    const sign = pct > 0 ? '+' : '';
+    return `<div style="font-size:10.5px;color:${color};font-weight:600;margin-top:1px">${sign}${pct.toFixed(1)}%</div>`;
+  };
+
   const buildTable = (list) => {
-    const head = `<tr><th>월</th>${META_MONTHLY_METRIC_COLS.map(c => `<th style="text-align:right">${c.label}</th>`).join('')}</tr>`;
+    const head = `<tr><th>월</th>${META_MONTHLY_METRIC_COLS.map(c => `<th style="text-align:right">${c.label}<br><span style="font-weight:400;font-size:10.5px;color:var(--muted)">(전월비)</span></th>`).join('')}</tr>`;
     const body = list.map(item => {
-      const cells = META_MONTHLY_METRIC_COLS.map(c => `<td style="text-align:right">${_metaFmt(item.agg[c.key], c.unit)}</td>`).join('');
+      const cells = META_MONTHLY_METRIC_COLS.map(c => `<td style="text-align:right">${_metaFmt(item.agg[c.key], c.unit)}${changeBadge(item.change[c.key])}</td>`).join('');
       return `<tr><td>${Number(item.month)}월</td>${cells}</tr>`;
     }).join('');
     return `<div class="goods-tbl-wrap"><table class="tbl tbl-compare"><thead>${head}</thead><tbody>${body}</tbody></table></div>`;
