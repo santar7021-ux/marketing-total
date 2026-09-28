@@ -267,6 +267,15 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
   font-family: inherit;
 }
 
+/* 자원 검색: 선택 항목 다운로드 바 */
+.ais-select-bar {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 18px; border-top: 1px solid var(--border);
+  background: var(--accent-lt); font-size: 13px; font-weight: 600; color: var(--accent-dk);
+}
+.ais-check-wrap { padding: 2px 10px 0 0; display: flex; align-items: center; flex-shrink: 0; }
+.ais-check-wrap input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; accent-color: var(--accent); }
+
 /* 하이라이트 애니메이션 */
 @keyframes ais-hl {
   0%   { box-shadow: 0 0 0 0 rgba(29,158,117,.6); }
@@ -1029,6 +1038,14 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
         <i class="ti ti-search"></i>
         <span>검색어를 입력하세요</span>
         <span style="font-size:12px">인증, 수상, 특허, 상표, 연혁, 소개 자료, 유튜브 영상, 프로그램 저작/등록, 디자인 시안, 마케팅 물품 전체 검색</span>
+      </div>
+    </div>
+    <!-- 선택 항목 다운로드 바 -->
+    <div class="ais-select-bar" id="ais-select-bar" style="display:none">
+      <span id="ais-select-count"></span>
+      <div style="display:flex;gap:8px;margin-left:auto">
+        <button class="btn sm" onclick="clearAisSelection()">선택 해제</button>
+        <button class="btn sm primary" onclick="downloadAisSelected()"><i class="ti ti-file-spreadsheet"></i> 선택 항목 엑셀 다운로드</button>
       </div>
     </div>
     <!-- 푸터 -->
@@ -3307,6 +3324,7 @@ function _renderIntroList(elId, rows, emptyMsg) {
         </div>
         <div class="post-title">${r['제목'] || '(제목 없음)'}</div>
         ${r['내용'] ? `<div class="post-content">${r['내용']}</div>` : ''}
+        ${folderUrl ? `<div class="post-note" style="word-break:break-all"><span>파일 경로</span> <a href="${folderUrl}" target="_blank" style="color:var(--accent)">${folderUrl}</a></div>` : ''}
         ${r['비고'] ? `<div class="post-note"><span>비고</span> ${r['비고']}</div>` : ''}
         <div class="post-actions">
           ${driveUrl ? `<a href="${driveUrl}" target="_blank" class="post-file-btn"><i class="ti ti-download"></i> ${r['파일명'] || '파일 열기'}</a>` : ''}
@@ -3772,6 +3790,7 @@ function _renderSupportCards(sorted) {
         </div>
         <div class="post-title">${r['제목'] || '(제목 없음)'}</div>
         ${r['내용'] ? `<div class="post-content">${r['내용']}</div>` : ''}
+        ${folderUrl ? `<div class="post-note" style="word-break:break-all"><span>파일 경로</span> <a href="${folderUrl}" target="_blank" style="color:var(--accent)">${folderUrl}</a></div>` : ''}
         ${r['비고'] ? `<div class="post-note"><span>비고</span> ${r['비고']}</div>` : ''}
         <div class="post-actions">
           ${driveUrl ? `<a href="${driveUrl}" target="_blank" class="post-file-btn"><i class="ti ti-download"></i> ${r['파일명'] || '파일 열기'}</a>` : ''}
@@ -5083,6 +5102,7 @@ const AIS = {
   query: '',
   results: [],
   focusIdx: -1,
+  selected: new Set(), // 체크된 검색 결과 (형식: "카테고리키_행번호"), 엑셀 다운로드용
 };
 
 // 카테고리 메타
@@ -5267,7 +5287,11 @@ function renderAisResults(hits, q = '', isFuzzy = false) {
     items.slice(0, 5).forEach(h => {
       const titleHl   = isFuzzy ? (h.title || '(제목 없음)') : hl(h.title || '(제목 없음)', q);
       const metaText  = [h.date, h.content ? h.content.slice(0, 40) : ''].filter(Boolean).join(' · ');
+      const checkKey  = key + '_' + h.row._row;
       html += `<div class="ais-result-item" data-key="${key}" data-row="${h.row._row}" onclick="aisGo('${key}','${h.row._row}')">
+        <label class="ais-check-wrap" onclick="event.stopPropagation()">
+          <input type="checkbox" class="ais-check" ${AIS.selected.has(checkKey) ? 'checked' : ''} onchange="toggleAisSelect('${key}','${h.row._row}', this.checked)">
+        </label>
         <div class="ais-result-icon"><i class="ti ${meta.icon}"></i></div>
         <div class="ais-result-body">
           <div class="ais-result-title">${titleHl}</div>
@@ -5283,6 +5307,7 @@ function renderAisResults(hits, q = '', isFuzzy = false) {
     }
   });
   el.innerHTML = html;
+  updateAisSelectBar();
 }
 
 function showAisMore(btn, key, qEncoded) {
@@ -5314,7 +5339,11 @@ function showAisMore(btn, key, qEncoded) {
     const date    = String(h[meta.dateKey] || '');
     const content = String(h['내용'] || '').slice(0, 40);
     const metaText = [date, content].filter(Boolean).join(' · ');
+    const checkKey = key + '_' + h._row;
     return `<div class="ais-result-item" onclick="aisGo('${key}','${h._row}')">
+      <label class="ais-check-wrap" onclick="event.stopPropagation()">
+        <input type="checkbox" class="ais-check" ${AIS.selected.has(checkKey) ? 'checked' : ''} onchange="toggleAisSelect('${key}','${h._row}', this.checked)">
+      </label>
       <div class="ais-result-icon"><i class="ti ${meta.icon}"></i></div>
       <div class="ais-result-body">
         <div class="ais-result-title">${hl(title)}</div>
@@ -5330,6 +5359,58 @@ function showAisMore(btn, key, qEncoded) {
   btn.replaceWith(container);
 }
 
+// ── 검색 결과 체크박스 선택 → 엑셀 다운로드 ──────────────────
+function toggleAisSelect(key, row, checked) {
+  const checkKey = key + '_' + row;
+  if (checked) AIS.selected.add(checkKey);
+  else AIS.selected.delete(checkKey);
+  updateAisSelectBar();
+}
+
+function updateAisSelectBar() {
+  const bar   = document.getElementById('ais-select-bar');
+  const count = document.getElementById('ais-select-count');
+  if (!bar || !count) return;
+  if (AIS.selected.size > 0) {
+    bar.style.display = 'flex';
+    count.textContent = `${AIS.selected.size}건 선택됨`;
+  } else {
+    bar.style.display = 'none';
+  }
+}
+
+function clearAisSelection() {
+  AIS.selected.clear();
+  document.querySelectorAll('.ais-check').forEach(cb => cb.checked = false);
+  updateAisSelectBar();
+}
+
+function downloadAisSelected() {
+  if (!AIS.selected.size) { banner('선택된 항목이 없습니다.', 'error'); return; }
+
+  const rows = [];
+  AIS.selected.forEach(checkKey => {
+    const sep = checkKey.lastIndexOf('_');
+    const key = checkKey.slice(0, sep);
+    const row = checkKey.slice(sep + 1);
+    const meta = AIS_CAT[key];
+    if (!meta) return;
+    const found = (DATA[key] || []).find(r => String(r._row) === row);
+    if (!found) return;
+    rows.push({
+      '구분': meta.label,
+      '날짜': found[meta.dateKey] || '',
+      '제목': found[meta.titleKey] || '',
+      '공유폴더URL': found['공유폴더URL'] || '',
+    });
+  });
+
+  if (!rows.length) { banner('선택된 항목을 찾을 수 없습니다. 새로고침 후 다시 시도해주세요.', 'error'); return; }
+
+  const cols = ['구분', '날짜', '제목', '공유폴더URL'];
+  downloadAsXls(cols, rows, `소프트힐스_자원검색_선택항목_${new Date().toISOString().slice(0,10)}.xls`);
+}
+
 function renderAisEmpty() {
   document.getElementById('ais-results').innerHTML = `
     <div class="ais-empty">
@@ -5337,6 +5418,7 @@ function renderAisEmpty() {
       <span>검색어를 입력하세요</span>
       <span style="font-size:12px">인증·수상·특허·상표·연혁·소개 자료·유튜브 영상·프로그램 저작/등록 전체 검색</span>
     </div>`;
+  updateAisSelectBar();
 }
 
 // ── 결과 클릭 → 해당 페이지 이동 + 하이라이트 ────────────
