@@ -214,7 +214,10 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
 .ais-section-label {
   padding: 6px 18px 4px; font-size: 12px; font-weight: 600;
   color: var(--muted); letter-spacing: .5px; text-transform: uppercase;
+  display: flex; align-items: center; gap: 6px;
 }
+.ais-cat-check-wrap { display: flex; align-items: center; }
+.ais-cat-check-wrap input[type="checkbox"] { width: 14px; height: 14px; cursor: pointer; accent-color: var(--accent); }
 
 .ais-result-item {
   display: flex; align-items: flex-start; gap: 12px;
@@ -5139,6 +5142,7 @@ const AIS = {
   results: [],
   focusIdx: -1,
   selected: new Set(), // 체크된 검색 결과 (형식: "카테고리키_행번호"), 엑셀 다운로드용
+  _lastGroups: {}, // 가장 최근 렌더된 카테고리별 결과 (카테고리 전체 선택 체크박스용)
 };
 
 // 카테고리 메타
@@ -5312,6 +5316,7 @@ function renderAisResults(hits, q = '', isFuzzy = false) {
     if (!groups[h.key]) groups[h.key] = [];
     groups[h.key].push(h);
   });
+  AIS._lastGroups = groups; // 카테고리 전체 선택 체크박스에서 참조
 
   const hl = (str, q) => {
     if (!q) return str;
@@ -5325,7 +5330,13 @@ function renderAisResults(hits, q = '', isFuzzy = false) {
   }
   Object.entries(groups).forEach(([key, items]) => {
     const meta = AIS_CAT[key];
-    html += `<div class="ais-section-label"><i class="ti ${meta.icon}" style="margin-right:4px"></i>${meta.label} (${items.length})</div>`;
+    const allChecked = items.every(h => AIS.selected.has(key + '_' + h.row._row));
+    html += `<div class="ais-section-label">
+      <label class="ais-cat-check-wrap" onclick="event.stopPropagation()">
+        <input type="checkbox" class="ais-cat-check" ${allChecked ? 'checked' : ''} onchange="toggleAisCategorySelect('${key}', this.checked)" title="이 카테고리 전체 선택">
+      </label>
+      <i class="ti ${meta.icon}" style="margin-right:4px"></i>${meta.label} (${items.length})
+    </div>`;
     items.slice(0, 5).forEach(h => {
       const titleHl   = isFuzzy ? (h.title || '(제목 없음)') : hl(h.title || '(제목 없음)', q);
       const metaText  = [h.date, h.content ? h.content.slice(0, 40) : ''].filter(Boolean).join(' · ');
@@ -5406,6 +5417,18 @@ function toggleAisSelect(key, row, checked) {
   const checkKey = key + '_' + row;
   if (checked) AIS.selected.add(checkKey);
   else AIS.selected.delete(checkKey);
+  updateAisSelectBar();
+}
+
+// 카테고리 헤더의 "전체 선택" 체크박스 — 지금 화면에 잡힌 그 카테고리 결과 전체를 한 번에 선택/해제
+function toggleAisCategorySelect(key, checked) {
+  const items = (AIS._lastGroups && AIS._lastGroups[key]) || [];
+  items.forEach(h => {
+    const checkKey = key + '_' + h.row._row;
+    if (checked) AIS.selected.add(checkKey);
+    else AIS.selected.delete(checkKey);
+  });
+  document.querySelectorAll(`.ais-check[data-checkkey^="${key}_"]`).forEach(cb => { cb.checked = checked; });
   updateAisSelectBar();
 }
 
