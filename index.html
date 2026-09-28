@@ -77,12 +77,12 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
   border-radius: 5px; padding: 1px 7px; background: var(--bg); flex-shrink: 0;
 }
 .landing-search-results-inline {
-  width: 100%; max-height: 46vh; overflow-y: auto; text-align: left;
+  width: 100%; text-align: left;
   background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg);
   box-shadow: 0 10px 32px rgba(0,30,60,.14); margin-top: 16px;
 }
 .gate-search-stage { display: flex; flex-direction: column; align-items: center; width: 100%; max-width: 560px; }
-.landing-select-bar { margin-top: 16px; width: 100%; box-sizing: border-box; border-radius: var(--r-lg); border: 1px solid var(--border); overflow: hidden; }
+.landing-select-bar { margin-top: 16px; width: 100%; box-sizing: border-box; border-radius: var(--r-lg); border: 1px solid var(--border); max-height: none; overflow: visible; }
 .intro-hero-actions { display: flex; gap: 10px; margin-top: 22px; flex-wrap: wrap; justify-content: center; }
 .intro-hero-btn {
   background: var(--bg); border-color: var(--bg); color: var(--text);
@@ -128,7 +128,8 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
     radial-gradient(ellipse 1200px 900px at 50% 100%, rgba(0,67,134,.25) 0%, rgba(0,67,134,0) 55%),
     linear-gradient(160deg, #060a14 0%, #0a1220 45%, #060a14 100%);
   position: fixed; overflow-x: hidden; overflow-y: auto;
-  align-items: flex-start; padding-top: 9vh; padding-bottom: 40px;
+  align-items: center; align-items: safe center;
+  padding: 60px 20px 90px;
 }
 .dark-gate::before {
   content: ''; position: absolute; inset: 0; pointer-events: none;
@@ -172,10 +173,13 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
 .gate-input.dark::placeholder { color: rgba(255,255,255,.45); }
 .gate-input.dark:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0,117,194,.25); }
 .dark-gate .gate-error { color: #ff8a8a; }
-.dark-gate-copyright {
-  position: absolute; left: 24px; bottom: 18px; z-index: 1;
-  font-size: 11px; color: rgba(255,255,255,.4); letter-spacing: .2px;
+.dark-gate-footer {
+  position: absolute; left: 0; right: 0; bottom: 0; z-index: 1;
+  text-align: center; padding: 14px 20px 20px; box-sizing: border-box;
+  font-size: 11px; color: rgba(255,255,255,.4); letter-spacing: .2px; line-height: 1.8;
 }
+.dark-gate-footer .dot { margin: 0 7px; }
+.dark-gate-footer-copy { margin-top: 2px; color: rgba(255,255,255,.28); }
 
 .nav-group { padding: 8px 0; border-bottom: 1px solid var(--border); }
 .nav-item { position: relative; }
@@ -1025,7 +1029,8 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
   .dark-gate-logo { height: 32px; }
   .dark-gate-tagline { font-size: 13px; margin-bottom: 4px; text-align: center; padding: 0 12px; }
   .dark-gate-subtitle { font-size: 11px; margin-bottom: 26px; text-align: center; }
-  .dark-gate-copyright { left: 16px; bottom: 12px; font-size: 10px; }
+  .dark-gate-footer { font-size: 9.5px; padding: 10px 14px 16px; }
+  .dark-gate-footer .dot { display: block; margin: 2px 0 0; }
   .intro-hero-search { padding: 11px 16px; }
   .intro-hero-search span:first-of-type { font-size: 13px; }
   .intro-hero-kbd { display: none; }
@@ -1220,7 +1225,11 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
       <div id="landing-search-results" class="landing-search-results-inline"></div>
     </div>
   </div>
-  <div class="dark-gate-copyright">Copyright 2026. Softhills Co., Ltd. All rights reserved.</div>
+  <div class="dark-gate-footer">
+    <div class="dark-gate-footer-row">Head Office 서울특별시 성동구 성수이로22길 57, 6층 (성수동2가, 영진디지털타워)</div>
+    <div class="dark-gate-footer-row"><span>TEL +82-2-449-9998</span><span class="dot">·</span><span>E-MAIL sales@softhills.net</span></div>
+    <div class="dark-gate-footer-copy">Copyright 2026. Softhills Co., Ltd. All rights reserved.</div>
+  </div>
 </div>
 
 <!-- ── 자원 검색 오버레이 ── -->
