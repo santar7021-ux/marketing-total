@@ -64,21 +64,33 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
 }
 .intro-hero-logo { height: 52px; width: auto; margin-bottom: 6px; }
 .intro-hero-tagline { font-size: 12.5px; color: #9FA0A0; letter-spacing: .3px; margin-bottom: 26px; }
+.intro-hero-search-wrap { width: 100%; max-width: 560px; position: relative; }
 .intro-hero-search {
-  width: 100%; max-width: 560px; display: flex; align-items: center; gap: 12px;
+  width: 100%; box-sizing: border-box; display: flex; align-items: center; gap: 12px;
   background: var(--surface); border: 1px solid var(--border-md); border-radius: 100px;
-  padding: 13px 22px; cursor: pointer; box-shadow: 0 1px 6px rgba(0,0,0,.06);
+  padding: 13px 22px; box-shadow: 0 1px 6px rgba(0,0,0,.06);
   transition: box-shadow .15s, border-color .15s;
 }
-.intro-hero-search:hover, .intro-hero-search:focus-visible {
-  box-shadow: 0 3px 12px rgba(0,117,194,.16); border-color: var(--accent); outline: none;
+.intro-hero-search:focus-within {
+  box-shadow: 0 3px 12px rgba(0,117,194,.16); border-color: var(--accent);
 }
 .intro-hero-search i { color: var(--accent); font-size: 19px; flex-shrink: 0; }
-.intro-hero-search span:first-of-type { flex: 1; text-align: left; color: var(--muted); font-size: 14.5px; }
+.intro-hero-search input {
+  flex: 1; min-width: 0; text-align: left; color: var(--text); font-size: 14.5px;
+  border: none; outline: none; background: transparent; font-family: inherit;
+}
+.intro-hero-search input::placeholder { color: var(--muted); }
 .intro-hero-kbd {
   font-size: 11px; color: var(--muted); border: 1px solid var(--border-md);
   border-radius: 5px; padding: 1px 7px; background: var(--bg); flex-shrink: 0;
 }
+.landing-search-results {
+  position: absolute; top: calc(100% + 8px); left: 0; right: 0; z-index: 20;
+  max-height: 360px; overflow-y: auto; text-align: left;
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg);
+  box-shadow: 0 10px 32px rgba(0,30,60,.14); display: none;
+}
+.landing-search-results.open { display: block; }
 .intro-hero-actions { display: flex; gap: 10px; margin-top: 22px; flex-wrap: wrap; justify-content: center; }
 .intro-hero-btn {
   background: var(--bg); border-color: var(--bg); color: var(--text);
@@ -96,6 +108,11 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
   background: linear-gradient(180deg, #EAF3FC 0%, #fff 65%);
   padding: 20px;
 }
+/* 화면 전환 시 부드럽게 페이드 아웃/인 (로그인 → 인트로 랜딩 → 대시보드) */
+.gate-screen.gate-fade-out { animation: gateFadeOut .26s ease forwards; }
+@keyframes gateFadeOut { from { opacity: 1; } to { opacity: 0; transform: scale(.98); } }
+.gate-screen.gate-fade-in, #app-shell.gate-fade-in { animation: gateFadeIn .45s ease both; }
+@keyframes gateFadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 .gate-card {
   width: 100%; max-width: 380px; padding: 40px 32px; box-sizing: border-box;
   background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg);
@@ -1219,10 +1236,13 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
   <div class="intro-hero" style="border:none;background:transparent;box-shadow:none;margin-bottom:0">
     <img id="intro-hero-logo" class="intro-hero-logo" alt="SOFTHILLS">
     <div class="intro-hero-tagline">Build Your 3D Infrastructure, Seamlessly.</div>
-    <div class="intro-hero-search" onclick="openAiSearch()" role="button" tabindex="0" onkeydown="if(event.key==='Enter')openAiSearch()">
-      <i class="ti ti-search"></i>
-      <span>인증, 특허, 소개 자료, 지원사업 등 모든 자원을 검색해보세요</span>
-      <span class="intro-hero-kbd">/</span>
+    <div class="intro-hero-search-wrap">
+      <div class="intro-hero-search">
+        <i class="ti ti-search"></i>
+        <input type="text" id="landing-search-input" placeholder="인증, 특허, 소개 자료, 지원사업 등 모든 자원을 검색해보세요" autocomplete="off" oninput="onLandingSearchInput()">
+        <span class="intro-hero-kbd">/</span>
+      </div>
+      <div id="landing-search-results" class="landing-search-results"></div>
     </div>
     <div class="intro-hero-actions">
       <button class="btn sm intro-hero-btn" onclick="openAiSearch()"><i class="ti ti-search"></i> 자원 검색</button>
@@ -5254,8 +5274,7 @@ function submitLoginGate(e) {
       try { json = text.trim() ? JSON.parse(text) : {}; } catch (pe) { json = {}; }
       if (json && json.ok) {
         sessionStorage.setItem('sh_logged_in', '1');
-        document.getElementById('login-gate').style.display = 'none';
-        document.getElementById('intro-landing').style.display = 'flex';
+        transitionGateScreens(document.getElementById('login-gate'), document.getElementById('intro-landing'));
       } else {
         errEl.textContent = '비밀번호가 올바르지 않습니다.';
         pwInput.value = '';
@@ -5269,11 +5288,26 @@ function submitLoginGate(e) {
   return false;
 }
 
+// 화면 전환을 부드럽게(페이드 아웃 → 페이드 인) 처리하는 공통 헬퍼
+function transitionGateScreens(fromEl, toEl, toDisplay) {
+  toDisplay = toDisplay || 'flex';
+  if (fromEl) fromEl.classList.add('gate-fade-out');
+  setTimeout(() => {
+    if (fromEl) { fromEl.style.display = 'none'; fromEl.classList.remove('gate-fade-out'); }
+    if (toEl) {
+      toEl.style.display = toDisplay;
+      toEl.classList.add('gate-fade-in');
+      setTimeout(() => toEl.classList.remove('gate-fade-in'), 480);
+    }
+  }, 260);
+}
+
 function enterDashboard() {
   const landing = document.getElementById('intro-landing');
   const shell   = document.getElementById('app-shell');
-  if (landing) landing.style.display = 'none';
-  if (shell)   shell.style.display = '';
+  // '#app-shell{display:none}'는 id 선택자라 '.shell{display:flex}'보다 우선순위가 높아서,
+  // 인라인 스타일을 그냥 비우면(''로 설정) 여전히 숨김 상태로 남아있었습니다. 명시적으로 flex를 지정해야 함.
+  transitionGateScreens(landing, shell, 'flex');
 }
 
 window.addEventListener('DOMContentLoaded', async () => {
@@ -5513,10 +5547,10 @@ function aisSimilarity(a, b) {
   return (2 * inter) / (A.length + B.length);
 }
 
-function runAisSearch(q) {
+// 검색 매칭 로직 자체 (렌더링과 분리) — 모달 검색과 인트로 랜딩 인라인 검색이 함께 사용
+function _aisComputeResults(q) {
   if (!Object.keys(DATA).length) {
-    renderAisResults([{ _ais_msg: '데이터를 불러오는 중입니다. 잠시 후 다시 시도해주세요.' }]);
-    return;
+    return { hits: [{ _ais_msg: '데이터를 불러오는 중입니다. 잠시 후 다시 시도해주세요.' }], isFuzzy: false };
   }
   const qNorm  = aisNorm(q);
   const tokens = q.trim().split(/\s+/).filter(Boolean).map(aisNorm);
@@ -5545,10 +5579,7 @@ function runAisSearch(q) {
     });
   });
 
-  if (hits.length) {
-    renderAisResults(hits, q, false);
-    return;
-  }
+  if (hits.length) return { hits, isFuzzy: false };
 
   // 정확히 일치하는 게 없으면 오타 허용 유사 검색으로 폴백
   const scored = allRows
@@ -5557,7 +5588,12 @@ function runAisSearch(q) {
     .sort((a, b) => b.score - a.score)
     .slice(0, 8);
 
-  renderAisResults(scored, q, true);
+  return { hits: scored, isFuzzy: true };
+}
+
+function runAisSearch(q) {
+  const { hits, isFuzzy } = _aisComputeResults(q);
+  renderAisResults(hits, q, isFuzzy);
 }
 
 function renderAisResults(hits, q = '', isFuzzy = false) {
@@ -5774,6 +5810,93 @@ function renderAisEmpty() {
 }
 
 // ── 결과 클릭 → 해당 페이지 이동 + 하이라이트 ────────────
+// ── 인트로 랜딩: 팝업 없이 검색창 바로 아래에 결과를 보여주는 인라인 검색 ──
+function onLandingSearchInput() {
+  const input = document.getElementById('landing-search-input');
+  const box   = document.getElementById('landing-search-results');
+  const q = input.value;
+  if (!q.trim()) { box.classList.remove('open'); box.innerHTML = ''; return; }
+  const { hits, isFuzzy } = _aisComputeResults(q);
+  renderLandingResults(hits, q, isFuzzy);
+}
+
+function renderLandingResults(hits, q, isFuzzy) {
+  const box = document.getElementById('landing-search-results');
+
+  if (!hits.length) {
+    box.innerHTML = `<div class="ais-empty" style="padding:22px"><i class="ti ti-search-off"></i><span>검색 결과가 없습니다</span></div>`;
+    box.classList.add('open');
+    return;
+  }
+  if (hits[0]?._ais_msg) {
+    box.innerHTML = `<div class="ais-empty" style="padding:22px"><i class="ti ti-loader" style="animation:spin 1s linear infinite"></i><span>${hits[0]._ais_msg}</span></div>`;
+    box.classList.add('open');
+    return;
+  }
+
+  const groups = {};
+  let total = 0;
+  hits.forEach(h => { (groups[h.key] = groups[h.key] || []).push(h); total++; });
+
+  const hl = (str, q) => {
+    if (!q) return str;
+    const re = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+    return str.replace(re, m => `<mark>${m}</mark>`);
+  };
+
+  let shown = 0;
+  let html = '';
+  if (isFuzzy) {
+    html += `<div class="ais-section-label" style="color:var(--accent);text-transform:none;letter-spacing:0"><i class="ti ti-wand" style="margin-right:4px"></i>정확히 일치하는 결과가 없어 비슷한 항목을 보여드려요</div>`;
+  }
+  Object.entries(groups).forEach(([key, items]) => {
+    const meta = AIS_CAT[key];
+    html += `<div class="ais-section-label"><i class="ti ${meta.icon}" style="margin-right:4px"></i>${meta.label} (${items.length})</div>`;
+    items.slice(0, 4).forEach(h => {
+      shown++;
+      const titleHl  = isFuzzy ? (h.title || '(제목 없음)') : hl(h.title || '(제목 없음)', q);
+      const metaText = [h.date, h.content ? h.content.slice(0, 40) : ''].filter(Boolean).join(' · ');
+      html += `<div class="ais-result-item" onclick="landingSearchGo('${key}','${h.row._row}')">
+        <div class="ais-result-icon"><i class="ti ${meta.icon}"></i></div>
+        <div class="ais-result-body">
+          <div class="ais-result-title">${titleHl}</div>
+          <div class="ais-result-meta">${metaText}</div>
+        </div>
+        <span class="ais-result-badge">${meta.label}</span>
+      </div>`;
+    });
+  });
+
+  if (total > shown && !isFuzzy) {
+    html += `<div class="ais-more-btn" onclick="landingSearchOpenFull()"><i class="ti ti-chevrons-down" style="font-size:13px"></i> 나머지 ${total - shown}건 더 보기 (전체 검색으로)</div>`;
+  }
+
+  box.innerHTML = html;
+  box.classList.add('open');
+}
+
+function landingSearchGo(key, row) {
+  document.getElementById('landing-search-results').classList.remove('open');
+  aisGo(key, row); // aisGo가 내부적으로 enterDashboard()도 호출해 대시보드로 전환됨
+}
+
+function landingSearchOpenFull() {
+  const q = document.getElementById('landing-search-input').value;
+  document.getElementById('landing-search-results').classList.remove('open');
+  openAiSearch();
+  const input = document.getElementById('ais-input');
+  input.value = q;
+  onAisInput();
+}
+
+// 검색창 바깥을 클릭하면 결과 드롭다운 닫기
+document.addEventListener('click', (e) => {
+  const wrap = document.querySelector('.intro-hero-search-wrap');
+  const box  = document.getElementById('landing-search-results');
+  if (!box || !box.classList.contains('open')) return;
+  if (wrap && !wrap.contains(e.target)) box.classList.remove('open');
+});
+
 function aisGo(key, rowNum) {
   closeAiSearch();
   enterDashboard(); // 인트로 랜딩(대시보드 진입 전 화면)에서 검색 결과를 클릭한 경우에도 대시보드가 보이도록
