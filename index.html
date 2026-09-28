@@ -56,14 +56,6 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
 .rail-logo .sub   { font-size: 13.8px; color: rgba(255,255,255,.78); margin-top: 2px; }
 
 /* ── 메인 인트로 히어로 (구글 스타일, SOFTHILLS CI 컬러 적용) ── */
-.intro-hero {
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  padding: 52px 20px 36px; text-align: center;
-  background: linear-gradient(180deg, #EAF3FC 0%, var(--surface) 100%);
-  border: 1px solid var(--border); border-radius: var(--r-lg); margin-bottom: 22px;
-}
-.intro-hero-logo { height: 52px; width: auto; margin-bottom: 6px; }
-.intro-hero-tagline { font-size: 12.5px; color: #9FA0A0; letter-spacing: .3px; margin-bottom: 26px; }
 .intro-hero-search-wrap { width: 100%; max-width: 560px; position: relative; }
 .intro-hero-search {
   width: 100%; box-sizing: border-box; display: flex; align-items: center; gap: 12px;
@@ -84,13 +76,13 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
   font-size: 11px; color: var(--muted); border: 1px solid var(--border-md);
   border-radius: 5px; padding: 1px 7px; background: var(--bg); flex-shrink: 0;
 }
-.landing-search-results {
-  position: absolute; top: calc(100% + 8px); left: 0; right: 0; z-index: 20;
-  max-height: 360px; overflow-y: auto; text-align: left;
+.landing-search-results-inline {
+  width: 100%; max-height: 46vh; overflow-y: auto; text-align: left;
   background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg);
-  box-shadow: 0 10px 32px rgba(0,30,60,.14); display: none;
+  box-shadow: 0 10px 32px rgba(0,30,60,.14); margin-top: 16px;
 }
-.landing-search-results.open { display: block; }
+.gate-search-stage { display: flex; flex-direction: column; align-items: center; width: 100%; max-width: 560px; }
+.landing-select-bar { margin-top: 16px; width: 100%; box-sizing: border-box; border-radius: var(--r-lg); border: 1px solid var(--border); overflow: hidden; }
 .intro-hero-actions { display: flex; gap: 10px; margin-top: 22px; flex-wrap: wrap; justify-content: center; }
 .intro-hero-btn {
   background: var(--bg); border-color: var(--bg); color: var(--text);
@@ -135,7 +127,8 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
     radial-gradient(ellipse 900px 700px at 78% 30%, rgba(0,117,194,.35) 0%, rgba(0,117,194,0) 60%),
     radial-gradient(ellipse 1200px 900px at 50% 100%, rgba(0,67,134,.25) 0%, rgba(0,67,134,0) 55%),
     linear-gradient(160deg, #060a14 0%, #0a1220 45%, #060a14 100%);
-  position: fixed; overflow: hidden;
+  position: fixed; overflow-x: hidden; overflow-y: auto;
+  align-items: flex-start; padding-top: 9vh; padding-bottom: 40px;
 }
 .dark-gate::before {
   content: ''; position: absolute; inset: 0; pointer-events: none;
@@ -183,25 +176,6 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
   position: absolute; left: 24px; bottom: 18px; z-index: 1;
   font-size: 11px; color: rgba(255,255,255,.4); letter-spacing: .2px;
 }
-
-/* ── 인트로 랜딩: 상단 헤더 + 하단 푸터가 있는 진짜 홈페이지 느낌으로 ── */
-.intro-landing-screen { flex-direction: column; justify-content: space-between; padding: 0; }
-.intro-landing-header {
-  width: 100%; display: flex; align-items: center; justify-content: space-between;
-  padding: 22px 32px; box-sizing: border-box;
-}
-.intro-landing-header-logo { height: 22px; width: auto; }
-.intro-landing-header-link {
-  font-size: 12.5px; color: var(--muted); text-decoration: none;
-  display: flex; align-items: center; gap: 4px; transition: color .12s;
-}
-.intro-landing-header-link:hover { color: var(--accent); }
-.intro-landing-footer {
-  width: 100%; text-align: center; padding: 16px 20px 24px; box-sizing: border-box;
-  font-size: 11.5px; color: var(--muted); line-height: 1.8;
-}
-.intro-landing-footer .dot { margin: 0 7px; }
-.intro-landing-footer-copy { margin-top: 2px; color: #B7B7B7; }
 
 .nav-group { padding: 8px 0; border-bottom: 1px solid var(--border); }
 .nav-item { position: relative; }
@@ -1052,10 +1026,6 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
   .dark-gate-tagline { font-size: 13px; margin-bottom: 4px; text-align: center; padding: 0 12px; }
   .dark-gate-subtitle { font-size: 11px; margin-bottom: 26px; text-align: center; }
   .dark-gate-copyright { left: 16px; bottom: 12px; font-size: 10px; }
-  .intro-landing-header { padding: 16px 18px; }
-  .intro-landing-footer { font-size: 10.5px; padding: 12px 14px 18px; }
-  .intro-landing-footer .dot { display: block; margin: 2px 0 0; }
-  .intro-hero-logo { height: 40px; }
   .intro-hero-search { padding: 11px 16px; }
   .intro-hero-search span:first-of-type { font-size: 13px; }
   .intro-hero-kbd { display: none; }
@@ -1210,7 +1180,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
 <!-- ── 로그인 게이트: 대시보드 진입 전 비밀번호 확인 ── -->
 <div id="login-gate" class="gate-screen dark-gate">
   <div class="dark-gate-glow"></div>
-  <div class="dark-gate-content">
+  <div class="dark-gate-content" id="dark-gate-content">
     <img id="gate-logo" class="dark-gate-logo" alt="SOFTHILLS">
     <div class="dark-gate-tagline">Build Your 3D Infrastructure, Seamlessly.</div>
     <div class="dark-gate-subtitle">소프트힐스 마케팅 운영 대시보드</div>
@@ -1222,39 +1192,35 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
       <button type="submit" class="btn dark-gate-login-btn">확인</button>
     </form>
     <div class="gate-error" id="gate-error"></div>
+
+    <!-- 로그인 성공 시 위 로그인 폼이 사라지고, 오퍼시티 0→100으로 이 검색 영역이 나타남 -->
+    <div id="gate-search-stage" class="gate-search-stage" style="display:none">
+      <div class="intro-hero-search-wrap">
+        <div class="intro-hero-search">
+          <i class="ti ti-search"></i>
+          <input type="text" id="landing-search-input" placeholder="인증, 특허, 소개 자료, 지원사업 등 모든 자원을 검색해보세요" autocomplete="off" oninput="onLandingSearchInput()">
+          <span class="intro-hero-kbd">/</span>
+        </div>
+      </div>
+      <div class="intro-hero-actions">
+        <button class="btn sm intro-hero-btn primary" onclick="enterDashboard()"><i class="ti ti-layout-dashboard"></i> 대시보드 입장하기</button>
+      </div>
+
+      <div id="landing-select-bar" class="ais-select-bar landing-select-bar" style="display:none">
+        <div class="ais-select-bar-top">
+          <span id="landing-select-count"></span>
+          <div style="display:flex;gap:8px;margin-left:auto">
+            <button class="btn sm" onclick="clearAisSelection('landing')">선택 해제</button>
+            <button class="btn sm primary" onclick="downloadAisSelected()"><i class="ti ti-file-spreadsheet"></i> 선택 항목 엑셀 다운로드</button>
+          </div>
+        </div>
+        <div class="ais-select-list" id="landing-select-list"></div>
+      </div>
+
+      <div id="landing-search-results" class="landing-search-results-inline"></div>
+    </div>
   </div>
   <div class="dark-gate-copyright">Copyright 2026. Softhills Co., Ltd. All rights reserved.</div>
-</div>
-
-<!-- ── 인트로 랜딩: 구글 스타일 검색 화면 (로그인 후, 대시보드 진입 전) ── -->
-<div id="intro-landing" class="gate-screen intro-landing-screen" style="display:none">
-  <div class="intro-landing-header">
-    <img id="intro-landing-header-logo" class="intro-landing-header-logo" alt="SOFTHILLS">
-    <a href="https://www.softhills.net" target="_blank" class="intro-landing-header-link">www.softhills.net <i class="ti ti-external-link" style="font-size:13px"></i></a>
-  </div>
-
-  <div class="intro-hero" style="border:none;background:transparent;box-shadow:none;margin-bottom:0">
-    <img id="intro-hero-logo" class="intro-hero-logo" alt="SOFTHILLS">
-    <div class="intro-hero-tagline">Build Your 3D Infrastructure, Seamlessly.</div>
-    <div class="intro-hero-search-wrap">
-      <div class="intro-hero-search">
-        <i class="ti ti-search"></i>
-        <input type="text" id="landing-search-input" placeholder="인증, 특허, 소개 자료, 지원사업 등 모든 자원을 검색해보세요" autocomplete="off" oninput="onLandingSearchInput()">
-        <span class="intro-hero-kbd">/</span>
-      </div>
-      <div id="landing-search-results" class="landing-search-results"></div>
-    </div>
-    <div class="intro-hero-actions">
-      <button class="btn sm intro-hero-btn" onclick="openAiSearch()"><i class="ti ti-search"></i> 자원 검색</button>
-      <button class="btn sm intro-hero-btn primary" onclick="enterDashboard()"><i class="ti ti-layout-dashboard"></i> 대시보드 입장하기</button>
-    </div>
-  </div>
-
-  <div class="intro-landing-footer">
-    <div class="intro-landing-footer-row">Head Office 서울특별시 성동구 성수이로22길 57, 6층 (성수동2가, 영진디지털타워)</div>
-    <div class="intro-landing-footer-row"><span>TEL +82-2-449-9998</span><span class="dot">·</span><span>E-MAIL sales@softhills.net</span></div>
-    <div class="intro-landing-footer-copy">Copyright 2026. Softhills. All rights reserved.</div>
-  </div>
 </div>
 
 <!-- ── 자원 검색 오버레이 ── -->
@@ -5274,7 +5240,7 @@ function submitLoginGate(e) {
       try { json = text.trim() ? JSON.parse(text) : {}; } catch (pe) { json = {}; }
       if (json && json.ok) {
         sessionStorage.setItem('sh_logged_in', '1');
-        transitionGateScreens(document.getElementById('login-gate'), document.getElementById('intro-landing'));
+        revealSearchStage();
       } else {
         errEl.textContent = '비밀번호가 올바르지 않습니다.';
         pwInput.value = '';
@@ -5286,6 +5252,23 @@ function submitLoginGate(e) {
     })
     .finally(() => { if (submitBtn) submitBtn.disabled = false; });
   return false;
+}
+
+// 로그인 폼을 그 자리에서 지우고(페이드 아웃), 같은 다크 화면 위에 검색 영역을 오퍼시티 0→100으로 띄움
+function revealSearchStage() {
+  const form  = document.getElementById('gate-login-form');
+  const err   = document.getElementById('gate-error');
+  const stage = document.getElementById('gate-search-stage');
+  if (err) err.textContent = '';
+  if (form) form.classList.add('gate-fade-out');
+  setTimeout(() => {
+    if (form) { form.style.display = 'none'; form.classList.remove('gate-fade-out'); }
+    stage.style.display = 'flex';
+    stage.classList.add('gate-fade-in');
+    setTimeout(() => stage.classList.remove('gate-fade-in'), 480);
+    const input = document.getElementById('landing-search-input');
+    if (input) input.focus();
+  }, 260);
 }
 
 // 화면 전환을 부드럽게(페이드 아웃 → 페이드 인) 처리하는 공통 헬퍼
@@ -5303,27 +5286,23 @@ function transitionGateScreens(fromEl, toEl, toDisplay) {
 }
 
 function enterDashboard() {
-  const landing = document.getElementById('intro-landing');
-  const shell   = document.getElementById('app-shell');
+  const gate  = document.getElementById('login-gate');
+  const shell = document.getElementById('app-shell');
   // '#app-shell{display:none}'는 id 선택자라 '.shell{display:flex}'보다 우선순위가 높아서,
   // 인라인 스타일을 그냥 비우면(''로 설정) 여전히 숨김 상태로 남아있었습니다. 명시적으로 flex를 지정해야 함.
-  transitionGateScreens(landing, shell, 'flex');
+  transitionGateScreens(gate, shell, 'flex');
 }
 
 window.addEventListener('DOMContentLoaded', async () => {
-  // 사이드바에 이미 내장된 로고 이미지를 그대로 복사해서 로그인 게이트·인트로 랜딩에도 사용 (같은 base64를 중복 저장하지 않기 위함)
+  // 사이드바에 이미 내장된 로고 이미지를 그대로 복사해서 로그인 게이트에도 사용 (같은 base64를 중복 저장하지 않기 위함)
   const sidebarLogo = document.querySelector('.rail-logo .brand-logo');
-  const heroLogo = document.getElementById('intro-hero-logo');
   const gateLogo = document.getElementById('gate-logo');
-  const landingHeaderLogo = document.getElementById('intro-landing-header-logo');
-  if (sidebarLogo && heroLogo) heroLogo.src = sidebarLogo.src;
   if (sidebarLogo && gateLogo) gateLogo.src = sidebarLogo.src;
-  if (sidebarLogo && landingHeaderLogo) landingHeaderLogo.src = sidebarLogo.src;
 
-  // 이미 이번 브라우저 세션에서 로그인했다면 로그인 게이트는 건너뛰고 인트로 랜딩부터 시작
+  // 이미 이번 브라우저 세션에서 로그인했다면 로그인 버튼/비밀번호 입력은 건너뛰고 바로 검색 화면부터 시작
   if (sessionStorage.getItem('sh_logged_in') === '1') {
-    document.getElementById('login-gate').style.display = 'none';
-    document.getElementById('intro-landing').style.display = 'flex';
+    document.getElementById('gate-login-btn').style.display = 'none';
+    document.getElementById('gate-search-stage').style.display = 'flex';
   }
 
   const stored = localStorage.getItem('sh_api_url') || DEFAULT_API_URL;
@@ -5438,6 +5417,13 @@ const AIS = {
   focusIdx: -1,
   selected: new Set(), // 체크된 검색 결과 (형식: "카테고리키_행번호"), 엑셀 다운로드용
   _lastGroups: {}, // 가장 최근 렌더된 카테고리별 결과 (카테고리 전체 선택 체크박스용)
+};
+
+// 자원 검색이 두 군데(대시보드 안 팝업 / 로그인 후 인트로 화면)에 똑같이 동작해야 해서,
+// 어느 화면인지에 따라 결과·선택바를 어느 DOM에 그릴지만 이 표로 구분합니다. 로직은 완전히 동일합니다.
+const AIS_UI_CTX = {
+  modal:   { results: 'ais-results',            selectBar: 'ais-select-bar',            selectCount: 'ais-select-count',            selectList: 'ais-select-list' },
+  landing: { results: 'landing-search-results',  selectBar: 'landing-select-bar',        selectCount: 'landing-select-count',        selectList: 'landing-select-list' },
 };
 
 // 카테고리 메타
@@ -5596,8 +5582,10 @@ function runAisSearch(q) {
   renderAisResults(hits, q, isFuzzy);
 }
 
-function renderAisResults(hits, q = '', isFuzzy = false) {
-  const el = document.getElementById('ais-results');
+function renderAisResults(hits, q = '', isFuzzy = false, ctx = 'modal') {
+  const ids = AIS_UI_CTX[ctx];
+  const el = document.getElementById(ids.results);
+  if (!el) return;
   if (!hits.length) {
     el.innerHTML = `<div class="ais-empty"><i class="ti ti-search-off"></i><span>검색 결과가 없습니다</span><span style="font-size:12px">"${q}"와 일치하거나 비슷한 항목을 찾지 못했어요.</span></div>`;
     return;
@@ -5630,7 +5618,7 @@ function renderAisResults(hits, q = '', isFuzzy = false) {
     const allChecked = items.every(h => AIS.selected.has(key + '_' + h.row._row));
     html += `<div class="ais-section-label">
       <label class="ais-cat-check-wrap" onclick="event.stopPropagation()">
-        <input type="checkbox" class="ais-cat-check" ${allChecked ? 'checked' : ''} onchange="toggleAisCategorySelect('${key}', this.checked)" title="이 카테고리 전체 선택">
+        <input type="checkbox" class="ais-cat-check" ${allChecked ? 'checked' : ''} onchange="toggleAisCategorySelect('${key}', this.checked, '${ctx}')" title="이 카테고리 전체 선택">
       </label>
       <i class="ti ${meta.icon}" style="margin-right:4px"></i>${meta.label} (${items.length})
     </div>`;
@@ -5640,7 +5628,7 @@ function renderAisResults(hits, q = '', isFuzzy = false) {
       const checkKey  = key + '_' + h.row._row;
       html += `<div class="ais-result-item" data-key="${key}" data-row="${h.row._row}" onclick="aisGo('${key}','${h.row._row}')">
         <label class="ais-check-wrap" onclick="event.stopPropagation()">
-          <input type="checkbox" class="ais-check" data-checkkey="${checkKey}" ${AIS.selected.has(checkKey) ? 'checked' : ''} onchange="toggleAisSelect('${key}','${h.row._row}', this.checked)">
+          <input type="checkbox" class="ais-check" data-checkkey="${checkKey}" ${AIS.selected.has(checkKey) ? 'checked' : ''} onchange="toggleAisSelect('${key}','${h.row._row}', this.checked, '${ctx}')">
         </label>
         <div class="ais-result-icon"><i class="ti ${meta.icon}"></i></div>
         <div class="ais-result-body">
@@ -5651,16 +5639,16 @@ function renderAisResults(hits, q = '', isFuzzy = false) {
       </div>`;
     });
     if (items.length > 5 && !isFuzzy) {
-      html += `<div class="ais-more-btn" onclick="showAisMore(this,'${key}','${encodeURIComponent(q)}')">
+      html += `<div class="ais-more-btn" onclick="showAisMore(this,'${key}','${encodeURIComponent(q)}','${ctx}')">
         <i class="ti ti-chevrons-down" style="font-size:13px"></i> 외 ${items.length - 5}건 더 보기
       </div>`;
     }
   });
   el.innerHTML = html;
-  updateAisSelectBar();
+  updateAisSelectBar(ctx);
 }
 
-function showAisMore(btn, key, qEncoded) {
+function showAisMore(btn, key, qEncoded, ctx = 'modal') {
   const q    = decodeURIComponent(qEncoded);
   const meta = AIS_CAT[key];
   if (!meta) return;
@@ -5692,7 +5680,7 @@ function showAisMore(btn, key, qEncoded) {
     const checkKey = key + '_' + h._row;
     return `<div class="ais-result-item" onclick="aisGo('${key}','${h._row}')">
       <label class="ais-check-wrap" onclick="event.stopPropagation()">
-        <input type="checkbox" class="ais-check" data-checkkey="${checkKey}" ${AIS.selected.has(checkKey) ? 'checked' : ''} onchange="toggleAisSelect('${key}','${h._row}', this.checked)">
+        <input type="checkbox" class="ais-check" data-checkkey="${checkKey}" ${AIS.selected.has(checkKey) ? 'checked' : ''} onchange="toggleAisSelect('${key}','${h._row}', this.checked, '${ctx}')">
       </label>
       <div class="ais-result-icon"><i class="ti ${meta.icon}"></i></div>
       <div class="ais-result-body">
@@ -5710,15 +5698,15 @@ function showAisMore(btn, key, qEncoded) {
 }
 
 // ── 검색 결과 체크박스 선택 → 엑셀 다운로드 ──────────────────
-function toggleAisSelect(key, row, checked) {
+function toggleAisSelect(key, row, checked, ctx = 'modal') {
   const checkKey = key + '_' + row;
   if (checked) AIS.selected.add(checkKey);
   else AIS.selected.delete(checkKey);
-  updateAisSelectBar();
+  updateAisSelectBar(ctx);
 }
 
 // 카테고리 헤더의 "전체 선택" 체크박스 — 지금 화면에 잡힌 그 카테고리 결과 전체를 한 번에 선택/해제
-function toggleAisCategorySelect(key, checked) {
+function toggleAisCategorySelect(key, checked, ctx = 'modal') {
   const items = (AIS._lastGroups && AIS._lastGroups[key]) || [];
   items.forEach(h => {
     const checkKey = key + '_' + h.row._row;
@@ -5726,7 +5714,7 @@ function toggleAisCategorySelect(key, checked) {
     else AIS.selected.delete(checkKey);
   });
   document.querySelectorAll(`.ais-check[data-checkkey^="${key}_"]`).forEach(cb => { cb.checked = checked; });
-  updateAisSelectBar();
+  updateAisSelectBar(ctx);
 }
 
 // checkKey("카테고리_행번호")를 실제 데이터 행으로 해석
@@ -5740,10 +5728,11 @@ function _aisResolveSelected(checkKey) {
   return { key, row, meta, found };
 }
 
-function updateAisSelectBar() {
-  const bar   = document.getElementById('ais-select-bar');
-  const count = document.getElementById('ais-select-count');
-  const list  = document.getElementById('ais-select-list');
+function updateAisSelectBar(ctx = 'modal') {
+  const ids = AIS_UI_CTX[ctx];
+  const bar   = document.getElementById(ids.selectBar);
+  const count = document.getElementById(ids.selectCount);
+  const list  = document.getElementById(ids.selectList);
   if (!bar || !count || !list) return;
   if (AIS.selected.size > 0) {
     bar.style.display = 'block';
@@ -5755,7 +5744,7 @@ function updateAisSelectBar() {
       return `<div class="ais-select-item">
         <span class="ais-select-item-badge">${r.meta.label}</span>
         <span class="ais-select-item-title">${title}</span>
-        <span class="ais-select-item-remove" onclick="removeAisSelect('${checkKey}')" title="선택 해제">×</span>
+        <span class="ais-select-item-remove" onclick="removeAisSelect('${checkKey}','${ctx}')" title="선택 해제">×</span>
       </div>`;
     }).join('');
   } else {
@@ -5764,17 +5753,18 @@ function updateAisSelectBar() {
   }
 }
 
-function removeAisSelect(checkKey) {
+function removeAisSelect(checkKey, ctx = 'modal') {
   AIS.selected.delete(checkKey);
   const cb = document.querySelector(`.ais-check[data-checkkey="${checkKey}"]`);
   if (cb) cb.checked = false;
-  updateAisSelectBar();
+  updateAisSelectBar(ctx);
 }
 
-function clearAisSelection() {
+function clearAisSelection(ctx = 'modal') {
   AIS.selected.clear();
   document.querySelectorAll('.ais-check').forEach(cb => cb.checked = false);
-  updateAisSelectBar();
+  updateAisSelectBar('modal');
+  updateAisSelectBar('landing');
 }
 
 function downloadAisSelected() {
@@ -5799,103 +5789,27 @@ function downloadAisSelected() {
   downloadAsXls(cols, rows, `소프트힐스_자원검색_선택항목_${new Date().toISOString().slice(0,10)}.xls`);
 }
 
-function renderAisEmpty() {
-  document.getElementById('ais-results').innerHTML = `
+function renderAisEmpty(ctx = 'modal') {
+  const ids = AIS_UI_CTX[ctx];
+  const el = document.getElementById(ids.results);
+  if (!el) return;
+  el.innerHTML = ctx === 'modal' ? `
     <div class="ais-empty">
       <i class="ti ti-search"></i>
       <span>검색어를 입력하세요</span>
       <span style="font-size:12px">인증·수상·특허·상표·연혁·소개 자료·유튜브 영상·프로그램 저작/등록 전체 검색</span>
-    </div>`;
-  updateAisSelectBar();
+    </div>` : '';
+  updateAisSelectBar(ctx);
 }
 
 // ── 결과 클릭 → 해당 페이지 이동 + 하이라이트 ────────────
-// ── 인트로 랜딩: 팝업 없이 검색창 바로 아래에 결과를 보여주는 인라인 검색 ──
+// ── 인트로 화면: 팝업 없이 검색창 바로 아래 영역에 결과를 그대로 그림 (대시보드 안 검색과 동일한 로직) ──
 function onLandingSearchInput() {
-  const input = document.getElementById('landing-search-input');
-  const box   = document.getElementById('landing-search-results');
-  const q = input.value;
-  if (!q.trim()) { box.classList.remove('open'); box.innerHTML = ''; return; }
-  const { hits, isFuzzy } = _aisComputeResults(q);
-  renderLandingResults(hits, q, isFuzzy);
-}
-
-function renderLandingResults(hits, q, isFuzzy) {
-  const box = document.getElementById('landing-search-results');
-
-  if (!hits.length) {
-    box.innerHTML = `<div class="ais-empty" style="padding:22px"><i class="ti ti-search-off"></i><span>검색 결과가 없습니다</span></div>`;
-    box.classList.add('open');
-    return;
-  }
-  if (hits[0]?._ais_msg) {
-    box.innerHTML = `<div class="ais-empty" style="padding:22px"><i class="ti ti-loader" style="animation:spin 1s linear infinite"></i><span>${hits[0]._ais_msg}</span></div>`;
-    box.classList.add('open');
-    return;
-  }
-
-  const groups = {};
-  let total = 0;
-  hits.forEach(h => { (groups[h.key] = groups[h.key] || []).push(h); total++; });
-
-  const hl = (str, q) => {
-    if (!q) return str;
-    const re = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
-    return str.replace(re, m => `<mark>${m}</mark>`);
-  };
-
-  let shown = 0;
-  let html = '';
-  if (isFuzzy) {
-    html += `<div class="ais-section-label" style="color:var(--accent);text-transform:none;letter-spacing:0"><i class="ti ti-wand" style="margin-right:4px"></i>정확히 일치하는 결과가 없어 비슷한 항목을 보여드려요</div>`;
-  }
-  Object.entries(groups).forEach(([key, items]) => {
-    const meta = AIS_CAT[key];
-    html += `<div class="ais-section-label"><i class="ti ${meta.icon}" style="margin-right:4px"></i>${meta.label} (${items.length})</div>`;
-    items.slice(0, 4).forEach(h => {
-      shown++;
-      const titleHl  = isFuzzy ? (h.title || '(제목 없음)') : hl(h.title || '(제목 없음)', q);
-      const metaText = [h.date, h.content ? h.content.slice(0, 40) : ''].filter(Boolean).join(' · ');
-      html += `<div class="ais-result-item" onclick="landingSearchGo('${key}','${h.row._row}')">
-        <div class="ais-result-icon"><i class="ti ${meta.icon}"></i></div>
-        <div class="ais-result-body">
-          <div class="ais-result-title">${titleHl}</div>
-          <div class="ais-result-meta">${metaText}</div>
-        </div>
-        <span class="ais-result-badge">${meta.label}</span>
-      </div>`;
-    });
-  });
-
-  if (total > shown && !isFuzzy) {
-    html += `<div class="ais-more-btn" onclick="landingSearchOpenFull()"><i class="ti ti-chevrons-down" style="font-size:13px"></i> 나머지 ${total - shown}건 더 보기 (전체 검색으로)</div>`;
-  }
-
-  box.innerHTML = html;
-  box.classList.add('open');
-}
-
-function landingSearchGo(key, row) {
-  document.getElementById('landing-search-results').classList.remove('open');
-  aisGo(key, row); // aisGo가 내부적으로 enterDashboard()도 호출해 대시보드로 전환됨
-}
-
-function landingSearchOpenFull() {
   const q = document.getElementById('landing-search-input').value;
-  document.getElementById('landing-search-results').classList.remove('open');
-  openAiSearch();
-  const input = document.getElementById('ais-input');
-  input.value = q;
-  onAisInput();
+  if (!q.trim()) { renderAisEmpty('landing'); return; }
+  const { hits, isFuzzy } = _aisComputeResults(q);
+  renderAisResults(hits, q, isFuzzy, 'landing');
 }
-
-// 검색창 바깥을 클릭하면 결과 드롭다운 닫기
-document.addEventListener('click', (e) => {
-  const wrap = document.querySelector('.intro-hero-search-wrap');
-  const box  = document.getElementById('landing-search-results');
-  if (!box || !box.classList.contains('open')) return;
-  if (wrap && !wrap.contains(e.target)) box.classList.remove('open');
-});
 
 function aisGo(key, rowNum) {
   closeAiSearch();
