@@ -56,15 +56,18 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
 .rail-logo .sub   { font-size: 13.8px; color: rgba(255,255,255,.78); margin-top: 2px; }
 
 /* ── 메인 인트로 히어로 (구글 스타일, SOFTHILLS CI 컬러 적용) ── */
-.intro-hero-search-wrap { width: 100%; max-width: 560px; position: relative; }
+.landing-search-console {
+  width: 100%; max-width: 560px; background: var(--surface);
+  border: 1px solid var(--border-md); border-radius: 22px;
+  box-shadow: 0 1px 6px rgba(0,0,0,.06), 0 12px 32px rgba(0,30,60,.12);
+  overflow: hidden; transition: box-shadow .15s, border-color .15s;
+}
+.landing-search-console:focus-within {
+  box-shadow: 0 3px 12px rgba(0,117,194,.16), 0 12px 32px rgba(0,30,60,.12); border-color: var(--accent);
+}
 .intro-hero-search {
   width: 100%; box-sizing: border-box; display: flex; align-items: center; gap: 12px;
-  background: var(--surface); border: 1px solid var(--border-md); border-radius: 100px;
-  padding: 13px 22px; box-shadow: 0 1px 6px rgba(0,0,0,.06);
-  transition: box-shadow .15s, border-color .15s;
-}
-.intro-hero-search:focus-within {
-  box-shadow: 0 3px 12px rgba(0,117,194,.16); border-color: var(--accent);
+  padding: 15px 22px;
 }
 .intro-hero-search i { color: var(--accent); font-size: 19px; flex-shrink: 0; }
 .intro-hero-search input {
@@ -77,12 +80,10 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
   border-radius: 5px; padding: 1px 7px; background: var(--bg); flex-shrink: 0;
 }
 .landing-search-results-inline {
-  width: 100%; text-align: left;
-  background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg);
-  box-shadow: 0 10px 32px rgba(0,30,60,.14); margin-top: 16px;
+  width: 100%; text-align: left; border-top: 1px solid var(--border);
 }
 .gate-search-stage { display: flex; flex-direction: column; align-items: center; width: 100%; max-width: 560px; }
-.landing-select-bar { margin-top: 16px; width: 100%; box-sizing: border-box; border-radius: var(--r-lg); border: 1px solid var(--border); max-height: none; overflow: visible; }
+.landing-select-bar { width: 100%; box-sizing: border-box; border-top: 1px solid var(--border); border-radius: 0; max-height: none; overflow: visible; }
 .intro-hero-actions { display: flex; gap: 10px; margin-top: 22px; flex-wrap: wrap; justify-content: center; }
 .intro-hero-btn {
   background: var(--bg); border-color: var(--bg); color: var(--text);
@@ -128,8 +129,10 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
     radial-gradient(ellipse 1200px 900px at 50% 100%, rgba(0,67,134,.25) 0%, rgba(0,67,134,0) 55%),
     linear-gradient(160deg, #060a14 0%, #0a1220 45%, #060a14 100%);
   position: fixed; overflow-x: hidden; overflow-y: auto;
-  align-items: center; align-items: safe center;
-  padding: 60px 20px 90px;
+  /* 검색 결과가 생겨도 로고·검색창 위치가 다시 계산되며 "훅" 움직이지 않도록,
+     화면 높이에 따라 동적으로 재중앙정렬되는 align-items:center 대신 고정된 위쪽 여백을 씁니다. */
+  align-items: flex-start; justify-content: center;
+  padding: 20vh 20px 90px;
 }
 .dark-gate::before {
   content: ''; position: absolute; inset: 0; pointer-events: none;
@@ -1200,34 +1203,35 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
 
     <!-- 로그인 성공 시 위 로그인 폼이 사라지고, 오퍼시티 0→100으로 이 검색 영역이 나타남 -->
     <div id="gate-search-stage" class="gate-search-stage" style="display:none">
-      <div class="intro-hero-search-wrap">
+      <div class="intro-hero-actions" style="margin-top:0;margin-bottom:16px">
+        <button class="btn sm intro-hero-btn primary" onclick="enterDashboard()"><i class="ti ti-layout-dashboard"></i> 대시보드 입장하기</button>
+      </div>
+
+      <div class="landing-search-console">
         <div class="intro-hero-search">
           <i class="ti ti-search"></i>
           <input type="text" id="landing-search-input" placeholder="인증, 특허, 소개 자료, 지원사업 등 모든 자원을 검색해보세요" autocomplete="off" oninput="onLandingSearchInput()">
           <span class="intro-hero-kbd">/</span>
         </div>
-      </div>
-      <div class="intro-hero-actions">
-        <button class="btn sm intro-hero-btn primary" onclick="enterDashboard()"><i class="ti ti-layout-dashboard"></i> 대시보드 입장하기</button>
-      </div>
 
-      <div id="landing-select-bar" class="ais-select-bar landing-select-bar" style="display:none">
-        <div class="ais-select-bar-top">
-          <span id="landing-select-count"></span>
-          <div style="display:flex;gap:8px;margin-left:auto">
-            <button class="btn sm" onclick="clearAisSelection('landing')">선택 해제</button>
-            <button class="btn sm primary" onclick="downloadAisSelected()"><i class="ti ti-file-spreadsheet"></i> 선택 항목 엑셀 다운로드</button>
+        <div id="landing-select-bar" class="ais-select-bar landing-select-bar" style="display:none">
+          <div class="ais-select-bar-top">
+            <span id="landing-select-count"></span>
+            <div style="display:flex;gap:8px;margin-left:auto">
+              <button class="btn sm" onclick="clearAisSelection('landing')">선택 해제</button>
+              <button class="btn sm primary" onclick="downloadAisSelected()"><i class="ti ti-file-spreadsheet"></i> 선택 항목 엑셀 다운로드</button>
+            </div>
           </div>
+          <div class="ais-select-list" id="landing-select-list"></div>
         </div>
-        <div class="ais-select-list" id="landing-select-list"></div>
-      </div>
 
-      <div id="landing-search-results" class="landing-search-results-inline"></div>
+        <div id="landing-search-results" class="landing-search-results-inline" style="display:none"></div>
+      </div>
     </div>
   </div>
   <div class="dark-gate-footer">
     <div class="dark-gate-footer-row">Head Office 서울특별시 성동구 성수이로22길 57, 6층 (성수동2가, 영진디지털타워)</div>
-    <div class="dark-gate-footer-row"><span>TEL +82-2-449-9998</span><span class="dot">·</span><span>E-MAIL sales@softhills.net</span></div>
+    <div class="dark-gate-footer-row"><span>TEL +82-2-499-9998</span><span class="dot">·</span><span>E-MAIL sales@softhills.net</span></div>
     <div class="dark-gate-footer-copy">Copyright 2026. Softhills Co., Ltd. All rights reserved.</div>
   </div>
 </div>
@@ -5270,6 +5274,7 @@ function revealSearchStage() {
   const stage = document.getElementById('gate-search-stage');
   if (err) err.textContent = '';
   if (form) form.classList.add('gate-fade-out');
+  renderAisEmpty('landing'); // 결과 영역을 처음부터 채워둬서 검색할 때 박스가 갑자기 나타나지 않도록
   setTimeout(() => {
     if (form) { form.style.display = 'none'; form.classList.remove('gate-fade-out'); }
     stage.style.display = 'flex';
@@ -5595,6 +5600,7 @@ function renderAisResults(hits, q = '', isFuzzy = false, ctx = 'modal') {
   const ids = AIS_UI_CTX[ctx];
   const el = document.getElementById(ids.results);
   if (!el) return;
+  el.style.display = 'block'; // 결과가 생기면 보여줌 (비어있을 땐 landing 쪽에서 다시 숨김)
   if (!hits.length) {
     el.innerHTML = `<div class="ais-empty"><i class="ti ti-search-off"></i><span>검색 결과가 없습니다</span><span style="font-size:12px">"${q}"와 일치하거나 비슷한 항목을 찾지 못했어요.</span></div>`;
     return;
@@ -5802,12 +5808,19 @@ function renderAisEmpty(ctx = 'modal') {
   const ids = AIS_UI_CTX[ctx];
   const el = document.getElementById(ids.results);
   if (!el) return;
-  el.innerHTML = ctx === 'modal' ? `
+  if (ctx === 'landing') {
+    // 인트로 화면에서는 검색어가 없으면 결과 영역 자체를 완전히 숨김 (빈 테두리 줄이 남지 않도록)
+    el.innerHTML = '';
+    el.style.display = 'none';
+    updateAisSelectBar(ctx);
+    return;
+  }
+  el.innerHTML = `
     <div class="ais-empty">
       <i class="ti ti-search"></i>
       <span>검색어를 입력하세요</span>
       <span style="font-size:12px">인증·수상·특허·상표·연혁·소개 자료·유튜브 영상·프로그램 저작/등록 전체 검색</span>
-    </div>` : '';
+    </div>`;
   updateAisSelectBar(ctx);
 }
 
