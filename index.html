@@ -4529,6 +4529,12 @@ async function submitModal() {
       const imgNameEl = document.getElementById('f-imgname') || document.getElementById('f-filename');
       if (imgIdEl)   imgIdEl.value   = uploaded.fileId || '';
       if (imgNameEl) imgNameEl.value = currentUploadFile.name;
+      // 첨부 파일이 저장된 공유 드라이브 폴더 위치를 "공유 폴더 위치" 칸이 비어있을 때만 자동으로 채워줌
+      // (사용자가 이미 직접 입력해둔 값은 덮어쓰지 않음)
+      const folderUrlEl = document.getElementById('f-folderurl');
+      if (folderUrlEl && !folderUrlEl.value.trim() && uploaded.folderUrl) {
+        folderUrlEl.value = uploaded.folderUrl;
+      }
       currentUploadFile = null;
     } catch(e) {
       banner('파일 업로드 실패: ' + e.message, 'error');
