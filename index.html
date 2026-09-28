@@ -589,6 +589,9 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
   overflow: hidden; transition: border-color .15s;
 }
 .post-card.post-card-simple { display: block; }
+.post-card.post-card-checkable { display: flex; align-items: flex-start; }
+.support-check-wrap { padding: 16px 0 0 16px; display: flex; align-items: flex-start; }
+.support-check-wrap input[type="checkbox"] { width: 17px; height: 17px; cursor: pointer; accent-color: var(--accent); }
 .post-card:hover { border-color: var(--accent); }
 .post-preview {
   width: 160px; min-height: 140px;
@@ -1168,6 +1171,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
           <div class="nav-sub-item" data-page="res-patent"  onclick="goSub('res-patent',this,'ni-res')"><i class="ti ti-shield-check"></i> 특허 관리</div>
           <div class="nav-sub-item" data-page="res-brand"   onclick="goSub('res-brand',this,'ni-res')"><i class="ti ti-registered"></i> 상표 관리</div>
           <div class="nav-sub-item" data-page="res-copyright" onclick="goSub('res-copyright',this,'ni-res')"><i class="ti ti-copyright"></i> 프로그램 저작/등록</div>
+          <div class="nav-sub-item" data-page="res-support" onclick="goSub('res-support',this,'ni-res')"><i class="ti ti-building-bank"></i> 지원사업 관리</div>
         </div>
       </div>
     </div>
@@ -1245,6 +1249,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
         <div onclick="navTo('res-patent');closeMobileNav()" style="padding:11px 20px 11px 32px;color:#fff;font-size:14px;cursor:pointer"><i class="ti ti-shield-check" style="margin-right:8px"></i>특허 관리</div>
         <div onclick="navTo('res-brand');closeMobileNav()" style="padding:11px 20px 11px 32px;color:#fff;font-size:14px;cursor:pointer"><i class="ti ti-registered" style="margin-right:8px"></i>상표 관리</div>
         <div onclick="navTo('res-copyright');closeMobileNav()" style="padding:11px 20px 11px 32px;color:#fff;font-size:14px;cursor:pointer"><i class="ti ti-copyright" style="margin-right:8px"></i>프로그램 저작/등록</div>
+        <div onclick="navTo('res-support');closeMobileNav()" style="padding:11px 20px 11px 32px;color:#fff;font-size:14px;cursor:pointer"><i class="ti ti-building-bank" style="margin-right:8px"></i>지원사업 관리</div>
         <div style="padding:8px 20px 4px;font-size:11px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:1px">콘텐츠 관리</div>
         <div onclick="navTo('content-press');closeMobileNav()" style="padding:11px 20px 11px 32px;color:#fff;font-size:14px;cursor:pointer"><i class="ti ti-news" style="margin-right:8px"></i>언론보도 및 칼럼</div>
         <div onclick="navTo('content-blog');closeMobileNav()" style="padding:11px 20px 11px 32px;color:#fff;font-size:14px;cursor:pointer"><i class="ti ti-pencil" style="margin-right:8px"></i>블로그</div>
@@ -2399,6 +2404,40 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
       </div>
     </div>
 
+    <!-- ══ 지원사업 관리 ══ -->
+    <div id="pg-res-support" class="page">
+      <div class="page-hd">
+        <h1>지원사업 관리</h1>
+        <p>(주)소프트힐스의 지원 사업 자료를 제공합니다.</p>
+      </div>
+      <div class="card card-scroll">
+        <div class="card-hd">
+          <h2><i class="ti ti-building-bank"></i> 지원사업 목록 <span id="count-support" style="font-size:13px;font-weight:400;color:var(--muted);margin-left:6px"></span></h2>
+          <div style="display:flex;gap:6px">
+            <button class="btn sm" onclick="downloadSupportSelected()"><i class="ti ti-folder-open"></i> 선택 항목 공유폴더 다운로드</button>
+            <button class="btn sm primary" onclick="openModal('support')"><i class="ti ti-plus"></i> 항목 추가</button>
+          </div>
+        </div>
+        <div class="history-filter-bar">
+          <div style="display:flex;align-items:center;gap:4px">
+            <select id="bf-support-from" onchange="applyBoardFilter('support')">
+              <option value="">시작년도</option>
+              <option value="2040">2040년</option><option value="2039">2039년</option><option value="2038">2038년</option><option value="2037">2037년</option><option value="2036">2036년</option><option value="2035">2035년</option><option value="2034">2034년</option><option value="2033">2033년</option><option value="2032">2032년</option><option value="2031">2031년</option><option value="2030">2030년</option><option value="2029">2029년</option><option value="2028">2028년</option><option value="2027">2027년</option><option value="2026">2026년</option><option value="2025">2025년</option><option value="2024">2024년</option><option value="2023">2023년</option><option value="2022">2022년</option><option value="2021">2021년</option><option value="2020">2020년</option><option value="2019">2019년</option><option value="2018">2018년</option><option value="2017">2017년</option><option value="2016">2016년</option><option value="2015">2015년</option><option value="2014">2014년</option><option value="2013">2013년</option>
+            </select>
+            <span style="color:var(--muted);font-size:13px">~</span>
+            <select id="bf-support-to" onchange="applyBoardFilter('support')">
+              <option value="">끝년도</option>
+              <option value="2040">2040년</option><option value="2039">2039년</option><option value="2038">2038년</option><option value="2037">2037년</option><option value="2036">2036년</option><option value="2035">2035년</option><option value="2034">2034년</option><option value="2033">2033년</option><option value="2032">2032년</option><option value="2031">2031년</option><option value="2030">2030년</option><option value="2029">2029년</option><option value="2028">2028년</option><option value="2027">2027년</option><option value="2026">2026년</option><option value="2025">2025년</option><option value="2024">2024년</option><option value="2023">2023년</option><option value="2022">2022년</option><option value="2021">2021년</option><option value="2020">2020년</option><option value="2019">2019년</option><option value="2018">2018년</option><option value="2017">2017년</option><option value="2016">2016년</option><option value="2015">2015년</option><option value="2014">2014년</option><option value="2013">2013년</option>
+            </select>
+          </div>
+          <input type="text" id="bf-support-title" placeholder="제목 검색" oninput="applyBoardFilter('support')">
+          <button class="btn sm" onclick="resetBoardFilter('support')"><i class="ti ti-x"></i> 필터 초기화</button>
+        </div>
+        <div id="bf-support-info" style="font-size:13.5px;color:var(--muted);padding:6px 16px;display:none"></div>
+        <div class="scroll-body"><div class="post-list" id="support-list"></div></div>
+      </div>
+    </div>
+
     <!-- ══ 변경 기록 ══ -->
     <div id="pg-changelog" class="page">
       <div class="page-hd">
@@ -2623,6 +2662,7 @@ async function refreshAll(silent) {
     ['goods',       'goods'],
     ['goodsUsage',  'goodsUsage'],
     ['designDraft', 'designDraft'],
+    ['support',     'support'],
   ].filter(([key]) => !d[key]);
 
   if (fallbackJobs.length) {
@@ -2654,6 +2694,7 @@ function renderAllData(d) {
   renderBoard('award',  d.award);
   renderBoard('patent', d.patent);
   renderBoard('brand',  d.brand);
+  renderBoard('support', d.support);
   renderCopyright(d.copyright);
   renderContentTable('press', d.press);
   renderContentTable('blog',  d.blog);
@@ -2703,6 +2744,7 @@ function renderPage(pageId) {
     case 'res-patent':  renderBoard('patent', DATA.patent); break;
     case 'res-brand':      renderBoard('brand',     DATA.brand);     break;
     case 'res-copyright':  renderCopyright(DATA.copyright); break;
+    case 'res-support':    renderBoard('support', DATA.support); break;
     case 'content-press':  renderContentTable('press', DATA.press); break;
     case 'content-blog':   renderContentTable('blog',  DATA.blog); break;
     case 'goods-stock':    renderGoods(DATA.goods); break;
@@ -2931,7 +2973,7 @@ function downloadBoardFiltered(key) {
   if (!rows.length) { banner('다운로드할 데이터가 없습니다.', 'error'); return; }
 
   const cols = EXCEL_COLS[key] || ['날짜','제목','내용','비고'];
-  const sorted = [...rows].sort((a,b) => parseDateNum(b['날짜']) - parseDateNum(a['날짜']));
+  const sorted = [...rows].sort((a,b) => parseDateNum(b['날짜'] || b['게시일']) - parseDateNum(a['날짜'] || a['게시일']));
   const labels = { cert:'인증', award:'수상', patent:'특허', brand:'상표', copyright:'프로그램저작등록' };
   const suffix = hasFilter ? '_필터링' : '';
   downloadAsXls(cols, sorted, `소프트힐스_${labels[key]||key}${suffix}_${new Date().toISOString().slice(0,10)}.xls`);
@@ -3170,7 +3212,7 @@ function downloadHistoryFiltered() {
   if (!rows.length) { banner('다운로드할 데이터가 없습니다.', 'error'); return; }
 
   const cols = EXCEL_COLS['history'];
-  const sorted = [...rows].sort((a,b) => parseDateNum(b['날짜']) - parseDateNum(a['날짜']));
+  const sorted = [...rows].sort((a,b) => parseDateNum(b['날짜'] || b['게시일']) - parseDateNum(a['날짜'] || a['게시일']));
   const suffix = hasFilter ? '_필터링' : '';
   downloadAsXls(cols, sorted, `소프트힐스_연혁${suffix}_${new Date().toISOString().slice(0,10)}.xls`);
 }
@@ -3188,7 +3230,7 @@ function renderHistoryRows(rows) {
     el.innerHTML = '<tr><td colspan="8"><div class="empty"><i class="ti ti-timeline"></i><p>연혁이 없습니다.</p></div></td></tr>';
     return;
   }
-  const sorted = [...rows].sort((a,b) => parseDateNum(b['날짜']) - parseDateNum(a['날짜']));
+  const sorted = [...rows].sort((a,b) => parseDateNum(b['날짜'] || b['게시일']) - parseDateNum(a['날짜'] || a['게시일']));
   sorted.forEach((r, idx) => {
     const cKey = 'history_' + (r._row !== undefined && r._row !== null ? String(r._row) : 'i' + idx);
     r._cacheKey = cKey;
@@ -3710,8 +3752,54 @@ function _renderPatentCards(sorted) {
   }).join('');
 }
 
+// ── 지원사업: 소개 자료와 같은 심플 카드 형식 + 맨 앞 체크박스 (선택 항목 공유폴더 다운로드용) ──
+function _renderSupportCards(sorted) {
+  if (!sorted.length) return '';
+  return sorted.map(r => {
+    const fileId    = r['파일ID'] || '';
+    const driveUrl  = fileId ? `https://drive.google.com/file/d/${fileId}/view` : '';
+    const folderUrl = r['공유폴더URL'] || '';
+    return `
+    <div class="post-card post-card-simple post-card-checkable">
+      <label class="support-check-wrap">
+        <input type="checkbox" class="support-check" data-row="${r._row}">
+      </label>
+      <div class="post-body">
+        <div class="post-date">
+          ${fmtDate(r['날짜'] || r['게시일'])}
+          ${r['분류'] ? `<span style="margin-left:6px;background:var(--accent-lt);color:#004386;padding:1px 8px;border-radius:100px;font-size:11px">${r['분류']}</span>` : ''}
+          ${folderUrl ? `<a href="${folderUrl}" target="_blank" style="margin-left:8px;font-size:11px;color:var(--accent);text-decoration:none;display:inline-flex;align-items:center;gap:3px;padding:1px 8px;border:1px solid var(--accent);border-radius:100px" title="공유 폴더 열기"><i class="ti ti-folder-open" style="font-size:12px"></i> 공유 폴더</a>` : ''}
+        </div>
+        <div class="post-title">${r['제목'] || '(제목 없음)'}</div>
+        ${r['내용'] ? `<div class="post-content">${r['내용']}</div>` : ''}
+        ${r['비고'] ? `<div class="post-note"><span>비고</span> ${r['비고']}</div>` : ''}
+        <div class="post-actions">
+          ${driveUrl ? `<a href="${driveUrl}" target="_blank" class="post-file-btn"><i class="ti ti-download"></i> ${r['파일명'] || '파일 열기'}</a>` : ''}
+          <button class="btn sm edit-btn" data-type="support" data-key="${r._cacheKey}"><i class="ti ti-edit"></i> 수정</button>
+          <button class="btn sm danger del-btn" data-type="support" data-row="${r._row}"><i class="ti ti-trash"></i> 삭제</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// 체크된 지원사업 항목들의 제목+공유폴더 위치만 뽑아 엑셀로 다운로드
+function downloadSupportSelected() {
+  const checked = Array.from(document.querySelectorAll('.support-check:checked')).map(cb => String(cb.dataset.row));
+  if (!checked.length) { banner('선택된 항목이 없습니다. 다운로드할 자료 앞의 체크박스를 먼저 선택해주세요.', 'error'); return; }
+
+  const all = _boardAllRows['support'] || [];
+  const checkedSet = new Set(checked);
+  const rows = all.filter(r => checkedSet.has(String(r._row)));
+  if (!rows.length) { banner('선택된 항목을 찾을 수 없습니다.', 'error'); return; }
+
+  const cols = ['제목', '공유폴더URL'];
+  const sorted = [...rows].sort((a, b) => parseDateNum(b['날짜'] || b['게시일']) - parseDateNum(a['날짜'] || a['게시일']));
+  downloadAsXls(cols, sorted, `소프트힐스_지원사업_공유폴더_${new Date().toISOString().slice(0,10)}.xls`);
+}
+
 // ── 게시판 공통 렌더 (소개자료·인증·수상·특허·상표) ────
-const BOARD_ICON = { cert:'ti-certificate', award:'ti-trophy', patent:'ti-shield-check', brand:'ti-registered', copyright:'ti-copyright', intro:'ti-files', designDraft:'ti-photo' };
+const BOARD_ICON = { cert:'ti-certificate', award:'ti-trophy', patent:'ti-shield-check', brand:'ti-registered', copyright:'ti-copyright', intro:'ti-files', designDraft:'ti-photo', support:'ti-building-bank' };
 const MULTI_IMAGE_TYPES = ['designDraft'];
 const DESIGN_CATS = [
   { key: 'print', label: '인쇄' },
@@ -3770,7 +3858,7 @@ function renderBoardRows(key, rows, listId, emptyMsg) {
     return;
   }
 
-  const sorted = [...rows].sort((a,b) => parseDateNum(b['날짜']) - parseDateNum(a['날짜']));
+  const sorted = [...rows].sort((a,b) => parseDateNum(b['날짜'] || b['게시일']) - parseDateNum(a['날짜'] || a['게시일']));
   sorted.forEach((r, idx) => {
     const cKey = key + '_' + (r._row !== undefined && r._row !== null ? String(r._row) : 'i' + idx);
     r._cacheKey = cKey;
@@ -3780,6 +3868,12 @@ function renderBoardRows(key, rows, listId, emptyMsg) {
   // 특허: post-list 카드 형식
   if (key === 'patent') {
     el.innerHTML = _renderPatentCards(sorted);
+    return;
+  }
+
+  // 지원사업: 소개 자료와 같은 심플 카드 형식 (미리보기 썸네일 없음) + 체크박스
+  if (key === 'support') {
+    el.innerHTML = _renderSupportCards(sorted);
     return;
   }
 
@@ -3871,7 +3965,7 @@ async function toggleStatus(rowNum) {
 }
 
 // ── 삭제 ─────────────────────────────────────────────────
-const SHEET_MAP = { cert:'인증', award:'수상', patent:'특허', brand:'상표', copyright:'프로그램저작', history:'연혁', intro:'소개자료', youtube:'유튜브', press:'언론보도', blog:'블로그', goods:'물품재고', designDraft:'디자인시안' };
+const SHEET_MAP = { cert:'인증', award:'수상', patent:'특허', brand:'상표', copyright:'프로그램저작', history:'연혁', intro:'소개자료', youtube:'유튜브', press:'언론보도', blog:'블로그', goods:'물품재고', designDraft:'디자인시안', support:'지원사업' };
 async function deleteItem(key, rowNum) {
   if (!confirm('이 항목을 삭제하시겠습니까?')) return;
   const res = await apiPost({ action: 'delete', sheet: SHEET_MAP[key], row: rowNum });
@@ -4115,6 +4209,44 @@ const MODAL_FORMS = {
     <input type="hidden" id="f-format"   value="${d['형식']||''}">`;
   },
 
+  support: (d) => {
+    const existId   = d['파일ID']  || '';
+    const existName = d['파일명']  || '';
+    const existUrl  = existId ? 'https://drive.google.com/file/d/' + existId + '/view' : '';
+    return `
+    ${yearMonthSelect(d['게시일']||'')}
+    <div class="form-row"><label>분류 <span style="font-size:11px;color:var(--muted)">(예: 정부지원사업, 지자체지원사업 등)</span></label><input type="text" id="f-category" placeholder="분류 직접 입력" value="${d['분류']||''}"></div>
+    <div class="form-row"><label>제목</label><input type="text" id="f-title" value="${d['제목']||''}"></div>
+    <div class="form-row"><label>내용</label><textarea id="f-content">${d['내용']||''}</textarea></div>
+    <div class="form-row">
+      <label>공유 폴더 위치 <span style="font-size:11px;color:var(--muted)">(공유 드라이브 폴더 URL)</span></label>
+      <div style="display:flex;gap:6px;align-items:center">
+        <input type="text" id="f-folderurl" placeholder="https://drive.google.com/drive/folders/..." value="${d['공유폴더URL']||''}" style="flex:1">
+        ${d['공유폴더URL'] ? `<a href="${d['공유폴더URL']}" target="_blank" class="btn sm" style="white-space:nowrap"><i class="ti ti-external-link"></i> 열기</a>` : ''}
+      </div>
+    </div>
+    <div class="form-row"><label>기타 참고사항</label><input type="text" id="f-note" placeholder="기타 참고사항" value="${d['비고']||''}"></div>
+    <div class="upload-section">
+      <label>첨부 파일</label>
+      <div class="dropzone" id="f-dropzone">
+        <i class="ti ti-paperclip dropzone-icon"></i>
+        <div class="dropzone-text">클릭하거나 파일을 드래그하여 첨부</div>
+        <div class="dropzone-sub">PDF, PPT, 문서 파일 등 지원</div>
+      </div>
+      <div class="upload-state ${existId ? 'show' : ''}" id="f-upload-state">
+        <i class="ti ti-file-check" style="color:var(--accent)"></i>
+        <span class="us-name" id="f-us-name">${existName || ''}</span>
+        <span class="us-size" id="f-us-size">${existId ? '등록됨' : ''}</span>
+        <span class="us-clear" onclick="clearUpload('support')" title="파일 제거">×</span>
+      </div>
+      <div class="upload-progress" id="f-progress"><div class="upload-progress-bar" id="f-bar"></div></div>
+      <div class="upload-msg" id="f-msg">${existUrl ? '<a href="' + existUrl + '" target="_blank" style="color:var(--accent);font-size:12px">📎 등록된 파일 열기</a>' : ''}</div>
+    </div>
+    <input type="hidden" id="f-fileid"   value="${existId}">
+    <input type="hidden" id="f-filename" value="${existName}">
+    <input type="hidden" id="f-format"   value="${d['형식']||''}">`;
+  },
+
   youtube: (d) => `
     ${yearMonthDaySelect(d['게시일']||'')}
     <div class="form-row"><label>구분 <span style="font-size:11px;color:var(--muted)">(예: 솔루션 소개, 사용법, 인터뷰 등)</span></label><input type="text" id="f-category" placeholder="구분 직접 입력" value="${d['구분']||''}"></div>
@@ -4299,7 +4431,7 @@ function openModalFixedCat(type, fixedCategory) {
 function openModal(type, data = {}) {
   currentModal = type;
   editRow = data._row || null;
-  document.getElementById('modal-title').textContent = (editRow ? '항목 수정' : '항목 추가') + ' — ' + ({ cert:'인증', award:'수상', patent:'특허', brand:'상표', copyright:'프로그램 저작/등록', history:'연혁', intro:'소개자료', youtube:'유튜브', press:'언론보도 및 칼럼', blog:'블로그', goods:'마케팅 물품', designDraft:'디자인 시안' }[type] || type);
+  document.getElementById('modal-title').textContent = (editRow ? '항목 수정' : '항목 추가') + ' — ' + ({ cert:'인증', award:'수상', patent:'특허', brand:'상표', copyright:'프로그램 저작/등록', history:'연혁', intro:'소개자료', youtube:'유튜브', press:'언론보도 및 칼럼', blog:'블로그', goods:'마케팅 물품', designDraft:'디자인 시안', support:'지원사업' }[type] || type);
   document.getElementById('modal-body').innerHTML = MODAL_FORMS[type](data);
   document.getElementById('modal-bg').classList.add('open');
   // 연/월(/일) 드롭다운 초기 동기화
@@ -4313,7 +4445,7 @@ function openModal(type, data = {}) {
   const MODAL_TO_SHEET = {
     cert: '인증', award: '수상', patent: '특허', brand: '상표', copyright: '프로그램저작',
     intro: '소개자료', youtube: '유튜브', history: '연혁', press: '언론보도', blog: '블로그', goods: '물품재고',
-    designDraft: '디자인시안'
+    designDraft: '디자인시안', support: '지원사업'
   };
   currentUploadSheet = MODAL_TO_SHEET[type] || '';
 }
@@ -4385,6 +4517,9 @@ async function submitModal() {
   } else if (t === 'intro') {
     const fmt = v('f-filename').split('.').pop().toLowerCase();
     data = { '게시일': getDateFromSelects(), '분류': v('f-category'), '제목': v('f-title'), '내용': v('f-content'), '비고': v('f-note'), '공유폴더URL': v('f-folderurl'), '파일ID': v('f-fileid'), '파일명': v('f-filename'), '형식': fmt };
+  } else if (t === 'support') {
+    const fmt = v('f-filename').split('.').pop().toLowerCase();
+    data = { '게시일': getDateFromSelects(), '분류': v('f-category'), '제목': v('f-title'), '내용': v('f-content'), '비고': v('f-note'), '공유폴더URL': v('f-folderurl'), '파일ID': v('f-fileid'), '파일명': v('f-filename'), '형식': fmt };
   } else if (t === 'youtube') {
     data = { '게시일': getDateFromSelects(), '구분': v('f-category'), '솔루션명': v('f-solution'), '제목': v('f-title'), '내용': v('f-content'), '유튜브URL': v('f-url') };
   } else if (t === 'press') {
@@ -4423,7 +4558,8 @@ async function refreshSheet(type) {
   const actionMap = {
     history: 'history', cert: 'cert', award: 'award', patent: 'patent',
     brand: 'brand', copyright: 'copyright', intro: 'intro',
-    youtube: 'youtube', press: 'press', blog: 'blog', goods: 'goods', designDraft: 'designDraft'
+    youtube: 'youtube', press: 'press', blog: 'blog', goods: 'goods', designDraft: 'designDraft',
+    support: 'support'
   };
   const action = actionMap[type];
   if (!action) { await refreshAll(); return; }
@@ -4447,6 +4583,7 @@ async function refreshSheet(type) {
     case 'blog':      renderContentTable('blog', rows); break;
     case 'designDraft': renderDesignDraft(rows); break;
     case 'goods':     renderGoods(rows); break;
+    case 'support':   renderBoard('support', rows); break;
   }
   // 지표 카드 빠른 갱신 (메인에 영향 있는 카테고리)
   if (['cert','award','patent','brand','copyright','history'].includes(type)) {
@@ -4962,6 +5099,7 @@ const AIS_CAT = {
   blog:      { label:'블로그',     icon:'ti-pencil',       page:'content-blog',  navId:'ni-content', dateKey:'게시일', titleKey:'제목' },
   designDraft: { label:'디자인 시안', icon:'ti-photo',     page:'content-design', navId:'ni-content', dateKey:'날짜',   titleKey:'제목' },
   goods:     { label:'마케팅 물품', icon:'ti-package',     page:'goods-stock',   navId:'ni-goods',   dateKey:'제작일시', titleKey:'품목' },
+  support:   { label:'지원사업',   icon:'ti-building-bank', page:'res-support',  navId:'ni-res',     dateKey:'게시일', titleKey:'제목' },
 };
 
 function openAiSearch() {
