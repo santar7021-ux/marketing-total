@@ -3780,6 +3780,7 @@ function _renderPatentCards(sorted) {
         </div>
         <div class="post-title">${r['제목']||'(제목 없음)'}</div>
         ${r['내용'] ? `<div class="post-content">${r['내용']}</div>` : ''}
+        ${r['공유폴더URL'] ? `<div class="post-note" style="word-break:break-all"><span>파일 경로</span> <a href="${r['공유폴더URL']}" target="_blank" style="color:var(--accent)">${r['공유폴더URL']}</a></div>` : ''}
         ${r['비고'] ? `<div class="post-note"><span>비고</span> ${r['비고']}</div>` : ''}
         <div class="post-actions">
           ${driveUrl ? `<a href="${driveUrl}" target="_blank" class="post-file-btn"><i class="ti ti-download"></i> ${fileName||'파일 열기'}</a>` : ''}
@@ -3951,6 +3952,7 @@ function renderBoardRows(key, rows, listId, emptyMsg) {
         <div class="post-date">${fmtDate(r['날짜'] || r['게시일'])}</div>
         <div class="post-title">${r['제목'] || '(제목 없음)'}</div>
         ${r['내용'] ? `<div class="post-content">${r['내용']}</div>` : ''}
+        ${r['공유폴더URL'] ? `<div class="post-note" style="word-break:break-all"><span>파일 경로</span> <a href="${r['공유폴더URL']}" target="_blank" style="color:var(--accent)">${r['공유폴더URL']}</a></div>` : ''}
         ${r['비고'] ? `<div class="post-note"><span>비고</span> ${r['비고']}</div>` : ''}
         <div class="post-actions">
           ${fileId ? `<a href="https://drive.google.com/file/d/${fileId}/view" target="_blank" class="post-file-btn"><i class="ti ti-download"></i> ${fileName || '파일 열기'}</a>` : ''}
@@ -4191,6 +4193,13 @@ const MODAL_FORMS = {
     </div>
     <div class="form-row"><label>제목</label><input type="text" id="f-title" value="${d['제목']||''}"></div>
     <div class="form-row"><label>내용</label><textarea id="f-content">${d['내용']||''}</textarea></div>
+    <div class="form-row">
+      <label>공유 폴더 위치 <span style="font-size:11px;color:var(--muted)">(공유 드라이브 폴더 URL)</span></label>
+      <div style="display:flex;gap:6px;align-items:center">
+        <input type="text" id="f-folderurl" placeholder="https://drive.google.com/drive/folders/..." value="${d['공유폴더URL']||''}" style="flex:1">
+        ${d['공유폴더URL'] ? `<a href="${d['공유폴더URL']}" target="_blank" class="btn sm" style="white-space:nowrap"><i class="ti ti-external-link"></i> 열기</a>` : ''}
+      </div>
+    </div>
     <div class="form-row"><label>기타 참고사항</label><input type="text" id="f-note" placeholder="기타 참고사항" value="${d['비고']||''}"></div>
     <div class="upload-section">
       <label>첨부 파일 / 이미지</label>
@@ -4417,13 +4426,13 @@ function boardFormFields(d) {
 
 // ── 엑셀 다운로드 ────────────────────────────────────────
 const EXCEL_COLS = {
-  cert:    ['날짜','제목','내용','비고','이미지명'],
-  award:   ['날짜','제목','내용','비고','이미지명'],
-  patent:  ['날짜','제목','내용','비고','이미지명'],
-  brand:   ['날짜','제목','내용','비고','이미지명'],
-  copyright: ['날짜','제목','내용','비고','이미지명'],
+  cert:    ['날짜','제목','내용','비고','공유폴더URL','이미지명'],
+  award:   ['날짜','제목','내용','비고','공유폴더URL','이미지명'],
+  patent:  ['날짜','제목','내용','비고','공유폴더URL','이미지명'],
+  brand:   ['날짜','제목','내용','비고','공유폴더URL','이미지명'],
+  copyright: ['날짜','제목','내용','비고','공유폴더URL','이미지명'],
   history: ['날짜','구분','내용','내용(대외홍보)','내용2','첨부파일명','상태'],
-  intro:   ['게시일','분류','제목','내용','비고','파일명','형식'],
+  intro:   ['게시일','분류','제목','내용','비고','공유폴더URL','파일명','형식'],
   youtube: ['게시일','구분','솔루션명','제목','유튜브URL'],
   press:   ['게시일','구분','발행처','언론사명','제목','내용','URL'],
   blog:    ['게시일','구분','솔루션명','제목','내용','URL'],
@@ -4549,11 +4558,11 @@ async function submitModal() {
   if (t === 'history') {
     data = { '날짜': getDateFromSelects(), '구분': v('f-category'), '내용': v('f-content'), '내용(대외홍보)': v('f-content-origin'), '내용2': v('f-content-en'), '첨부파일ID': v('f-fileid'), '첨부파일명': v('f-filename'), '상태': v('f-status') };
   } else if (t === 'patent') {
-    data = { '날짜': getDateFromSelects(), '상태': v('f-patent-status') || '출원', '제목': v('f-title'), '내용': v('f-content'), '비고': v('f-note'), '이미지ID': v('f-imgid'), '이미지명': v('f-imgname') };
+    data = { '날짜': getDateFromSelects(), '상태': v('f-patent-status') || '출원', '제목': v('f-title'), '내용': v('f-content'), '비고': v('f-note'), '공유폴더URL': v('f-folderurl'), '이미지ID': v('f-imgid'), '이미지명': v('f-imgname') };
   } else if (['cert','award','brand'].includes(t)) {
-    data = { '날짜': getDateFromSelects(), '제목': v('f-title'), '내용': v('f-content'), '비고': v('f-note'), '이미지ID': v('f-imgid'), '이미지명': v('f-imgname') };
+    data = { '날짜': getDateFromSelects(), '제목': v('f-title'), '내용': v('f-content'), '비고': v('f-note'), '공유폴더URL': v('f-folderurl'), '이미지ID': v('f-imgid'), '이미지명': v('f-imgname') };
   } else if (t === 'copyright') {
-    data = { '날짜': getDateFromSelects(), '분류': v('f-copyright-type') || '프로그램 등록', '제목': v('f-title'), '내용': v('f-content'), '비고': v('f-note'), '이미지ID': v('f-imgid'), '이미지명': v('f-imgname') };
+    data = { '날짜': getDateFromSelects(), '분류': v('f-copyright-type') || '프로그램 등록', '제목': v('f-title'), '내용': v('f-content'), '비고': v('f-note'), '공유폴더URL': v('f-folderurl'), '이미지ID': v('f-imgid'), '이미지명': v('f-imgname') };
   } else if (t === 'intro') {
     const fmt = v('f-filename').split('.').pop().toLowerCase();
     data = { '게시일': getDateFromSelects(), '분류': v('f-category'), '제목': v('f-title'), '내용': v('f-content'), '비고': v('f-note'), '공유폴더URL': v('f-folderurl'), '파일ID': v('f-fileid'), '파일명': v('f-filename'), '형식': fmt };
