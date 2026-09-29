@@ -54,7 +54,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
 }
 .rail-logo:hover { filter: brightness(1.1); }
 .rail-logo .brand { font-size: 16.2px; font-weight: 700; color: #fff; letter-spacing: .2px; }
-.rail-logo .brand-logo { display: block; height: 26px; width: auto; margin-bottom: 4px; }
+.rail-logo .brand-logo { display: block; height: 26px; width: auto; margin-bottom: 4px; filter: brightness(0) invert(1); }
 .rail-logo .sub   { font-size: 13.8px; color: rgba(255,255,255,.78); margin-top: 2px; }
 
 /* ============================================================
@@ -77,7 +77,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
 .gate-online{display:flex;align-items:center;gap:8px;}
 .gate-dot{width:7px;height:7px;border-radius:50%;background:#5CD6FF;box-shadow:0 0 10px #5CD6FF;animation:gateBlink 2.4s ease-in-out infinite;}
 .gate-clock{font-variant-numeric:tabular-nums;}
-.gate-main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:clamp(20px,5vh,64px) clamp(18px,4vw,40px);text-align:center;}
+.gate-main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:clamp(48px,9vh,96px) clamp(18px,4vw,40px) clamp(20px,5vh,64px);text-align:center;overflow-y:auto;}
 .gate-eyebrow{display:flex;align-items:center;gap:12px;margin-bottom:clamp(14px,2vh,20px);font-family:'IBM Plex Mono',monospace;font-size:clamp(11px,1vw,13px);letter-spacing:.32em;color:#7FD4FF;}
 .gate-eyebrow i{width:28px;height:1px;background:linear-gradient(90deg,rgba(127,212,255,0),#7FD4FF);}
 .gate-eyebrow i:last-child{transform:scaleX(-1);}
@@ -1168,7 +1168,6 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
   </header>
 
   <main class="gate-main">
-    <div class="gate-eyebrow"><i></i><span id="gate-eyebrow">SECURE ACCESS</span><i></i></div>
     <h1 class="gate-title">Build Your 3D Infrastructure,<br>Seamlessly.</h1>
     <p class="gate-pill">소프트힐스 마케팅 운영 대시보드</p>
 
