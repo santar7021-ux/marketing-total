@@ -77,7 +77,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
 .gate-online{display:flex;align-items:center;gap:8px;}
 .gate-dot{width:7px;height:7px;border-radius:50%;background:#5CD6FF;box-shadow:0 0 10px #5CD6FF;animation:gateBlink 2.4s ease-in-out infinite;}
 .gate-clock{font-variant-numeric:tabular-nums;}
-.gate-main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:clamp(48px,9vh,96px) clamp(18px,4vw,40px) clamp(20px,5vh,64px);text-align:center;overflow-y:auto;}
+.gate-main{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:clamp(48px,9vh,96px) clamp(18px,4vw,40px) clamp(20px,5vh,64px);text-align:center;overflow-y:auto;}
 .gate-eyebrow{display:flex;align-items:center;gap:12px;margin-bottom:clamp(14px,2vh,20px);font-family:'IBM Plex Mono',monospace;font-size:clamp(11px,1vw,13px);letter-spacing:.32em;color:#7FD4FF;}
 .gate-eyebrow i{width:28px;height:1px;background:linear-gradient(90deg,rgba(127,212,255,0),#7FD4FF);}
 .gate-eyebrow i:last-child{transform:scaleX(-1);}
@@ -183,7 +183,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
 #login-gate .ais-select-list{padding:0 12px 10px;display:flex;flex-direction:column;gap:4px;max-height:160px;overflow-y:auto;}
 #login-gate .ais-select-item{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:5px 10px;font-size:12.5px;color:#fff;}
 #login-gate .ais-select-item-badge{flex-shrink:0;font-size:10px;font-weight:600;color:#7FD4FF;background:rgba(0,117,194,.22);padding:1px 7px;border-radius:100px;}
-#login-gate .ais-select-item-title{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+#login-gate .ais-select-item-title{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#fff;}
 #login-gate .ais-select-item-remove{flex-shrink:0;cursor:pointer;color:rgba(220,235,255,.5);font-size:16px;line-height:1;}
 #login-gate .ais-select-item-remove:hover{color:#ff8a8a;}
 #login-gate .ais-select-bar-top .btn{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);color:#fff;}
@@ -7468,7 +7468,9 @@ function renderAdKeywordCompare() {
   const parts = Array.from({ length: 90 }, () => ({ x: Math.random(), y: Math.random(), v: .01 + Math.random() * .03, s: .5 + Math.random() * 1.4, a: .2 + Math.random() * .6, ph: Math.random() * TAU }));
 
   function resize() {
-    W = root.clientWidth; H = root.clientHeight; dpr = Math.min(2, window.devicePixelRatio || 1);
+    // 검색 결과가 늘어나거나 줄어도 지구가 다시 커지거나 작아지지 않도록,
+    // 게이트 요소 크기가 아니라 실제 브라우저 화면 크기를 기준으로 지구 크기를 계산합니다.
+    W = window.innerWidth; H = window.innerHeight; dpr = Math.min(2, window.devicePixelRatio || 1);
     canvas.width = W * dpr; canvas.height = H * dpr;
     const g = document.createElement('canvas'); g.width = W * dpr; g.height = H * dpr;
     const x = g.getContext('2d'); x.scale(dpr, dpr);
@@ -7480,7 +7482,9 @@ function renderAdKeywordCompare() {
     for (let i = s / 2; i < W; i += s) for (let j = s / 2; j < H; j += s) x.fillRect(i - 1, j - 1, 2, 2);
     grid = g; syncPlaceholder(); gateTickClock();
   }
-  new ResizeObserver(resize).observe(root); resize();
+  window.addEventListener('resize', resize);
+  window.addEventListener('orientationchange', resize);
+  resize();
 
   window.addEventListener('pointermove', e => {
     const r = root.getBoundingClientRect();
