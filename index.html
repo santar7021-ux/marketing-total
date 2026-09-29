@@ -96,6 +96,17 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
 .gate-field:focus-within{border-color:rgba(92,214,255,.75);box-shadow:0 0 0 4px rgba(92,214,255,.12),0 0 24px rgba(92,214,255,.18);}
 .gate-field.is-error{border-color:rgba(255,138,138,.7);}
 .gate-field input{flex:1;min-width:0;height:100%;background:transparent;border:0;outline:0;color:#fff;font-size:16px;font-family:inherit;letter-spacing:.02em;}
+/* 브라우저 자동완성(비밀번호 저장 제안)이 입력칸을 흰색/노란색으로 강제로 바꿔버리는 것 방지 */
+.gate-field input:-webkit-autofill,
+.gate-field input:-webkit-autofill:hover,
+.gate-field input:-webkit-autofill:focus,
+.gate-field input:-webkit-autofill:active{
+  -webkit-text-fill-color:#fff;
+  -webkit-box-shadow:0 0 0 1000px rgba(18,32,54,.95) inset;
+  box-shadow:0 0 0 1000px rgba(18,32,54,.95) inset;
+  caret-color:#fff;
+  transition:background-color 9999s ease-in-out 0s;
+}
 .gate input::placeholder{color:rgba(205,225,250,.42);}
 .gate-icon-btn{flex:none;width:40px;height:40px;display:flex;align-items:center;justify-content:center;border:0;border-radius:10px;background:transparent;color:rgba(200,225,255,.6);cursor:pointer;font-size:18px;}
 .gate-icon-btn:hover{background:rgba(255,255,255,.06);color:#fff;}
@@ -130,6 +141,24 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
 .gate-footer .copy{color:rgba(200,220,245,.3);}
 .gate [hidden]{display:none !important;}
 @media (max-width:719px){.gate-console,.gate-kbd{display:none !important;}}
+@media (max-width:600px){
+  .gate-header{padding:14px 16px;}
+  .gate-hud{gap:10px;font-size:11px;}
+  .gate-main{padding:36px 14px 28px;}
+  .gate-title{font-size:clamp(26px,7.6vw,36px);}
+  .gate-pill{font-size:13px;padding:8px 14px;margin:12px 0 22px;}
+  .gate-card{padding:22px 18px 24px;}
+  .gate-search{gap:12px;}
+  .gate-sbox{border-radius:16px;}
+  .gate-srow{height:52px;padding:0 10px 0 16px;gap:8px;}
+  .gate-results-wrap{max-height:38vh;}
+  #login-gate .ais-result-title{font-size:14px;}
+  .gate-cats{gap:2px;}
+  .gate-cat{height:32px;padding:0 12px;font-size:12.5px;}
+  .gate-actions{flex-direction:column;}
+  .gate-enter,.gate-logout{flex:1 1 auto;width:100%;}
+  .gate-footer{font-size:10.5px;padding:14px 16px 18px;}
+}
 @keyframes gateIn{from{opacity:0;transform:translateY(14px);filter:blur(4px);}to{opacity:1;transform:none;filter:none;}}
 @keyframes gateBlink{0%,100%{opacity:1;}50%{opacity:.25;}}
 
