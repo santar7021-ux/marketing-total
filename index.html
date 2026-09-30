@@ -232,6 +232,8 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
 .ic-res     { background: linear-gradient(150deg, #C6A6F5 0%, #8C4FE0 60%, #6A2FBF 100%); }
 .ic-content { background: linear-gradient(150deg, #7FE3D8 0%, #17A398 60%, #0C7A72 100%); }
 .ic-goods   { background: linear-gradient(150deg, #FFD37A 0%, #E5A415 60%, #B67A0A 100%); }
+.ic-ci      { background: linear-gradient(150deg, #FF9EA8 0%, #E23B54 60%, #B01F38 100%); }
+.ic-research{ background: linear-gradient(150deg, #9FB8D9 0%, #4A6FA5 60%, #2C4770 100%); }
 .nav-item.open .nav-arrow { transform: rotate(180deg); }
 .nav-sub { display: none; background: #FAFBFC; }
 .nav-item.open .nav-sub { display: block; }
@@ -288,6 +290,12 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
   background: #fff;
   color: #A32D2D;
   border: 1.5px solid #F7C1C1;
+  display: flex;
+}
+#banner.success {
+  background: #fff;
+  color: #1D7A4C;
+  border: 1.5px solid #B7E4CB;
   display: flex;
 }
 /* 배너 뒤 흐림 오버레이 */
@@ -1448,6 +1456,19 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
     </div>
 
     <div class="nav-group">
+      <div class="nav-item" id="ni-research">
+        <div class="nav-main" onclick="toggle('ni-research','research-competitor')">
+          <span class="nav-icon3d ic-research"><i class="ti ti-telescope"></i></span> 경쟁사&산업 조사
+          <i class="ti ti-chevron-down nav-arrow"></i>
+        </div>
+        <div class="nav-sub">
+          <div class="nav-sub-item" data-page="research-competitor" onclick="goSub('research-competitor',this,'ni-research')"><i class="ti ti-building-store"></i> 경쟁사 조사</div>
+          <div class="nav-sub-item" data-page="research-industry"   onclick="goSub('research-industry',this,'ni-research')"><i class="ti ti-chart-line"></i> 산업 동향 조사</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="nav-group">
       <div class="nav-item" id="ni-goods">
         <div class="nav-main" onclick="toggle('ni-goods','goods-stock')">
           <span class="nav-icon3d ic-goods"><i class="ti ti-package"></i></span> 마케팅 물품 관리
@@ -1455,6 +1476,19 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
         </div>
         <div class="nav-sub">
           <div class="nav-sub-item" data-page="goods-stock" onclick="goSub('goods-stock',this,'ni-goods')"><i class="ti ti-boxes"></i> 마케팅 물품 재고</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-item" id="ni-ci">
+        <div class="nav-main" onclick="toggle('ni-ci','ci-competitor')">
+          <span class="nav-icon3d ic-ci"><i class="ti ti-telescope"></i></span> 경쟁사&산업 조사
+          <i class="ti ti-chevron-down nav-arrow"></i>
+        </div>
+        <div class="nav-sub">
+          <div class="nav-sub-item" data-page="ci-competitor" onclick="goSub('ci-competitor',this,'ni-ci')"><i class="ti ti-target-arrow"></i> 경쟁사 조사</div>
+          <div class="nav-sub-item" data-page="ci-industry" onclick="goSub('ci-industry',this,'ni-ci')"><i class="ti ti-chart-radar"></i> 산업 동향 조사</div>
         </div>
       </div>
     </div>
@@ -1511,6 +1545,9 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
         <div onclick="navTo('content-press');closeMobileNav()" style="padding:11px 20px 11px 32px;color:#fff;font-size:14px;cursor:pointer"><i class="ti ti-news" style="margin-right:8px"></i>언론보도 및 칼럼</div>
         <div onclick="navTo('content-blog');closeMobileNav()" style="padding:11px 20px 11px 32px;color:#fff;font-size:14px;cursor:pointer"><i class="ti ti-pencil" style="margin-right:8px"></i>블로그</div>
         <div onclick="navTo('content-design');closeMobileNav()" style="padding:11px 20px 11px 32px;color:#fff;font-size:14px;cursor:pointer"><i class="ti ti-photo" style="margin-right:8px"></i>디자인 시안</div>
+        <div style="padding:8px 20px 4px;font-size:11px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:1px">경쟁사&산업 조사</div>
+        <div onclick="navTo('research-competitor');closeMobileNav()" style="padding:11px 20px 11px 32px;color:#fff;font-size:14px;cursor:pointer"><i class="ti ti-building-store" style="margin-right:8px"></i>경쟁사 조사</div>
+        <div onclick="navTo('research-industry');closeMobileNav()" style="padding:11px 20px 11px 32px;color:#fff;font-size:14px;cursor:pointer"><i class="ti ti-chart-line" style="margin-right:8px"></i>산업 동향 조사</div>
         <div style="padding:8px 20px 4px;font-size:11px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:1px">마케팅 물품 관리</div>
         <div onclick="navTo('goods-stock');closeMobileNav()" style="padding:11px 20px 11px 32px;color:#fff;font-size:14px;cursor:pointer"><i class="ti ti-boxes" style="margin-right:8px"></i>마케팅 물품 재고</div>
       </nav>
@@ -2078,6 +2115,61 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
         <div class="post-list" id="design-etc-list"></div>
       </div>
 
+    </div>
+
+    <!-- ══ 경쟁사 조사 ══ -->
+    <div id="pg-research-competitor" class="page">
+      <div class="page-hd"><h1>경쟁사 조사</h1><p>(주)소프트힐스의 경쟁사 활동을 정리하였습니다.</p></div>
+      <div class="card card-res">
+        <div class="card-hd">
+          <h2><i class="ti ti-building-store"></i> 경쟁사 조사 목록 <span id="count-competitor" style="font-size:13px;font-weight:400;color:var(--muted);margin-left:6px"></span></h2>
+          <div style="display:flex;gap:6px">
+            <button class="btn sm" onclick="syncResearchNow(false)"><i class="ti ti-refresh"></i> 지금 동기화</button>
+            <button class="btn sm" onclick="downloadExcel('competitor')"><i class="ti ti-file-spreadsheet"></i> 엑셀 다운로드</button>
+            <button class="btn sm primary" onclick="openModal('competitor')"><i class="ti ti-plus"></i> 항목 추가</button>
+          </div>
+        </div>
+        <div class="history-filter-bar">
+          <select id="cpf-category" onchange="applyContentFilter('competitor')">
+            <option value="">구분 전체</option>
+          </select>
+          <input type="text" id="cpf-solution" placeholder="경쟁사명 검색" oninput="applyContentFilter('competitor')">
+          <input type="text" id="cpf-title" placeholder="타이틀 검색" oninput="applyContentFilter('competitor')">
+          <button class="btn sm" onclick="resetContentFilter('competitor')"><i class="ti ti-x"></i> 필터 초기화</button>
+        </div>
+        <div id="cpf-info" style="font-size:13.5px;color:var(--muted);padding:6px 16px;display:none"></div>
+        <table class="tbl">
+          <thead><tr><th>날짜</th><th>경쟁사명</th><th>구분</th><th>타이틀</th><th>내용</th><th>자료출처</th><th></th></tr></thead>
+          <tbody id="competitor-list"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ══ 산업 동향 조사 ══ -->
+    <div id="pg-research-industry" class="page">
+      <div class="page-hd"><h1>산업 동향 조사</h1><p>디지털 트윈, CAD 뷰어, 피지컬 AI 등 산업의 동향을 정리하였습니다.</p></div>
+      <div class="card card-res">
+        <div class="card-hd">
+          <h2><i class="ti ti-chart-line"></i> 산업 동향 조사 목록 <span id="count-industry" style="font-size:13px;font-weight:400;color:var(--muted);margin-left:6px"></span></h2>
+          <div style="display:flex;gap:6px">
+            <button class="btn sm" onclick="syncResearchNow(false)"><i class="ti ti-refresh"></i> 지금 동기화</button>
+            <button class="btn sm" onclick="downloadExcel('industry')"><i class="ti ti-file-spreadsheet"></i> 엑셀 다운로드</button>
+            <button class="btn sm primary" onclick="openModal('industry')"><i class="ti ti-plus"></i> 항목 추가</button>
+          </div>
+        </div>
+        <div class="history-filter-bar">
+          <select id="idf-category" onchange="applyContentFilter('industry')">
+            <option value="">구분 전체</option>
+          </select>
+          <input type="text" id="idf-title" placeholder="타이틀 검색" oninput="applyContentFilter('industry')">
+          <button class="btn sm" onclick="resetContentFilter('industry')"><i class="ti ti-x"></i> 필터 초기화</button>
+        </div>
+        <div id="idf-info" style="font-size:13.5px;color:var(--muted);padding:6px 16px;display:none"></div>
+        <table class="tbl">
+          <thead><tr><th>날짜</th><th>구분</th><th>타이틀</th><th>내용</th><th>자료출처</th><th></th></tr></thead>
+          <tbody id="industry-list"></tbody>
+        </table>
+      </div>
     </div>
 
     <!-- ══ 마케팅 물품 재고 ══ -->
@@ -2920,6 +3012,8 @@ async function refreshAll(silent) {
     ['goodsUsage',  'goodsUsage'],
     ['designDraft', 'designDraft'],
     ['support',     'support'],
+    ['competitor',  'competitor'],
+    ['industry',    'industry'],
   ].filter(([key]) => !d[key]);
 
   if (fallbackJobs.length) {
@@ -2952,6 +3046,8 @@ function renderAllData(d) {
   renderBoard('patent', d.patent);
   renderBoard('brand',  d.brand);
   renderBoard('support', d.support);
+  renderContentTable('competitor', d.competitor);
+  renderContentTable('industry',   d.industry);
   renderCopyright(d.copyright);
   renderContentTable('press', d.press);
   renderContentTable('blog',  d.blog);
@@ -3006,6 +3102,8 @@ function renderPage(pageId) {
     case 'content-blog':   renderContentTable('blog',  DATA.blog); break;
     case 'goods-stock':    renderGoods(DATA.goods); break;
     case 'content-design': renderDesignDraft(DATA.designDraft); break;
+    case 'research-competitor': renderContentTable('competitor', DATA.competitor); break;
+    case 'research-industry':   renderContentTable('industry', DATA.industry); break;
     case 'ad-media':       initAdMediaPage(); break;
   }
   queueApplyMobileCards();
@@ -3836,9 +3934,11 @@ function renderYoutubeRows(rows) {
 const CONTENT_TABLE_CFG = {
   press: { listId: 'press-list', prefix: 'pf', emptyIcon: 'ti-news', emptyMsg: '등록된 언론보도/칼럼이 없습니다.', urlKey: 'URL', linkLabel: '바로가기', linkIcon: 'ti-external-link' },
   blog:  { listId: 'blog-list',  prefix: 'blf', emptyIcon: 'ti-pencil', emptyMsg: '등록된 블로그 글이 없습니다.', urlKey: 'URL', linkLabel: '바로가기', linkIcon: 'ti-external-link' },
+  competitor: { listId: 'competitor-list', prefix: 'cpf', emptyIcon: 'ti-building-store', emptyMsg: '등록된 경쟁사 조사 자료가 없습니다.', urlKey: 'URL', linkLabel: '자료출처', linkIcon: 'ti-link', hasCompany: true },
+  industry:   { listId: 'industry-list',   prefix: 'idf', emptyIcon: 'ti-chart-line',      emptyMsg: '등록된 산업 동향 조사 자료가 없습니다.', urlKey: 'URL', linkLabel: '자료출처', linkIcon: 'ti-link', hasCompany: false },
 };
 
-let _contentAllRows = { press: [], blog: [] };
+let _contentAllRows = { press: [], blog: [], competitor: [], industry: [] };
 
 function renderContentTable(key, rows) {
   const cfg = CONTENT_TABLE_CFG[key];
@@ -3877,14 +3977,17 @@ function applyContentFilter(key) {
       if (yearFrom && y < parseInt(yearFrom)) return false;
       if (yearTo   && y > parseInt(yearTo))   return false;
     }
-    // 발행처 검색
+    // 발행처/경쟁사명 검색
     const solutionField = key === 'press'
       ? (r['발행처'] || r['솔루션명'] || '')
+      : key === 'competitor'
+      ? (r['경쟁사명'] || '')
       : (r['솔루션명'] || '');
     if (solution && !String(solutionField).toLowerCase().includes(solution)) return false;
     // 언론사명 검색 (press 전용)
     if (company && !String(r['언론사명'] || '').toLowerCase().includes(company)) return false;
-    if (title && !String(r['제목'] || '').toLowerCase().includes(title)) return false;
+    const titleField = (key === 'competitor' || key === 'industry') ? '타이틀' : '제목';
+    if (title && !String(r[titleField] || '').toLowerCase().includes(title)) return false;
     return true;
   });
 
@@ -3921,8 +4024,9 @@ function renderContentRows(key, rows) {
   if (!cfg) return;
   const el = document.getElementById(cfg.listId);
   if (!el) return;
+  const isResearch = key === 'competitor' || key === 'industry';
   if (!rows || !rows.length) {
-    const colspan = key === 'press' ? 7 : 6;
+    const colspan = key === 'press' ? 7 : isResearch ? (cfg.hasCompany ? 7 : 6) : 6;
     el.innerHTML = `<tr><td colspan="${colspan}"><div class="empty"><i class="ti ${cfg.emptyIcon}"></i><p>${cfg.emptyMsg}</p></div></td></tr>`;
     return;
   }
@@ -3932,6 +4036,28 @@ function renderContentRows(key, rows) {
     r._cacheKey = cKey;
     rowCache[cKey] = r;
   });
+
+  // 경쟁사 조사 / 산업 동향 조사: 언론보도와 같은 기능이지만 컬럼 구성이 다름 (날짜·경쟁사명·구분·타이틀·내용·자료출처)
+  if (isResearch) {
+    el.innerHTML = sorted.map(r => {
+      const companyCell = cfg.hasCompany ? `<td>${r['경쟁사명']||''}</td>` : '';
+      return `<tr>
+      <td style="color:var(--muted);white-space:nowrap">${fmtDate(r['게시일'])}</td>
+      ${companyCell}
+      <td>${r['구분'] ? `<span style="background:var(--accent-lt);color:var(--accent-dk);padding:2px 8px;border-radius:100px;font-size:11px">${r['구분']}</span>` : '—'}</td>
+      <td style="font-weight:500">${r['타이틀']||''}</td>
+      <td style="color:var(--muted);font-size:13px">${r['내용']||''}</td>
+      <td>${r[cfg.urlKey] ? `<a href="${r[cfg.urlKey]}" target="_blank" class="btn sm"><i class="ti ${cfg.linkIcon}"></i> ${cfg.linkLabel}</a>` : '—'}</td>
+      <td style="text-align:right">
+        <button class="btn sm edit-btn" data-type="${key}" data-key="${r._cacheKey}"><i class="ti ti-edit"></i></button>
+        <button class="btn sm danger del-btn" data-type="${key}" data-row="${r._row}"><i class="ti ti-trash"></i></button>
+      </td>
+    </tr>`;
+    }).join('');
+    queueApplyMobileCards();
+    return;
+  }
+
   el.innerHTML = sorted.map(r => {
     const solutionVal = key === 'press'
       ? (r['발행처'] || r['솔루션명'] || '')
@@ -4226,7 +4352,7 @@ async function toggleStatus(rowNum) {
 }
 
 // ── 삭제 ─────────────────────────────────────────────────
-const SHEET_MAP = { cert:'인증', award:'수상', patent:'특허', brand:'상표', copyright:'프로그램저작', history:'연혁', intro:'소개자료', youtube:'유튜브', press:'언론보도', blog:'블로그', goods:'물품재고', designDraft:'디자인시안', support:'지원사업' };
+const SHEET_MAP = { cert:'인증', award:'수상', patent:'특허', brand:'상표', copyright:'프로그램저작', history:'연혁', intro:'소개자료', youtube:'유튜브', press:'언론보도', blog:'블로그', goods:'물품재고', designDraft:'디자인시안', support:'지원사업', competitor:'경쟁사조사', industry:'산업동향조사' };
 async function deleteItem(key, rowNum) {
   if (!confirm('이 항목을 삭제하시겠습니까?')) return;
   const res = await apiPost({ action: 'delete', sheet: SHEET_MAP[key], row: rowNum });
@@ -4532,6 +4658,21 @@ const MODAL_FORMS = {
     <div class="form-row"><label>내용</label><textarea id="f-content" placeholder="설명 (선택)">${d['내용']||''}</textarea></div>
     <div class="form-row"><label>URL</label><input type="url" id="f-url" placeholder="https://..." value="${d['URL']||''}"></div>`,
 
+  competitor: (d) => `
+    ${yearMonthDaySelect(d['게시일']||'')}
+    <div class="form-row"><label>경쟁사명</label><input type="text" id="f-competitor-name" placeholder="예: A사, B사" value="${d['경쟁사명']||''}"></div>
+    <div class="form-row"><label>구분 <span style="font-size:11px;color:var(--muted)">(직접 입력)</span></label><input type="text" id="f-category" placeholder="구분 직접 입력" value="${d['구분']||''}"></div>
+    <div class="form-row"><label>타이틀</label><input type="text" id="f-title" value="${d['타이틀']||''}"></div>
+    <div class="form-row"><label>내용</label><textarea id="f-content" placeholder="내용">${d['내용']||''}</textarea></div>
+    <div class="form-row"><label>자료출처 URL</label><input type="url" id="f-url" placeholder="https://..." value="${d['URL']||''}"></div>`,
+
+  industry: (d) => `
+    ${yearMonthDaySelect(d['게시일']||'')}
+    <div class="form-row"><label>구분 <span style="font-size:11px;color:var(--muted)">(예: 디지털 트윈, CAD 뷰어, 피지컬 AI 등)</span></label><input type="text" id="f-category" placeholder="구분 직접 입력" value="${d['구분']||''}"></div>
+    <div class="form-row"><label>타이틀</label><input type="text" id="f-title" value="${d['타이틀']||''}"></div>
+    <div class="form-row"><label>내용</label><textarea id="f-content" placeholder="내용">${d['내용']||''}</textarea></div>
+    <div class="form-row"><label>자료출처 URL</label><input type="url" id="f-url" placeholder="https://..." value="${d['URL']||''}"></div>`,
+
   blog: (d) => `
     ${yearMonthDaySelect(d['게시일']||'')}
     <div class="form-row"><label>구분 <span style="font-size:11px;color:var(--muted)">(예: 기업소식, 제품소개, 이벤트 등)</span></label><input type="text" id="f-category" placeholder="구분 직접 입력" value="${d['구분']||''}"></div>
@@ -4657,11 +4798,13 @@ const EXCEL_COLS = {
   blog:    ['게시일','구분','솔루션명','제목','내용','URL'],
   goods:   ['구분','소구분','품목','제작일시','제작수량','사용수량','재고수량','단위','비고','이미지명'],
   designDraft: ['날짜','분류','제목','내용','비고','이미지명'],
+  competitor: ['게시일','경쟁사명','구분','타이틀','내용','URL'],
+  industry:   ['게시일','구분','타이틀','내용','URL'],
 };
 const EXCEL_LABELS = {
   cert:'인증', award:'수상', patent:'특허', brand:'상표', copyright:'프로그램저작등록',
   history:'연혁', intro:'소개자료', youtube:'유튜브영상', press:'언론보도및칼럼', blog:'블로그',
-  goods:'마케팅물품재고', designDraft:'디자인시안'
+  goods:'마케팅물품재고', designDraft:'디자인시안', competitor:'경쟁사조사', industry:'산업동향조사'
 };
 
 function downloadExcel(key) {
@@ -4699,12 +4842,12 @@ function openModalFixedCat(type, fixedCategory) {
 function openModal(type, data = {}) {
   currentModal = type;
   editRow = data._row || null;
-  document.getElementById('modal-title').textContent = (editRow ? '항목 수정' : '항목 추가') + ' — ' + ({ cert:'인증', award:'수상', patent:'특허', brand:'상표', copyright:'프로그램 저작/등록', history:'연혁', intro:'소개자료', youtube:'유튜브', press:'언론보도 및 칼럼', blog:'블로그', goods:'마케팅 물품', designDraft:'디자인 시안', support:'지원사업' }[type] || type);
+  document.getElementById('modal-title').textContent = (editRow ? '항목 수정' : '항목 추가') + ' — ' + ({ cert:'인증', award:'수상', patent:'특허', brand:'상표', copyright:'프로그램 저작/등록', history:'연혁', intro:'소개자료', youtube:'유튜브', press:'언론보도 및 칼럼', blog:'블로그', goods:'마케팅 물품', designDraft:'디자인 시안', support:'지원사업', competitor:'경쟁사 조사', industry:'산업 동향 조사' }[type] || type);
   document.getElementById('modal-body').innerHTML = MODAL_FORMS[type](data);
   document.getElementById('modal-bg').classList.add('open');
   // 연/월(/일) 드롭다운 초기 동기화
   setTimeout(() => {
-    (['youtube','press','blog'].includes(type) ? syncDateFieldYMD : syncDateField)();
+    (['youtube','press','blog','competitor','industry'].includes(type) ? syncDateFieldYMD : syncDateField)();
     if (type === 'designDraft') { initMultiDropzone(); renderMultiUploadPreview(); }
     else { initDropzone(); }
   }, 0);
@@ -4737,7 +4880,7 @@ async function submitModal() {
   try {
 
   // 저장 직전 날짜 필드 강제 동기화 (월 선택 후 연도 변경 순서 이슈 방지)
-  if (['youtube','press','blog'].includes(t)) syncDateFieldYMD();
+  if (['youtube','press','blog','competitor','industry'].includes(t)) syncDateFieldYMD();
   else syncDateField();
 
   // 파일이 선택된 경우 먼저 업로드
@@ -4800,6 +4943,10 @@ async function submitModal() {
     data = { '게시일': getDateFromSelects(), '구분': v('f-category'), '발행처': v('f-solution'), '언론사명': v('f-press-company'), '제목': v('f-title'), '내용': v('f-content'), 'URL': v('f-url') };
   } else if (t === 'blog') {
     data = { '게시일': getDateFromSelects(), '구분': v('f-category'), '솔루션명': v('f-solution'), '제목': v('f-title'), '내용': v('f-content'), 'URL': v('f-url') };
+  } else if (t === 'competitor') {
+    data = { '게시일': getDateFromSelects(), '경쟁사명': v('f-competitor-name'), '구분': v('f-category'), '타이틀': v('f-title'), '내용': v('f-content'), 'URL': v('f-url') };
+  } else if (t === 'industry') {
+    data = { '게시일': getDateFromSelects(), '구분': v('f-category'), '타이틀': v('f-title'), '내용': v('f-content'), 'URL': v('f-url') };
   } else if (t === 'goods') {
     data = { '구분': v('f-category'), '소구분': v('f-subcategory'), '품목': v('f-item'), '제작일시': v('f-madedate'), '제작수량': v('f-qty'), '수량': v('f-qty'), '단위': v('f-unit'), '비고': v('f-note'), '이미지ID': v('f-imgid'), '이미지명': v('f-imgname') };
   } else if (t === 'designDraft') {
@@ -4833,7 +4980,7 @@ async function refreshSheet(type) {
     history: 'history', cert: 'cert', award: 'award', patent: 'patent',
     brand: 'brand', copyright: 'copyright', intro: 'intro',
     youtube: 'youtube', press: 'press', blog: 'blog', goods: 'goods', designDraft: 'designDraft',
-    support: 'support'
+    support: 'support', competitor: 'competitor', industry: 'industry'
   };
   const action = actionMap[type];
   if (!action) { await refreshAll(); return; }
@@ -4858,6 +5005,8 @@ async function refreshSheet(type) {
     case 'designDraft': renderDesignDraft(rows); break;
     case 'goods':     renderGoods(rows); break;
     case 'support':   renderBoard('support', rows); break;
+    case 'competitor': renderContentTable('competitor', rows); break;
+    case 'industry':   renderContentTable('industry', rows); break;
   }
   // 지표 카드 빠른 갱신 (메인에 영향 있는 카테고리)
   if (['cert','award','patent','brand','copyright','history'].includes(type)) {
@@ -4866,6 +5015,32 @@ async function refreshSheet(type) {
   }
   queueApplyMobileCards();
 }
+
+// ── 경쟁사/산업 동향 조사: Claude CLI가 공유 드라이브 엑셀을 업데이트하면
+// 백엔드가 주기적으로(15분 트리거) 자동 반영하지만, 지금 보고 있는 동안에는 그보다 더 자주
+// 확인해서 "새로고침 없이도 계속 최신 상태"인 것처럼 보이도록 함 ──
+let _researchPollTimer = null;
+
+async function syncResearchNow(silent) {
+  await apiFetch({ action: 'syncResearch' }, true); // 백엔드에 지금 즉시 동기화하라고 요청 (조용히)
+  await refreshSheet('competitor');
+  await refreshSheet('industry');
+  if (!silent) banner('최신 자료로 갱신했습니다.', 'success');
+}
+
+function startResearchAutoPoll() {
+  stopResearchAutoPoll();
+  _researchPollTimer = setInterval(() => {
+    const activePage = document.querySelector('.page.active')?.id || '';
+    if (activePage === 'pg-research-competitor' || activePage === 'pg-research-industry') {
+      syncResearchNow(true);
+    }
+  }, 60000); // 1분마다 — 보고 있는 동안에만 조용히 확인
+}
+function stopResearchAutoPoll() {
+  if (_researchPollTimer) { clearInterval(_researchPollTimer); _researchPollTimer = null; }
+}
+
 function openImagePreview(fileId, fileName) {
   _galleryItems = [];
   _galleryIndex = 0;
@@ -5345,6 +5520,7 @@ function enterDashboard() {
   // '#app-shell{display:none}'는 id 선택자라 '.shell{display:flex}'보다 우선순위가 높아서,
   // 인라인 스타일을 그냥 비우면(''로 설정) 여전히 숨김 상태로 남아있었습니다. 명시적으로 flex를 지정해야 함.
   transitionGateScreens(gate, shell, 'flex');
+  startResearchAutoPoll();
 }
 
 function gateLogout() {
@@ -5540,6 +5716,8 @@ const AIS_CAT = {
   press:     { label:'언론보도 및 칼럼', icon:'ti-news',     page:'content-press', navId:'ni-content', dateKey:'게시일', titleKey:'제목' },
   blog:      { label:'블로그',     icon:'ti-pencil',       page:'content-blog',  navId:'ni-content', dateKey:'게시일', titleKey:'제목' },
   designDraft: { label:'디자인 시안', icon:'ti-photo',     page:'content-design', navId:'ni-content', dateKey:'날짜',   titleKey:'제목' },
+  competitor: { label:'경쟁사 조사', icon:'ti-building-store', page:'research-competitor', navId:'ni-research', dateKey:'게시일', titleKey:'타이틀' },
+  industry:   { label:'산업 동향 조사', icon:'ti-chart-line',   page:'research-industry',   navId:'ni-research', dateKey:'게시일', titleKey:'타이틀' },
   goods:     { label:'마케팅 물품', icon:'ti-package',     page:'goods-stock',   navId:'ni-goods',   dateKey:'제작일시', titleKey:'품목' },
   support:   { label:'지원사업',   icon:'ti-building-bank', page:'res-support',  navId:'ni-res',     dateKey:'게시일', titleKey:'제목' },
 };
@@ -5664,7 +5842,7 @@ function _aisComputeResults(q) {
       const title   = String(r[meta.titleKey] || '');
       const content = String(r['내용'] || r['내용2'] || '');
       const date    = String(r[meta.dateKey] || '');
-      const extra   = String(r['비고'] || '') + String(r['분류'] || '') + String(r['상태'] || '') + String(r['구분'] || '') + String(r['소구분'] || '') + String(r['솔루션명'] || '');
+      const extra   = String(r['비고'] || '') + String(r['분류'] || '') + String(r['상태'] || '') + String(r['구분'] || '') + String(r['소구분'] || '') + String(r['솔루션명'] || '') + String(r['경쟁사명'] || '');
       const allNorm = aisNorm(title + content + date + extra);
       allRows.push({ key, meta, row: r, title, date, content, allNorm });
 
