@@ -2124,7 +2124,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
         <div class="card-hd">
           <h2><i class="ti ti-building-store"></i> 경쟁사 조사 목록 <span id="count-competitor" style="font-size:13px;font-weight:400;color:var(--muted);margin-left:6px"></span></h2>
           <div style="display:flex;gap:6px">
-            <button class="btn sm" onclick="syncResearchNow(false)"><i class="ti ti-refresh"></i> 지금 동기화</button>
+            <button class="btn sm" onclick="syncResearchNow(true)"><i class="ti ti-refresh"></i> 지금 동기화</button>
             <button class="btn sm" onclick="downloadExcel('competitor')"><i class="ti ti-file-spreadsheet"></i> 엑셀 다운로드</button>
             <button class="btn sm primary" onclick="openModal('competitor')"><i class="ti ti-plus"></i> 항목 추가</button>
           </div>
@@ -2152,7 +2152,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
         <div class="card-hd">
           <h2><i class="ti ti-chart-line"></i> 산업 동향 조사 목록 <span id="count-industry" style="font-size:13px;font-weight:400;color:var(--muted);margin-left:6px"></span></h2>
           <div style="display:flex;gap:6px">
-            <button class="btn sm" onclick="syncResearchNow(false)"><i class="ti ti-refresh"></i> 지금 동기화</button>
+            <button class="btn sm" onclick="syncResearchNow(true)"><i class="ti ti-refresh"></i> 지금 동기화</button>
             <button class="btn sm" onclick="downloadExcel('industry')"><i class="ti ti-file-spreadsheet"></i> 엑셀 다운로드</button>
             <button class="btn sm primary" onclick="openModal('industry')"><i class="ti ti-plus"></i> 항목 추가</button>
           </div>
@@ -3102,8 +3102,8 @@ function renderPage(pageId) {
     case 'content-blog':   renderContentTable('blog',  DATA.blog); break;
     case 'goods-stock':    renderGoods(DATA.goods); break;
     case 'content-design': renderDesignDraft(DATA.designDraft); break;
-    case 'research-competitor': renderContentTable('competitor', DATA.competitor); break;
-    case 'research-industry':   renderContentTable('industry', DATA.industry); break;
+    case 'research-competitor': renderContentTable('competitor', DATA.competitor); syncResearchNow(false); break;
+    case 'research-industry':   renderContentTable('industry', DATA.industry); syncResearchNow(false); break;
     case 'ad-media':       initAdMediaPage(); break;
   }
   queueApplyMobileCards();
@@ -5021,11 +5021,20 @@ async function refreshSheet(type) {
 // 확인해서 "새로고침 없이도 계속 최신 상태"인 것처럼 보이도록 함 ──
 let _researchPollTimer = null;
 
-async function syncResearchNow(silent) {
-  await apiFetch({ action: 'syncResearch' }, true); // 백엔드에 지금 즉시 동기화하라고 요청 (조용히)
+async function syncResearchNow(manual) {
+  // 수동으로 누른 경우엔 apiFetch 자체의 오류 배너를 그대로 보여줘서 실패 원인이 화면에 뜨게 하고,
+  // 백그라운드 자동 폴링(1분마다)일 때는 조용히 콘솔에만 남겨서 화면에 배너가 계속 뜨지 않게 함
+  const res = await apiFetch({ action: 'syncResearch' }, !manual);
+  if (!res || res.error) {
+    console.error('syncResearch 실패:', res);
+    return; // 수동 클릭이었다면 apiFetch가 이미 실패 배너를 띄웠음
+  }
   await refreshSheet('competitor');
   await refreshSheet('industry');
-  if (!silent) banner('최신 자료로 갱신했습니다.', 'success');
+  if (manual) {
+    const n = typeof res.syncedCount === 'number' ? res.syncedCount : null;
+    banner(n !== null ? `최신 자료로 갱신했습니다. (변경된 파일 ${n}개 반영)` : '최신 자료로 갱신했습니다.', 'success');
+  }
 }
 
 function startResearchAutoPoll() {
@@ -5033,9 +5042,9 @@ function startResearchAutoPoll() {
   _researchPollTimer = setInterval(() => {
     const activePage = document.querySelector('.page.active')?.id || '';
     if (activePage === 'pg-research-competitor' || activePage === 'pg-research-industry') {
-      syncResearchNow(true);
+      syncResearchNow(false);
     }
-  }, 60000); // 1분마다 — 보고 있는 동안에만 조용히 확인
+  }, 30000); // 30초마다 — 보고 있는 동안에만 조용히 확인
 }
 function stopResearchAutoPoll() {
   if (_researchPollTimer) { clearInterval(_researchPollTimer); _researchPollTimer = null; }
