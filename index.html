@@ -5043,6 +5043,10 @@ async function syncResearchNow(manual) {
     setResearchStatus('warn', `⚠️ ${hh}:${mm} 두 폴더에서 파일을 하나도 찾지 못했어요(하위 폴더 포함). 폴더 접근 권한·폴더 ID를 확인해주세요. ${cnt}`);
   } else if (res.unsupportedFiles && res.unsupportedFiles.length && !res.rowsAdded && !res.syncedCount) {
     setResearchStatus('warn', `⚠️ ${hh}:${mm} 파일 ${res.totalFilesFound}개를 찾았지만 지원하지 않는 형식이에요 (엑셀 .xlsx 또는 구글 시트만 읽을 수 있어요): ${res.unsupportedFiles[0]}`);
+  } else if (res.syncedCount && !res.rowsAdded) {
+    // 파일은 읽었지만 새로 추가된 행이 없음 → 이유(이미 있음/제목·내용이 비어있음)와 읽힌 컬럼을 알려줌
+    const hdr = (((res.details || [])[0] || {}).sheets || []).find(s => s.headers) || {};
+    setResearchStatus('warn', `⚠️ ${hh}:${mm} 파일을 읽었지만 새로 추가된 자료가 없어요 — 읽은 행 ${res.rowsRead || 0}개 중 이미 있음 ${res.rowsDup || 0}개 · 제목/내용 비어있음 ${res.rowsEmpty || 0}개. 읽은 컬럼: [${(hdr.headers || []).join(', ')}] ${cnt}`);
   } else {
     const more = res.remaining ? ` · 남은 파일 ${res.remaining}개는 곧 이어서 반영돼요` : '';
     const nochange = (!res.rowsAdded && !res.syncedCount) ? ' · 새로 바뀐 파일 없음' : '';
@@ -7689,7 +7693,7 @@ function renderAdKeywordCompare() {
 
   window.addEventListener('pointermove', e => {
     const r = root.getBoundingClientRect();
-    if (e.pointerType === 'mouse') { fx.tpx = ((e.clientX - r.left) / r.width - .5) * 2; fx.tpy = ((e.clientY - r.top) / r.height - .5) * 2; }
+    if (e.pointerType === 'mouse' && r.width > 0 && r.height > 0) { fx.tpx = ((e.clientX - r.left) / r.width - .5) * 2; fx.tpy = ((e.clientY - r.top) / r.height - .5) * 2; }
     if (fx.drag) { const now = performance.now(), dx = e.clientX - fx.drag.x; fx.spin += dx * .006; fx.spinV = dx * .006 * (16 / Math.max(8, now - fx.drag.t)); fx.drag = { x: e.clientX, t: now }; }
   });
   window.addEventListener('pointerdown', e => {
@@ -7802,7 +7806,12 @@ function renderAdKeywordCompare() {
     fx.boost *= .965; fx.T += dt * MOTION * (1 + fx.boost * 2.5);
     if (!fx.drag) { fx.spin += fx.spinV; fx.spinV *= .95; }
     fx.px += (fx.tpx - fx.px) * .04; fx.py += (fx.tpy - fx.py) * .04;
-    if (!document.hidden) draw(dt);
+    // 로그인 화면이 숨겨져 있을 땐(대시보드 입장 후) 그리지 않음 — 계산이 깨지고 CPU만 쓰기 때문
+    if (!document.hidden && root.offsetWidth > 0) {
+      if (!isFinite(fx.px)) fx.px = 0; if (!isFinite(fx.py)) fx.py = 0;
+      if (!isFinite(fx.tpx)) fx.tpx = 0; if (!isFinite(fx.tpy)) fx.tpy = 0;
+      try { draw(dt); } catch (err) { console.warn('배경 애니메이션 그리기 오류(무시):', err.message); }
+    }
     requestAnimationFrame(loop);
   })(0);
 })();
