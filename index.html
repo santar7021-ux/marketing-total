@@ -2124,6 +2124,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
           <input type="text" id="cpf-title" placeholder="타이틀 검색" oninput="applyContentFilter('competitor')">
           <button class="btn sm" onclick="resetContentFilter('competitor')"><i class="ti ti-x"></i> 필터 초기화</button>
         </div>
+        <div class="research-sync-status" style="font-size:12.5px;color:var(--muted);padding:8px 16px 0">동기화 상태 확인 중…</div>
         <div id="cpf-info" style="font-size:13.5px;color:var(--muted);padding:6px 16px;display:none"></div>
         <table class="tbl">
           <thead><tr><th>날짜</th><th>경쟁사명</th><th>구분</th><th>타이틀</th><th>내용</th><th>자료출처</th><th></th></tr></thead>
@@ -2151,6 +2152,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
           <input type="text" id="idf-title" placeholder="타이틀 검색" oninput="applyContentFilter('industry')">
           <button class="btn sm" onclick="resetContentFilter('industry')"><i class="ti ti-x"></i> 필터 초기화</button>
         </div>
+        <div class="research-sync-status" style="font-size:12.5px;color:var(--muted);padding:8px 16px 0">동기화 상태 확인 중…</div>
         <div id="idf-info" style="font-size:13.5px;color:var(--muted);padding:6px 16px;display:none"></div>
         <table class="tbl">
           <thead><tr><th>날짜</th><th>구분</th><th>타이틀</th><th>내용</th><th>자료출처</th><th></th></tr></thead>
@@ -2916,7 +2918,9 @@ function bannerClear() {
 }
 
 // ── API 호출 ─────────────────────────────────────────────
+let _lastApiError = null;
 async function apiFetch(params = {}, silent = false) {
+  _lastApiError = null;
   if (!API_URL) {
     if (!silent) banner('API URL이 설정되지 않았습니다. 설정 탭에서 입력해주세요.', 'error');
     return null;
@@ -2943,12 +2947,12 @@ async function apiFetch(params = {}, silent = false) {
         return null;
       }
       if (!silent) bannerClear();
-      if (json && json.error) { if (!silent) banner(json.error, 'error'); return null; }
+      if (json && json.error) { _lastApiError = json.error; if (!silent) banner(json.error, 'error'); return null; }
       return json;
     } catch (e) {
       lastErr = e;
       if (attempt < MAX_TRIES) { await sleep(400 * attempt); continue; }
-      if (!silent) banner('연결 실패: ' + e.message, 'error');
+      _lastApiError = '연결 실패: ' + e.message; if (!silent) banner('연결 실패: ' + e.message, 'error');
       return null;
     }
   }
@@ -5008,32 +5012,43 @@ async function refreshSheet(type) {
 // 확인해서 "새로고침 없이도 계속 최신 상태"인 것처럼 보이도록 함 ──
 let _researchPollTimer = null;
 
+function setResearchStatus(kind, text) {
+  const color = kind === 'ok' ? '#1D7A4C' : kind === 'warn' ? '#B7791F' : kind === 'err' ? '#A32D2D' : 'var(--muted)';
+  document.querySelectorAll('.research-sync-status').forEach(el => { el.style.color = color; el.textContent = text; });
+}
+
 async function syncResearchNow(manual) {
-  // 수동으로 누른 경우엔 force=1로 보내 최근 실패한 파일도 즉시 다시 시도하고, 결과(찾은 파일 수·추가된 건수·실패 이유)를 화면에 보여줌
-  // 백그라운드 자동 폴링일 때는 조용히 콘솔에만 남겨서 화면에 배너가 계속 뜨지 않게 함
-  const res = await apiFetch({ action: 'syncResearch', force: manual ? '1' : '' }, !manual);
+  // 수동 클릭이면 force=1로 보내 최근 실패한 파일도 즉시 재시도. 결과·실패 이유는 페이지의 상태 줄에 계속 남김
+  // (자동 확인일 때도 상태 줄은 갱신되지만 팝업 배너는 띄우지 않음)
+  setResearchStatus('', '동기화 중…');
+  const res = await apiFetch({ action: 'syncResearch', force: manual ? '1' : '' }, true);
+  const now = new Date(), hh = String(now.getHours()).padStart(2, '0'), mm = String(now.getMinutes()).padStart(2, '0');
   if (!res || res.error) {
-    console.error('syncResearch 실패:', res);
-    return; // 수동 클릭이었다면 apiFetch가 이미 실패 배너를 띄웠음
+    const msg = (res && res.error) || _lastApiError || '서버에서 응답이 없습니다. Code.gs를 새 버전으로 재배포했는지 확인해주세요.';
+    console.error('syncResearch 실패:', res, msg);
+    setResearchStatus('err', `❌ ${hh}:${mm} 동기화 실패 — ${msg}`);
+    if (manual) banner('동기화 실패: ' + msg, 'error');
+    return;
   }
   console.log('syncResearch 결과:', res);
-  if (!res.busy) {
-    await refreshSheet('competitor');
-    await refreshSheet('industry');
-  }
-  if (!manual) return;
+  if (res.busy) { setResearchStatus('warn', `⏳ ${hh}:${mm} 다른 동기화가 진행 중이에요. 잠시 후 다시 확인됩니다.`); return; }
 
-  if (res.busy) { banner('다른 동기화가 진행 중이에요. 잠시 후 다시 눌러주세요.', 'error'); return; }
+  await refreshSheet('competitor');
+  await refreshSheet('industry');
+  const cnt = `(시트 반영: 경쟁사 ${(DATA.competitor || []).length}건 · 산업동향 ${(DATA.industry || []).length}건)`;
+
   if (res.failedCount) {
-    banner(`일부 파일을 읽지 못했어요 (${res.failedCount}개): ${res.failedFiles[0]}`, 'error');
+    setResearchStatus('err', `⚠️ ${hh}:${mm} 일부 파일을 읽지 못했어요 (${res.failedCount}개) — ${res.failedFiles[0]}`);
   } else if (!res.totalFilesFound) {
-    banner('두 폴더에서 파일을 하나도 찾지 못했어요. 폴더 접근 권한이나 폴더 ID를 확인해주세요.', 'error');
-  } else if (res.unsupportedFiles && res.unsupportedFiles.length && !res.rowsAdded) {
-    banner(`지원하지 않는 파일 형식이에요 (엑셀 .xlsx 또는 구글 시트만 읽을 수 있어요): ${res.unsupportedFiles[0]}`, 'error');
+    setResearchStatus('warn', `⚠️ ${hh}:${mm} 두 폴더에서 파일을 하나도 찾지 못했어요(하위 폴더 포함). 폴더 접근 권한·폴더 ID를 확인해주세요. ${cnt}`);
+  } else if (res.unsupportedFiles && res.unsupportedFiles.length && !res.rowsAdded && !res.syncedCount) {
+    setResearchStatus('warn', `⚠️ ${hh}:${mm} 파일 ${res.totalFilesFound}개를 찾았지만 지원하지 않는 형식이에요 (엑셀 .xlsx 또는 구글 시트만 읽을 수 있어요): ${res.unsupportedFiles[0]}`);
   } else {
     const more = res.remaining ? ` · 남은 파일 ${res.remaining}개는 곧 이어서 반영돼요` : '';
-    banner(`동기화 완료: 파일 ${res.totalFilesFound}개 확인, 새 자료 ${res.rowsAdded || 0}건 추가${more}`, 'success');
+    const nochange = (!res.rowsAdded && !res.syncedCount) ? ' · 새로 바뀐 파일 없음' : '';
+    setResearchStatus('ok', `✅ ${hh}:${mm} 동기화 완료 — 파일 ${res.totalFilesFound}개 확인, 새 자료 ${res.rowsAdded || 0}건 추가${nochange}${more} ${cnt}`);
   }
+  if (manual) banner(`동기화 완료: 새 자료 ${res.rowsAdded || 0}건 추가`, 'success');
 }
 
 function startResearchAutoPoll() {
