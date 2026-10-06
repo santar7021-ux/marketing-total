@@ -5038,7 +5038,7 @@ async function syncResearchNow(manual) {
   const cnt = `(시트 반영: 경쟁사 ${(DATA.competitor || []).length}건 · 산업동향 ${(DATA.industry || []).length}건)`;
 
   if (res.failedCount) {
-    setResearchStatus('err', `⚠️ ${hh}:${mm} 일부 파일을 읽지 못했어요 (${res.failedCount}개) — ${res.failedFiles.slice(0, 2).join(' / ')}`);
+    setResearchStatus('err', `⚠️ ${hh}:${mm} 일부 파일을 읽지 못했어요 (${res.failedCount}개) — ${res.failedFiles.slice(0, 2).join(' / ')}${(res.failedFiles[0] || '').indexOf('읽힌 줄 1개') !== -1 || (res.failedFiles[0] || '').indexOf('읽힌 줄 0개') !== -1 ? '  ※ 파일에 헤더만 있고 자료가 아직 없다면, CLI가 자료를 채운 뒤 자동으로 반영돼요.' : ''}`);
   } else if (!res.totalFilesFound) {
     setResearchStatus('warn', `⚠️ ${hh}:${mm} 두 폴더에서 파일을 하나도 찾지 못했어요(하위 폴더 포함). 폴더 접근 권한·폴더 ID를 확인해주세요. ${cnt}`);
   } else if (res.unsupportedFiles && res.unsupportedFiles.length && !res.rowsAdded && !res.syncedCount) {
