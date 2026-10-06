@@ -5042,7 +5042,7 @@ async function syncResearchNow(manual) {
   } else if (!res.totalFilesFound) {
     setResearchStatus('warn', `⚠️ ${hh}:${mm} 두 폴더에서 파일을 하나도 찾지 못했어요(하위 폴더 포함). 폴더 접근 권한·폴더 ID를 확인해주세요. ${cnt}`);
   } else if (res.unsupportedFiles && res.unsupportedFiles.length && !res.rowsAdded && !res.syncedCount) {
-    setResearchStatus('warn', `⚠️ ${hh}:${mm} 파일 ${res.totalFilesFound}개를 찾았지만 지원하지 않는 형식이에요 (엑셀 .xlsx 또는 구글 시트만 읽을 수 있어요): ${res.unsupportedFiles[0]}`);
+    setResearchStatus('warn', `⚠️ ${hh}:${mm} 파일 ${res.totalFilesFound}개를 찾았지만 지원하지 않는 형식이에요 (엑셀 .xlsx · 구글 시트 · CSV만 읽을 수 있어요): ${res.unsupportedFiles[0]}`);
   } else if (res.syncedCount && !res.rowsAdded) {
     // 파일은 읽었지만 새로 추가된 행이 없음 → 이유(이미 있음/제목·내용이 비어있음)와 읽힌 컬럼을 알려줌
     const hdr = (((res.details || [])[0] || {}).sheets || []).find(s => s.headers) || {};
