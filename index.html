@@ -5009,18 +5009,30 @@ async function refreshSheet(type) {
 let _researchPollTimer = null;
 
 async function syncResearchNow(manual) {
-  // 수동으로 누른 경우엔 apiFetch 자체의 오류 배너를 그대로 보여줘서 실패 원인이 화면에 뜨게 하고,
-  // 백그라운드 자동 폴링(1분마다)일 때는 조용히 콘솔에만 남겨서 화면에 배너가 계속 뜨지 않게 함
-  const res = await apiFetch({ action: 'syncResearch' }, !manual);
+  // 수동으로 누른 경우엔 force=1로 보내 최근 실패한 파일도 즉시 다시 시도하고, 결과(찾은 파일 수·추가된 건수·실패 이유)를 화면에 보여줌
+  // 백그라운드 자동 폴링일 때는 조용히 콘솔에만 남겨서 화면에 배너가 계속 뜨지 않게 함
+  const res = await apiFetch({ action: 'syncResearch', force: manual ? '1' : '' }, !manual);
   if (!res || res.error) {
     console.error('syncResearch 실패:', res);
     return; // 수동 클릭이었다면 apiFetch가 이미 실패 배너를 띄웠음
   }
-  await refreshSheet('competitor');
-  await refreshSheet('industry');
-  if (manual) {
-    const n = typeof res.syncedCount === 'number' ? res.syncedCount : null;
-    banner(n !== null ? `최신 자료로 갱신했습니다. (변경된 파일 ${n}개 반영)` : '최신 자료로 갱신했습니다.', 'success');
+  console.log('syncResearch 결과:', res);
+  if (!res.busy) {
+    await refreshSheet('competitor');
+    await refreshSheet('industry');
+  }
+  if (!manual) return;
+
+  if (res.busy) { banner('다른 동기화가 진행 중이에요. 잠시 후 다시 눌러주세요.', 'error'); return; }
+  if (res.failedCount) {
+    banner(`일부 파일을 읽지 못했어요 (${res.failedCount}개): ${res.failedFiles[0]}`, 'error');
+  } else if (!res.totalFilesFound) {
+    banner('두 폴더에서 파일을 하나도 찾지 못했어요. 폴더 접근 권한이나 폴더 ID를 확인해주세요.', 'error');
+  } else if (res.unsupportedFiles && res.unsupportedFiles.length && !res.rowsAdded) {
+    banner(`지원하지 않는 파일 형식이에요 (엑셀 .xlsx 또는 구글 시트만 읽을 수 있어요): ${res.unsupportedFiles[0]}`, 'error');
+  } else {
+    const more = res.remaining ? ` · 남은 파일 ${res.remaining}개는 곧 이어서 반영돼요` : '';
+    banner(`동기화 완료: 파일 ${res.totalFilesFound}개 확인, 새 자료 ${res.rowsAdded || 0}건 추가${more}`, 'success');
   }
 }
 
