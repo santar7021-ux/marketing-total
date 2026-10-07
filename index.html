@@ -2120,7 +2120,9 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
           <select id="cpf-category" onchange="applyContentFilter('competitor')">
             <option value="">구분 전체</option>
           </select>
-          <input type="text" id="cpf-solution" placeholder="경쟁사명 검색" oninput="applyContentFilter('competitor')">
+          <select id="cpf-solution" onchange="applyContentFilter('competitor')">
+            <option value="">경쟁사 전체</option>
+          </select>
           <input type="text" id="cpf-title" placeholder="타이틀 검색" oninput="applyContentFilter('competitor')">
           <button class="btn sm" onclick="resetContentFilter('competitor')"><i class="ti ti-x"></i> 필터 초기화</button>
         </div>
@@ -3943,6 +3945,20 @@ function renderContentTable(key, rows) {
     sel.innerHTML = `<option value="">구분 전체</option>` + cats.map(c => `<option value="${c}">${c}</option>`).join('');
     if (cats.includes(prevVal)) sel.value = prevVal;
   }
+  // 경쟁사 조사: 경쟁사명 드롭다운 (자료에 들어있는 경쟁사명을 가나다순으로 자동 구성, 선택값은 갱신해도 유지)
+  if (key === 'competitor') {
+    const csel = document.getElementById('cpf-solution');
+    if (csel) {
+      const prev = csel.value;
+      const names = [...new Set(_contentAllRows[key].map(r => String(r['경쟁사명'] || '').trim()).filter(Boolean))]
+        .sort((a, b) => a.localeCompare(b, 'ko'));
+      csel.innerHTML = '';
+      const first = document.createElement('option'); first.value = ''; first.textContent = '경쟁사 전체';
+      csel.appendChild(first);
+      names.forEach(n => { const o = document.createElement('option'); o.value = n; o.textContent = n; csel.appendChild(o); });
+      if (names.includes(prev)) csel.value = prev;
+    }
+  }
   applyContentFilter(key);
 }
 
@@ -3974,7 +3990,10 @@ function applyContentFilter(key) {
       : key === 'competitor'
       ? (r['경쟁사명'] || '')
       : (r['솔루션명'] || '');
-    if (solution && !String(solutionField).toLowerCase().includes(solution)) return false;
+    if (solution) {
+      if (key === 'competitor') { if (String(solutionField).trim().toLowerCase() !== solution) return false; }
+      else if (!String(solutionField).toLowerCase().includes(solution)) return false;
+    }
     // 언론사명 검색 (press 전용)
     if (company && !String(r['언론사명'] || '').toLowerCase().includes(company)) return false;
     const titleField = (key === 'competitor' || key === 'industry') ? '타이틀' : '제목';
