@@ -2167,16 +2167,14 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
 
     <!-- ══ 전시회 자료 ══ -->
     <div id="pg-research-exhibition" class="page">
-      <div class="page-hd">
-        <h1>전시회 자료</h1><p>(주)소프트힐스의 전시회 참관 자료를 제공합니다.</p>
-      </div>
-      <div class="card card-res">
-        <div class="card-hd">
-          <h2><i class="ti ti-presentation"></i> 전시회 자료 <span id="exhibition-count" style="font-size:13px;font-weight:400;color:var(--muted);margin-left:6px"></span></h2>
+      <div class="page-hd-with-btn">
+        <div><h1>전시회 자료</h1><p>(주)소프트힐스의 전시회 참관 자료를 제공합니다.</p></div>
+        <div style="flex:none;display:flex;align-items:center;gap:10px">
+          <span id="exhibition-count" style="font-size:13px;color:var(--muted)"></span>
           <button class="btn sm primary" onclick="openModal('exhibition')"><i class="ti ti-plus"></i> 항목 추가</button>
         </div>
-        <div class="post-list" id="exhibition-list"></div>
       </div>
+      <div class="post-list" id="exhibition-list"></div>
     </div>
 
     <!-- ══ 마케팅 물품 재고 ══ -->
@@ -3641,6 +3639,16 @@ function renderIntro(rows) {
   _renderIntroList('intro-brochure-list', brochure,  '브로슈어가 없습니다.');
 }
 
+// 일정처럼 시트가 날짜로 바꿔 저장한 값(ISO 문자열)이 오면 yyyy.MM.dd로 보여주는 방어 처리
+function _fmtInfoVal(v) {
+  const s = String(v);
+  if (/^\d{4}-\d{2}-\d{2}T/.test(s)) {
+    const d = new Date(s);
+    if (!isNaN(d)) return d.getFullYear() + '.' + String(d.getMonth() + 1).padStart(2, '0') + '.' + String(d.getDate()).padStart(2, '0');
+  }
+  return s.replace(/</g, '&lt;');
+}
+
 function _renderIntroList(elId, rows, emptyMsg, type) {
   type = type || 'intro';
   const el = document.getElementById(elId);
@@ -3665,6 +3673,11 @@ function _renderIntroList(elId, rows, emptyMsg, type) {
     const folderUrl = r['공유폴더URL'] || '';
     const isFirst = idx === 0;
     const isLast  = idx === sorted.length - 1;
+    // 주제 / 일정 / 장소: 입력한 것만 제목 아래에 한 줄로 표시 (소개 자료처럼 해당 칸이 없는 탭에는 나타나지 않음)
+    const infoRow = [['주제','ti-tag'], ['일정','ti-calendar-event'], ['장소','ti-map-pin']]
+      .filter(([k]) => r[k] !== undefined && r[k] !== null && String(r[k]).trim() !== '')
+      .map(([k, ic]) => `<span style="display:inline-flex;align-items:center;gap:5px"><i class="ti ${ic}" style="color:var(--accent)"></i><span style="color:var(--muted)">${k}</span><b style="font-weight:600">${_fmtInfoVal(r[k])}</b></span>`)
+      .join('');
     return `
     <div class="post-card post-card-simple">
       <div class="post-body">
@@ -3674,6 +3687,7 @@ function _renderIntroList(elId, rows, emptyMsg, type) {
           ${folderUrl ? `<a href="${folderUrl}" target="_blank" style="margin-left:8px;font-size:11px;color:var(--accent);text-decoration:none;display:inline-flex;align-items:center;gap:3px;padding:1px 8px;border:1px solid var(--accent);border-radius:100px" title="공유 폴더 열기"><i class="ti ti-folder-open" style="font-size:12px"></i> 공유 폴더</a>` : ''}
         </div>
         <div class="post-title">${r['제목'] || '(제목 없음)'}</div>
+        ${infoRow ? `<div style="display:flex;flex-wrap:wrap;gap:6px 18px;font-size:15px;margin:2px 0 4px">${infoRow}</div>` : ''}
         ${r['내용'] ? `<div class="post-content">${r['내용']}</div>` : ''}
         ${folderUrl ? `<div class="post-note" style="word-break:break-all"><span>파일 경로</span> <a href="${folderUrl}" target="_blank" style="color:var(--accent)">${folderUrl}</a></div>` : ''}
         ${r['비고'] ? `<div class="post-note"><span>비고</span> ${r['비고']}</div>` : ''}
@@ -4648,6 +4662,9 @@ const MODAL_FORMS = {
     return `
     ${yearMonthSelect(d['게시일']||'')}
     <div class="form-row"><label>제목</label><input type="text" id="f-title" value="${d['제목']||''}"></div>
+    <div class="form-row"><label>주제</label><input type="text" id="f-topic" placeholder="예: 디지털 트윈, 스마트 건설" value="${d['주제']||''}"></div>
+    <div class="form-row"><label>일정</label><input type="text" id="f-schedule" placeholder="예: 2026.11.05 ~ 2026.11.08" value="${d['일정']||''}"></div>
+    <div class="form-row"><label>장소</label><input type="text" id="f-place" placeholder="예: 킨텍스 제1전시장" value="${d['장소']||''}"></div>
     <div class="form-row"><label>내용</label><textarea id="f-content">${d['내용']||''}</textarea></div>
     <div class="form-row">
       <label>공유 폴더 위치 <span style="font-size:11px;color:var(--muted)">(공유 드라이브 폴더 URL)</span></label>
@@ -5011,7 +5028,7 @@ async function submitModal() {
     data = { '게시일': getDateFromSelects(), '분류': v('f-category'), '제목': v('f-title'), '내용': v('f-content'), '비고': v('f-note'), '공유폴더URL': v('f-folderurl'), '파일ID': v('f-fileid'), '파일명': v('f-filename'), '형식': fmt };
   } else if (t === 'exhibition') {
     const fmt = v('f-filename').split('.').pop().toLowerCase();
-    data = { '게시일': getDateFromSelects(), '제목': v('f-title'), '내용': v('f-content'), '비고': v('f-note'), '공유폴더URL': v('f-folderurl'), '파일ID': v('f-fileid'), '파일명': v('f-filename'), '형식': fmt };
+    data = { '게시일': getDateFromSelects(), '제목': v('f-title'), '주제': v('f-topic'), '일정': v('f-schedule'), '장소': v('f-place'), '내용': v('f-content'), '비고': v('f-note'), '공유폴더URL': v('f-folderurl'), '파일ID': v('f-fileid'), '파일명': v('f-filename'), '형식': fmt };
   } else if (t === 'support') {
     const fmt = v('f-filename').split('.').pop().toLowerCase();
     data = { '게시일': getDateFromSelects(), '분류': v('f-category'), '제목': v('f-title'), '내용': v('f-content'), '비고': v('f-note'), '공유폴더URL': v('f-folderurl'), '파일ID': v('f-fileid'), '파일명': v('f-filename'), '형식': fmt };
@@ -5958,7 +5975,7 @@ function _aisComputeResults(q) {
       const title   = String(r[meta.titleKey] || '');
       const content = String(r['내용'] || r['내용2'] || '');
       const date    = String(r[meta.dateKey] || '');
-      const extra   = String(r['비고'] || '') + String(r['분류'] || '') + String(r['상태'] || '') + String(r['구분'] || '') + String(r['소구분'] || '') + String(r['솔루션명'] || '') + String(r['경쟁사명'] || '');
+      const extra   = String(r['비고'] || '') + String(r['분류'] || '') + String(r['상태'] || '') + String(r['구분'] || '') + String(r['소구분'] || '') + String(r['솔루션명'] || '') + String(r['경쟁사명'] || '') + String(r['주제'] || '') + String(r['장소'] || '') + String(r['일정'] || '');
       const allNorm = aisNorm(title + content + date + extra);
       allRows.push({ key, meta, row: r, title, date, content, allNorm });
 
@@ -6063,7 +6080,7 @@ function showAisMore(btn, key, qEncoded, ctx = 'modal') {
     const title   = String(r[meta.titleKey] || '');
     const content = String(r['내용'] || '');
     const date    = String(r[meta.dateKey] || '');
-    const extra   = String(r['비고']||'') + String(r['분류']||'') + String(r['상태']||'') + String(r['구분']||'') + String(r['소구분']||'') + String(r['솔루션명']||'');
+    const extra   = String(r['비고']||'') + String(r['분류']||'') + String(r['상태']||'') + String(r['구분']||'') + String(r['소구분']||'') + String(r['솔루션명']||'') + String(r['경쟁사명']||'') + String(r['주제']||'') + String(r['장소']||'') + String(r['일정']||'');
     const allNorm = aisNorm(title + content + date + extra);
     return allNorm.includes(qNorm) || (tokens.length > 1 && tokens.every(t => allNorm.includes(t)));
   });
