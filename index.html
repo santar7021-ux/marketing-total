@@ -790,6 +790,11 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
 .post-content { font-size: 16.2px; color: var(--muted); line-height: 1.6; white-space: pre-wrap; }
 .post-note { font-size: 15px; color: var(--accent); }
 .post-note span { font-weight: 500; }
+/* 전시회 자료: 주제 / 일정 / 장소를 한 줄씩(세로로) — 라벨 폭을 맞춰서 값 시작 위치가 가지런하게 */
+.post-info { display: flex; flex-direction: column; gap: 4px; font-size: 15px; margin: 4px 0 6px; }
+.post-info-row { display: flex; align-items: baseline; gap: 10px; }
+.post-info-label { flex: none; display: inline-flex; align-items: center; gap: 5px; min-width: 62px; color: var(--muted); }
+.post-info-val { font-weight: 600; min-width: 0; overflow-wrap: anywhere; }
 .post-actions { display: flex; gap: 6px; margin-top: 8px; }
 .post-file-btn {
   display: inline-flex; align-items: center; gap: 5px;
@@ -1144,6 +1149,9 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
   .post-title { font-size: 14.5px; }
   .post-content { font-size: 13px; }
   .post-note { font-size: 12.5px; }
+  .post-info { font-size: 13.5px; gap: 3px; }
+  .post-info-row { gap: 8px; }
+  .post-info-label { min-width: 54px; }
   .post-date  { font-size: 11.5px; }
   .post-meta  { font-size: 11.5px; }
   .post-actions { flex-wrap: wrap; gap: 4px; }
@@ -3686,7 +3694,7 @@ function _renderIntroList(elId, rows, emptyMsg, type) {
     // 주제 / 일정 / 장소: 입력한 것만 제목 아래에 한 줄로 표시 (소개 자료처럼 해당 칸이 없는 탭에는 나타나지 않음)
     const infoRow = [['주제','ti-tag'], ['일정','ti-calendar-event'], ['장소','ti-map-pin']]
       .filter(([k]) => r[k] !== undefined && r[k] !== null && String(r[k]).trim() !== '')
-      .map(([k, ic]) => `<span style="display:inline-flex;align-items:center;gap:5px"><i class="ti ${ic}" style="color:var(--accent)"></i><span style="color:var(--muted)">${k}</span><b style="font-weight:600">${_fmtInfoVal(r[k])}</b></span>`)
+      .map(([k, ic]) => `<div class="post-info-row"><span class="post-info-label"><i class="ti ${ic}" style="color:var(--accent)"></i>${k}</span><span class="post-info-val">${_fmtInfoVal(r[k])}</span></div>`)
       .join('');
     return `
     <div class="post-card post-card-simple">
@@ -3697,7 +3705,7 @@ function _renderIntroList(elId, rows, emptyMsg, type) {
           ${folderUrl ? `<a href="${folderUrl}" target="_blank" style="margin-left:8px;font-size:11px;color:var(--accent);text-decoration:none;display:inline-flex;align-items:center;gap:3px;padding:1px 8px;border:1px solid var(--accent);border-radius:100px" title="공유 폴더 열기"><i class="ti ti-folder-open" style="font-size:12px"></i> 공유 폴더</a>` : ''}
         </div>
         <div class="post-title">${r['제목'] || '(제목 없음)'}</div>
-        ${infoRow ? `<div style="display:flex;flex-wrap:wrap;gap:6px 18px;font-size:15px;margin:2px 0 4px">${infoRow}</div>` : ''}
+        ${infoRow ? `<div class="post-info">${infoRow}</div>` : ''}
         ${r['내용'] ? `<div class="post-content">${r['내용']}</div>` : ''}
         ${folderUrl ? `<div class="post-note" style="word-break:break-all"><span>파일 경로</span> <a href="${folderUrl}" target="_blank" style="color:var(--accent)">${folderUrl}</a></div>` : ''}
         ${r['비고'] ? `<div class="post-note"><span>비고</span> ${r['비고']}</div>` : ''}
