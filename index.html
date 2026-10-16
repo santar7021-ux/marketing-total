@@ -795,7 +795,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
 .post-info-row { display: flex; align-items: baseline; gap: 10px; }
 .post-info-label { flex: none; display: inline-flex; align-items: center; gap: 5px; min-width: 62px; color: var(--muted); }
 .post-info-val { font-weight: 600; min-width: 0; overflow-wrap: anywhere; }
-.post-actions { display: flex; gap: 6px; margin-top: 8px; }
+.post-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
 .post-file-btn {
   display: inline-flex; align-items: center; gap: 5px;
   font-size: 15px; padding: 4px 10px; border-radius: var(--r-md);
@@ -803,6 +803,13 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
   color: var(--text); cursor: pointer; text-decoration: none;
 }
 .post-file-btn:hover { background: var(--accent-lt); border-color: var(--accent); color: var(--accent); }
+/* 첨부 파일이 여러 개일 때: 파일 버튼들을 별도 줄에 모아서 보여줌 (긴 파일명은 줄바꿈) */
+.post-files { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.post-files .post-file-btn { max-width: 100%; word-break: break-all; }
+.post-preview .preview-count { position: absolute; top: 8px; right: 8px; z-index: 2; background: rgba(0,0,0,.62); color: #fff; font-size: 11px; padding: 2px 8px; border-radius: 100px; }
+/* 첨부 파일 입력 목록 */
+.attach-list { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+.attach-list .upload-state { margin-top: 0; }
 
 /* ── 빠른 이동 ── */
 .quick-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px,1fr)); gap: 10px; }
@@ -3451,13 +3458,12 @@ function renderMainPatent(rows) {
     return;
   }
   el.innerHTML = registered.map(r => {
-    const fileId = r['이미지ID'] || '';
-    const driveUrl = fileId ? `https://drive.google.com/file/d/${fileId}/view` : '';
+    const files = attachList(r);
     return `<tr>
       <td style="white-space:nowrap;color:var(--muted)">${fmtDate(r['날짜'])}</td>
       <td style="font-weight:500">${r['제목']||''}</td>
       <td style="font-size:13px;color:var(--muted)">${r['내용']||''}</td>
-      <td>${driveUrl ? `<a href="${driveUrl}" target="_blank" class="btn sm"><i class="ti ti-paperclip"></i></a>` : '—'}</td>
+      <td>${files.length ? files.map(f => `<a href="https://drive.google.com/file/d/${_attEsc(f.id)}/view" target="_blank" class="btn sm" title="${_attEsc(f.name)}" style="margin-right:3px"><i class="ti ti-paperclip"></i></a>`).join('') : '—'}</td>
     </tr>`;
   }).join('');
 }
@@ -3474,8 +3480,7 @@ function renderMainIntro(rows) {
     return;
   }
   el.innerHTML = list.map(r => {
-    const fileId = r['파일ID'] || '';
-    const driveUrl = fileId ? `https://drive.google.com/file/d/${fileId}/view` : '';
+    const files = attachList(r);
     const folderUrl = r['공유폴더URL'] || '';
     return `
     <div class="post-card post-card-simple">
@@ -3487,9 +3492,7 @@ function renderMainIntro(rows) {
         </div>
         <div class="post-title">${r['제목'] || '(제목 없음)'}</div>
         ${r['내용'] ? `<div class="post-content">${r['내용']}</div>` : ''}
-        <div class="post-actions">
-          ${driveUrl ? `<a href="${driveUrl}" target="_blank" class="post-file-btn"><i class="ti ti-download"></i> ${r['파일명'] || '파일 열기'}</a>` : ''}
-        </div>
+        ${files.length ? `<div class="post-files">${attachFilesHtml(files)}</div>` : ''}
       </div>
     </div>`;
   }).join('');
@@ -3686,8 +3689,7 @@ function _renderIntroList(elId, rows, emptyMsg, type) {
     rowCache[cKey] = r;
   });
   el.innerHTML = sorted.map((r, idx) => {
-    const fileId = r['파일ID'] || '';
-    const driveUrl = fileId ? `https://drive.google.com/file/d/${fileId}/view` : '';
+    const files = attachList(r);
     const folderUrl = r['공유폴더URL'] || '';
     const isFirst = idx === 0;
     const isLast  = idx === sorted.length - 1;
@@ -3709,8 +3711,8 @@ function _renderIntroList(elId, rows, emptyMsg, type) {
         ${r['내용'] ? `<div class="post-content">${r['내용']}</div>` : ''}
         ${folderUrl ? `<div class="post-note" style="word-break:break-all"><span>파일 경로</span> <a href="${folderUrl}" target="_blank" style="color:var(--accent)">${folderUrl}</a></div>` : ''}
         ${r['비고'] ? `<div class="post-note"><span>비고</span> ${r['비고']}</div>` : ''}
+        ${files.length ? `<div class="post-files">${attachFilesHtml(files)}</div>` : ''}
         <div class="post-actions">
-          ${driveUrl ? `<a href="${driveUrl}" target="_blank" class="post-file-btn"><i class="ti ti-download"></i> ${r['파일명'] || '파일 열기'}</a>` : ''}
           <button class="btn sm" onclick="moveIntroRow('${elId}',${idx},-1,'${type}')" ${isFirst?'disabled':''} title="위로"><i class="ti ti-arrow-up"></i></button>
           <button class="btn sm" onclick="moveIntroRow('${elId}',${idx},+1,'${type}')" ${isLast?'disabled':''} title="아래로"><i class="ti ti-arrow-down"></i></button>
           <button class="btn sm edit-btn" data-type="${type}" data-key="${r._cacheKey}"><i class="ti ti-edit"></i> 수정</button>
@@ -4203,10 +4205,12 @@ function resetBlogFilter()  { resetContentFilter('blog'); }
 // ── 특허 카드 렌더 헬퍼 ────────────────────────────────
 function _renderPatentCards(sorted) {
   return sorted.map(r => {
-    const fileId   = r['이미지ID'] || '';
-    const fileName = r['이미지명'] || '';
-    const fmt      = fileName.split('.').pop().toLowerCase();
-    const isImg    = ['jpg','jpeg','png','gif','webp'].includes(fmt);
+    const files    = attachList(r);
+    const primary  = attachPrimary(files);
+    const fileId   = primary ? primary.id : '';
+    const fileName = primary ? primary.name : '';
+    const fmt      = primary ? primary.ext : '';
+    const isImg    = _IMG_EXT.includes(fmt);
     const canPreview = fileId && (isImg || ['pdf','ppt','pptx','doc','docx'].includes(fmt));
     const driveUrl = fileId ? `https://drive.google.com/file/d/${fileId}/view` : '';
     const st       = r['상태'] || '출원';
@@ -4220,6 +4224,7 @@ function _renderPatentCards(sorted) {
           : fileId
           ? `<i class="ti ti-file preview-icon" style="font-size:44px"></i><span class="preview-label">클릭하여 보기</span>`
           : `<i class="ti ti-shield-check preview-icon"></i><span class="preview-label">파일 없음</span>`}
+        ${files.length > 1 ? `<span class="preview-count">${files.length}개 파일</span>` : ''}
       </div>
       <div class="post-body">
         <div class="post-date">
@@ -4230,8 +4235,8 @@ function _renderPatentCards(sorted) {
         ${r['내용'] ? `<div class="post-content">${r['내용']}</div>` : ''}
         ${r['공유폴더URL'] ? `<div class="post-note" style="word-break:break-all"><span>파일 경로</span> <a href="${r['공유폴더URL']}" target="_blank" style="color:var(--accent)">${r['공유폴더URL']}</a></div>` : ''}
         ${r['비고'] ? `<div class="post-note"><span>비고</span> ${r['비고']}</div>` : ''}
+        ${files.length ? `<div class="post-files">${attachFilesHtml(files)}</div>` : ''}
         <div class="post-actions">
-          ${driveUrl ? `<a href="${driveUrl}" target="_blank" class="post-file-btn"><i class="ti ti-download"></i> ${fileName||'파일 열기'}</a>` : ''}
           <button class="btn sm edit-btn" data-type="patent" data-key="${r._cacheKey}"><i class="ti ti-edit"></i> 수정</button>
           <button class="btn sm danger del-btn" data-type="patent" data-row="${r._row}"><i class="ti ti-trash"></i> 삭제</button>
         </div>
@@ -4244,8 +4249,7 @@ function _renderPatentCards(sorted) {
 function _renderSupportCards(sorted) {
   if (!sorted.length) return '';
   return sorted.map(r => {
-    const fileId    = r['파일ID'] || '';
-    const driveUrl  = fileId ? `https://drive.google.com/file/d/${fileId}/view` : '';
+    const files     = attachList(r);
     const folderUrl = r['공유폴더URL'] || '';
     return `
     <div class="post-card post-card-simple post-card-checkable">
@@ -4262,8 +4266,8 @@ function _renderSupportCards(sorted) {
         ${r['내용'] ? `<div class="post-content">${r['내용']}</div>` : ''}
         ${folderUrl ? `<div class="post-note" style="word-break:break-all"><span>파일 경로</span> <a href="${folderUrl}" target="_blank" style="color:var(--accent)">${folderUrl}</a></div>` : ''}
         ${r['비고'] ? `<div class="post-note"><span>비고</span> ${r['비고']}</div>` : ''}
+        ${files.length ? `<div class="post-files">${attachFilesHtml(files)}</div>` : ''}
         <div class="post-actions">
-          ${driveUrl ? `<a href="${driveUrl}" target="_blank" class="post-file-btn"><i class="ti ti-download"></i> ${r['파일명'] || '파일 열기'}</a>` : ''}
           <button class="btn sm edit-btn" data-type="support" data-key="${r._cacheKey}"><i class="ti ti-edit"></i> 수정</button>
           <button class="btn sm danger del-btn" data-type="support" data-row="${r._row}"><i class="ti ti-trash"></i> 삭제</button>
         </div>
@@ -4373,10 +4377,12 @@ function renderBoardRows(key, rows, listId, emptyMsg) {
   }
 
   el.innerHTML = sorted.map(r => {
-    const fileId = r['이미지ID'] || r['파일ID'] || '';
-    const fmt    = r['이미지명'] ? r['이미지명'].split('.').pop().toLowerCase() : '';
-    const isImg  = ['jpg','jpeg','png','gif','webp'].includes(fmt);
-    const fileName = r['이미지명'] || r['파일명'] || '';
+    const files    = attachList(r);
+    const primary  = attachPrimary(files);
+    const fileId   = primary ? primary.id : '';
+    const fmt      = primary ? primary.ext : '';
+    const isImg    = _IMG_EXT.includes(fmt);
+    const fileName = primary ? primary.name : '';
     const canPreview = fileId && (isImg || ['pdf','ppt','pptx','doc','docx','xls','xlsx'].includes(fmt));
     return `
     <div class="post-card">
@@ -4395,6 +4401,7 @@ function renderBoardRows(key, rows, listId, emptyMsg) {
              <span class="preview-label">클릭하여 보기</span>`
           : `<i class="ti ti-file preview-icon"></i>
              <span class="preview-label">미리보기 없음</span>`}
+        ${files.length > 1 ? `<span class="preview-count">${files.length}개 파일</span>` : ''}
       </div>
       <div class="post-body">
         <div class="post-date">${fmtDate(r['날짜'] || r['게시일'])}</div>
@@ -4402,8 +4409,8 @@ function renderBoardRows(key, rows, listId, emptyMsg) {
         ${r['내용'] ? `<div class="post-content">${r['내용']}</div>` : ''}
         ${r['공유폴더URL'] ? `<div class="post-note" style="word-break:break-all"><span>파일 경로</span> <a href="${r['공유폴더URL']}" target="_blank" style="color:var(--accent)">${r['공유폴더URL']}</a></div>` : ''}
         ${r['비고'] ? `<div class="post-note"><span>비고</span> ${r['비고']}</div>` : ''}
+        ${files.length ? `<div class="post-files">${attachFilesHtml(files)}</div>` : ''}
         <div class="post-actions">
-          ${fileId ? `<a href="https://drive.google.com/file/d/${fileId}/view" target="_blank" class="post-file-btn"><i class="ti ti-download"></i> ${fileName || '파일 열기'}</a>` : ''}
           <button class="btn sm edit-btn" data-type="${key}" data-key="${r._cacheKey}"><i class="ti ti-edit"></i> 수정</button>
           <button class="btn sm danger del-btn" data-type="${key}" data-row="${r._row}"><i class="ti ti-trash"></i> 삭제</button>
         </div>
@@ -4649,24 +4656,7 @@ const MODAL_FORMS = {
       </div>
     </div>
     <div class="form-row"><label>기타 참고사항</label><input type="text" id="f-note" placeholder="기타 참고사항" value="${d['비고']||''}"></div>
-    <div class="upload-section">
-      <label>첨부 파일 / 이미지</label>
-      <div class="dropzone" id="f-dropzone">
-        <i class="ti ti-paperclip dropzone-icon"></i>
-        <div class="dropzone-text">클릭하거나 파일을 드래그하여 첨부</div>
-        <div class="dropzone-sub">이미지, PDF, 문서 파일 등 지원</div>
-      </div>
-      <div class="upload-state ${d['이미지ID'] ? 'show' : ''}" id="f-upload-state">
-        <i class="ti ti-file-check" style="color:var(--accent)"></i>
-        <span class="us-name" id="f-us-name">${d['이미지명']||''}</span>
-        <span class="us-size" id="f-us-size">${d['이미지ID'] ? '등록됨' : ''}</span>
-        <span class="us-clear" onclick="clearUpload()" title="파일 제거">×</span>
-      </div>
-      <div class="upload-progress" id="f-progress"><div class="upload-progress-bar" id="f-bar"></div></div>
-      <div class="upload-msg" id="f-msg">${d['이미지ID'] ? '<a href="https://drive.google.com/file/d/' + d['이미지ID'] + '/view" target="_blank" style="color:var(--accent);font-size:12px">📎 등록된 파일 열기</a>' : ''}</div>
-    </div>
-    <input type="hidden" id="f-imgid"   value="${d['이미지ID']||''}">
-    <input type="hidden" id="f-imgname" value="${d['이미지명']||''}">`,
+    ${attachFormSection(d, 'board')}`,
 
   intro: (d) => {
     const existId   = d['파일ID']  || '';
@@ -4685,25 +4675,7 @@ const MODAL_FORMS = {
       </div>
     </div>
     <div class="form-row"><label>기타 참고사항</label><input type="text" id="f-note" placeholder="기타 참고사항" value="${d['비고']||''}"></div>
-    <div class="upload-section">
-      <label>첨부 파일</label>
-      <div class="dropzone" id="f-dropzone">
-        <i class="ti ti-paperclip dropzone-icon"></i>
-        <div class="dropzone-text">클릭하거나 파일을 드래그하여 첨부</div>
-        <div class="dropzone-sub">PDF, PPT, 문서 파일 등 지원</div>
-      </div>
-      <div class="upload-state ${existId ? 'show' : ''}" id="f-upload-state">
-        <i class="ti ti-file-check" style="color:var(--accent)"></i>
-        <span class="us-name" id="f-us-name">${existName || ''}</span>
-        <span class="us-size" id="f-us-size">${existId ? '등록됨' : ''}</span>
-        <span class="us-clear" onclick="clearUpload('intro')" title="파일 제거">×</span>
-      </div>
-      <div class="upload-progress" id="f-progress"><div class="upload-progress-bar" id="f-bar"></div></div>
-      <div class="upload-msg" id="f-msg">${existUrl ? '<a href="' + existUrl + '" target="_blank" style="color:var(--accent);font-size:12px">📎 등록된 파일 열기</a>' : ''}</div>
-    </div>
-    <input type="hidden" id="f-fileid"   value="${existId}">
-    <input type="hidden" id="f-filename" value="${existName}">
-    <input type="hidden" id="f-format"   value="${d['형식']||''}">`;
+    ${attachFormSection(d, 'file')}`;
   },
 
   exhibition: (d) => {
@@ -4725,25 +4697,7 @@ const MODAL_FORMS = {
       </div>
     </div>
     <div class="form-row"><label>기타 참고사항</label><input type="text" id="f-note" placeholder="기타 참고사항" value="${d['비고']||''}"></div>
-    <div class="upload-section">
-      <label>첨부 파일</label>
-      <div class="dropzone" id="f-dropzone">
-        <i class="ti ti-paperclip dropzone-icon"></i>
-        <div class="dropzone-text">클릭하거나 파일을 드래그하여 첨부</div>
-        <div class="dropzone-sub">PDF, PPT, 문서 파일 등 지원</div>
-      </div>
-      <div class="upload-state ${existId ? 'show' : ''}" id="f-upload-state">
-        <i class="ti ti-file-check" style="color:var(--accent)"></i>
-        <span class="us-name" id="f-us-name">${existName || ''}</span>
-        <span class="us-size" id="f-us-size">${existId ? '등록됨' : ''}</span>
-        <span class="us-clear" onclick="clearUpload('exhibition')" title="파일 제거">×</span>
-      </div>
-      <div class="upload-progress" id="f-progress"><div class="upload-progress-bar" id="f-bar"></div></div>
-      <div class="upload-msg" id="f-msg">${existUrl ? '<a href="' + existUrl + '" target="_blank" style="color:var(--accent);font-size:12px">📎 등록된 파일 열기</a>' : ''}</div>
-    </div>
-    <input type="hidden" id="f-fileid"   value="${existId}">
-    <input type="hidden" id="f-filename" value="${existName}">
-    <input type="hidden" id="f-format"   value="${d['형식']||''}">`;
+    ${attachFormSection(d, 'file')}`;
   },
 
   support: (d) => {
@@ -4763,25 +4717,7 @@ const MODAL_FORMS = {
       </div>
     </div>
     <div class="form-row"><label>기타 참고사항</label><input type="text" id="f-note" placeholder="기타 참고사항" value="${d['비고']||''}"></div>
-    <div class="upload-section">
-      <label>첨부 파일</label>
-      <div class="dropzone" id="f-dropzone">
-        <i class="ti ti-paperclip dropzone-icon"></i>
-        <div class="dropzone-text">클릭하거나 파일을 드래그하여 첨부</div>
-        <div class="dropzone-sub">PDF, PPT, 문서 파일 등 지원</div>
-      </div>
-      <div class="upload-state ${existId ? 'show' : ''}" id="f-upload-state">
-        <i class="ti ti-file-check" style="color:var(--accent)"></i>
-        <span class="us-name" id="f-us-name">${existName || ''}</span>
-        <span class="us-size" id="f-us-size">${existId ? '등록됨' : ''}</span>
-        <span class="us-clear" onclick="clearUpload('support')" title="파일 제거">×</span>
-      </div>
-      <div class="upload-progress" id="f-progress"><div class="upload-progress-bar" id="f-bar"></div></div>
-      <div class="upload-msg" id="f-msg">${existUrl ? '<a href="' + existUrl + '" target="_blank" style="color:var(--accent);font-size:12px">📎 등록된 파일 열기</a>' : ''}</div>
-    </div>
-    <input type="hidden" id="f-fileid"   value="${existId}">
-    <input type="hidden" id="f-filename" value="${existName}">
-    <input type="hidden" id="f-format"   value="${d['형식']||''}">`;
+    ${attachFormSection(d, 'file')}`;
   },
 
   youtube: (d) => `
@@ -4907,24 +4843,7 @@ function boardFormFields(d) {
       </div>
     </div>
     <div class="form-row"><label>기타 참고사항</label><input type="text" id="f-note" placeholder="기타 참고사항" value="${d['비고']||''}"></div>
-    <div class="upload-section">
-      <label>첨부 파일 / 이미지</label>
-      <div class="dropzone" id="f-dropzone">
-        <i class="ti ti-paperclip dropzone-icon"></i>
-        <div class="dropzone-text">클릭하거나 파일을 드래그하여 첨부</div>
-        <div class="dropzone-sub">이미지, PDF, PPT, 문서 파일 등 지원</div>
-      </div>
-      <div class="upload-state ${existId ? 'show' : ''}" id="f-upload-state">
-        <i class="ti ti-file-check" style="color:var(--accent)"></i>
-        <span class="us-name" id="f-us-name">${existName || ''}</span>
-        <span class="us-size" id="f-us-size">${existId ? '등록됨' : ''}</span>
-        <span class="us-clear" onclick="clearUpload('board')" title="파일 제거">×</span>
-      </div>
-      <div class="upload-progress" id="f-progress"><div class="upload-progress-bar" id="f-bar"></div></div>
-      <div class="upload-msg" id="f-msg">${existUrl ? '<a href="' + existUrl + '" target="_blank" style="color:var(--accent);font-size:12px">📎 등록된 파일 열기</a>' : ''}</div>
-    </div>
-    <input type="hidden" id="f-imgid"   value="${existId}">
-    <input type="hidden" id="f-imgname" value="${existName}">`;
+    ${attachFormSection(d, 'board')}`;
 }
 
 // ── 엑셀 다운로드 ────────────────────────────────────────
@@ -4950,6 +4869,13 @@ const EXCEL_LABELS = {
   goods:'마케팅물품재고', designDraft:'디자인시안', competitor:'경쟁사조사', industry:'산업동향조사'
 };
 
+// 여러 첨부 파일명은 한 칸에 '|'로 저장돼 있어서, 엑셀에는 읽기 좋게 ', '로 바꿔서 내보냄
+function _excelFlatAttach(r) {
+  const o = Object.assign({}, r);
+  ['이미지명', '파일명', '첨부파일명'].forEach(k => { if (o[k]) o[k] = String(o[k]).split('|').join(', '); });
+  return o;
+}
+
 function downloadExcel(key) {
   const rows = DATA[key] || [];
   if (!rows.length) { banner('다운로드할 데이터가 없습니다.', 'error'); return; }
@@ -4958,7 +4884,7 @@ function downloadExcel(key) {
   const sorted = [...rows].sort((a,b) =>
     parseDateNum(b['날짜'] || b['게시일']) - parseDateNum(a['날짜'] || a['게시일'])
   );
-  downloadAsXls(cols, sorted, `소프트힐스_${EXCEL_LABELS[key]||key}_${new Date().toISOString().slice(0,10)}.xls`);
+  downloadAsXls(cols, sorted.map(_excelFlatAttach), `소프트힐스_${EXCEL_LABELS[key]||key}_${new Date().toISOString().slice(0,10)}.xls`);
 }
 
 function openModalCached(type, cacheKey) {
@@ -4987,11 +4913,13 @@ function openModal(type, data = {}) {
   editRow = data._row || null;
   document.getElementById('modal-title').textContent = (editRow ? '항목 수정' : '항목 추가') + ' — ' + ({ cert:'인증', award:'수상', patent:'특허', brand:'상표', copyright:'프로그램 저작/등록', history:'연혁', intro:'소개자료', youtube:'유튜브', press:'언론보도 및 칼럼', blog:'블로그', goods:'마케팅 물품', designDraft:'디자인 시안', support:'지원사업', competitor:'경쟁사 조사', industry:'산업 동향 조사', exhibition:'전시회 자료' }[type] || type);
   document.getElementById('modal-body').innerHTML = MODAL_FORMS[type](data);
+  if (ATTACH_TYPES.includes(type)) { attachExisting = parseAttachFromRow(type, data); attachNew = []; }
   document.getElementById('modal-bg').classList.add('open');
   // 연/월(/일) 드롭다운 초기 동기화
   setTimeout(() => {
     (['youtube','press','blog','competitor','industry'].includes(type) ? syncDateFieldYMD : syncDateField)();
     if (type === 'designDraft') { initMultiDropzone(); renderMultiUploadPreview(); }
+    else if (ATTACH_TYPES.includes(type)) { initAttachDropzone(); renderAttachList(); }
     else { initDropzone(); }
   }, 0);
   currentUploadFile = null;
@@ -5048,6 +4976,32 @@ async function submitModal() {
     }
   }
 
+  // 첨부 파일 여러 개 (인증·수상·특허·상표·프로그램저작·소개자료·지원사업·전시회 자료):
+  // 새로 고른 파일들을 병렬 업로드한 뒤, 기존 파일과 합쳐서 'id1|id2|id3' 형태로 저장
+  if (ATTACH_TYPES.includes(t)) {
+    if (attachNew.length) {
+      try {
+        const toUpload = attachNew;
+        banner(`첨부 파일 ${toUpload.length}개 업로드 중…`, 'loading');
+        const uploadedList = await Promise.all(toUpload.map(f => uploadFileViaForm(f, true)));
+        uploadedList.forEach((u, i) => attachExisting.push({ id: u.fileId || '', name: toUpload[i].name }));
+        // 공유 폴더 위치 칸이 비어있을 때만, 첨부 파일이 저장된 드라이브 폴더 위치를 자동으로 채움
+        const folderUrlEl = document.getElementById('f-folderurl');
+        const firstFolder = (uploadedList.find(u => u && u.folderUrl) || {}).folderUrl;
+        if (folderUrlEl && !folderUrlEl.value.trim() && firstFolder) folderUrlEl.value = firstFolder;
+        attachNew = [];
+      } catch (e) {
+        banner('파일 업로드 실패: ' + e.message, 'error');
+        if (saveBtn) saveBtn.disabled = false;
+        return;
+      }
+    }
+    const idEl   = document.getElementById('f-imgid')   || document.getElementById('f-fileid');
+    const nameEl = document.getElementById('f-imgname') || document.getElementById('f-filename');
+    if (idEl)   idEl.value   = attachExisting.map(f => f.id).join('|');
+    if (nameEl) nameEl.value = attachExisting.map(f => f.name).join('|');
+  }
+
   // 디자인 시안: 여러 장의 새 이미지를 병렬 업로드 후 기존 이미지와 합쳐서 저장
   // (순차 업로드는 장수만큼 시간이 그대로 곱해져서 느렸음 — 동시에 보내면 전체 시간이 가장 느린 한 장 수준으로 줄어듦)
   if (t === 'designDraft' && currentUploadFilesMulti.length) {
@@ -5075,13 +5029,13 @@ async function submitModal() {
   } else if (t === 'copyright') {
     data = { '날짜': getDateFromSelects(), '분류': v('f-copyright-type') || '프로그램 등록', '제목': v('f-title'), '내용': v('f-content'), '비고': v('f-note'), '공유폴더URL': v('f-folderurl'), '이미지ID': v('f-imgid'), '이미지명': v('f-imgname') };
   } else if (t === 'intro') {
-    const fmt = v('f-filename').split('.').pop().toLowerCase();
+    const fmt = attachFormats();
     data = { '게시일': getDateFromSelects(), '분류': v('f-category'), '제목': v('f-title'), '내용': v('f-content'), '비고': v('f-note'), '공유폴더URL': v('f-folderurl'), '파일ID': v('f-fileid'), '파일명': v('f-filename'), '형식': fmt };
   } else if (t === 'exhibition') {
-    const fmt = v('f-filename').split('.').pop().toLowerCase();
+    const fmt = attachFormats();
     data = { '게시일': getDateFromSelects(), '제목': v('f-title'), '주제': v('f-topic'), '일정': v('f-schedule'), '장소': v('f-place'), '내용': v('f-content'), '비고': v('f-note'), '공유폴더URL': v('f-folderurl'), '파일ID': v('f-fileid'), '파일명': v('f-filename'), '형식': fmt };
   } else if (t === 'support') {
-    const fmt = v('f-filename').split('.').pop().toLowerCase();
+    const fmt = attachFormats();
     data = { '게시일': getDateFromSelects(), '분류': v('f-category'), '제목': v('f-title'), '내용': v('f-content'), '비고': v('f-note'), '공유폴더URL': v('f-folderurl'), '파일ID': v('f-fileid'), '파일명': v('f-filename'), '형식': fmt };
   } else if (t === 'youtube') {
     data = { '게시일': getDateFromSelects(), '구분': v('f-category'), '솔루션명': v('f-solution'), '제목': v('f-title'), '내용': v('f-content'), '유튜브URL': v('f-url') };
@@ -5324,6 +5278,117 @@ document.addEventListener('keydown', e => {
   if (e.key === 'ArrowRight') galleryNav(1);
 });
 
+
+// ── 첨부 파일 여러 개 (인증·수상·특허·상표·프로그램저작·소개자료·지원사업·전시회 자료) ──────────
+// 저장 방식: 디자인 시안과 같이 한 칸에 'id1|id2|id3' 로 이어서 저장 (파일이 1개면 예전 데이터와 완전히 동일)
+const ATTACH_MAX = 5; // 한 항목에 첨부할 수 있는 최대 개수
+const ATTACH_BOARD_TYPES = ['cert', 'award', 'patent', 'brand', 'copyright']; // 이미지ID/이미지명 칸을 쓰는 탭
+const ATTACH_TYPES = ATTACH_BOARD_TYPES.concat(['intro', 'support', 'exhibition']); // 파일ID/파일명 칸을 쓰는 탭 포함
+const _IMG_EXT = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+let attachExisting = []; // [{id, name}] 이미 저장돼 있는 파일 (수정 시)
+let attachNew = [];      // File[] 새로 고른(아직 업로드 안 된) 파일
+
+function _attEsc(s) {
+  return String(s === null || s === undefined ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+function _fmtSize(b) { return b > 1048576 ? (b / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(b / 1024)) + ' KB'; }
+
+// 한 행의 첨부 파일 목록 [{id, name, ext}] — 이미지ID/파일ID 어느 쪽이든, 1개든 여러 개든 처리
+function attachList(r) {
+  const ids   = String(r['이미지ID'] || r['파일ID'] || '').split('|').map(s => s.trim());
+  const names = String(r['이미지명'] || r['파일명'] || '').split('|').map(s => s.trim());
+  const out = [];
+  ids.forEach((id, i) => { if (id) out.push({ id: id, name: names[i] || '', ext: (names[i] || '').split('.').pop().toLowerCase() }); });
+  return out;
+}
+// 카드에 보여줄 파일 버튼들 (파일마다 하나씩)
+function attachFilesHtml(list) {
+  return list.map(f => `<a href="https://drive.google.com/file/d/${_attEsc(f.id)}/view" target="_blank" class="post-file-btn"><i class="ti ti-download"></i> ${_attEsc(f.name) || '파일 열기'}</a>`).join('');
+}
+// 미리보기 칸에 대표로 보여줄 파일: 이미지가 있으면 첫 이미지, 없으면 첫 파일
+function attachPrimary(list) { return list.find(f => _IMG_EXT.includes(f.ext)) || list[0] || null; }
+
+function parseAttachFromRow(type, d) {
+  const board = ATTACH_BOARD_TYPES.includes(type);
+  const ids   = String(d[board ? '이미지ID' : '파일ID'] || '').split('|').map(s => s.trim());
+  const names = String(d[board ? '이미지명' : '파일명'] || '').split('|').map(s => s.trim());
+  const out = [];
+  ids.forEach((id, i) => { if (id) out.push({ id: id, name: names[i] || '' }); });
+  return out;
+}
+// 저장할 '형식' 값 (소개자료·지원사업·전시회): 파일마다 확장자를 '|'로 이어서
+function attachFormats() { return attachExisting.map(f => String(f.name || '').split('.').pop().toLowerCase()).join('|'); }
+
+// 입력 팝업의 첨부 영역 (kind: 'board' = 이미지ID/이미지명 칸, 'file' = 파일ID/파일명/형식 칸)
+function attachFormSection(d, kind) {
+  const hidden = kind === 'board'
+    ? `<input type="hidden" id="f-imgid"   value="${_attEsc(d['이미지ID'] || '')}">
+       <input type="hidden" id="f-imgname" value="${_attEsc(d['이미지명'] || '')}">`
+    : `<input type="hidden" id="f-fileid"   value="${_attEsc(d['파일ID'] || '')}">
+       <input type="hidden" id="f-filename" value="${_attEsc(d['파일명'] || '')}">
+       <input type="hidden" id="f-format"   value="${_attEsc(d['형식'] || '')}">`;
+  return `
+    <div class="upload-section">
+      <label>첨부 파일 <span style="font-size:11px;color:var(--muted)">(최대 ${ATTACH_MAX}개)</span></label>
+      <div class="dropzone" id="f-attach-dz">
+        <i class="ti ti-paperclip dropzone-icon"></i>
+        <div class="dropzone-text">클릭하거나 파일을 드래그하여 첨부</div>
+        <div class="dropzone-sub">여러 개를 한 번에 선택할 수 있어요 · 이미지, PDF, PPT, 문서 파일 등</div>
+      </div>
+      <div class="attach-list" id="f-attach-list"></div>
+      <div class="upload-progress" id="f-progress"><div class="upload-progress-bar" id="f-bar"></div></div>
+      <div class="upload-msg" id="f-msg"></div>
+    </div>
+    ${hidden}`;
+}
+
+function initAttachDropzone() {
+  const dz = document.getElementById('f-attach-dz');
+  if (!dz) return;
+  const newDz = dz.cloneNode(true); // 중복 이벤트 방지
+  dz.parentNode.replaceChild(newDz, dz);
+  newDz.addEventListener('click', () => {
+    const inp = document.createElement('input');
+    inp.type = 'file';
+    inp.multiple = true;
+    inp.accept = '.pdf,.jpg,.jpeg,.png,.gif,.ppt,.pptx,.doc,.docx,.xls,.xlsx';
+    inp.onchange = e => addAttachFiles(e.target.files);
+    inp.click();
+  });
+  newDz.addEventListener('dragover',  e => { e.preventDefault(); newDz.classList.add('drag-over'); });
+  newDz.addEventListener('dragleave', () => newDz.classList.remove('drag-over'));
+  newDz.addEventListener('drop', e => { e.preventDefault(); newDz.classList.remove('drag-over'); addAttachFiles(e.dataTransfer.files); });
+}
+
+function addAttachFiles(fileList) {
+  let skipped = 0;
+  Array.from(fileList || []).forEach(f => {
+    if (attachNew.some(x => x.name === f.name && x.size === f.size)) return; // 같은 파일을 또 고른 경우는 무시
+    if (attachExisting.length + attachNew.length >= ATTACH_MAX) { skipped++; return; }
+    attachNew.push(f);
+  });
+  renderAttachList(skipped ? `첨부 파일은 최대 ${ATTACH_MAX}개까지예요. ${skipped}개는 추가하지 못했어요.` : '');
+}
+function removeAttachExisting(i) { attachExisting.splice(i, 1); renderAttachList(); }
+function removeAttachNew(i)      { attachNew.splice(i, 1);      renderAttachList(); }
+
+function renderAttachList(notice) {
+  const el = document.getElementById('f-attach-list');
+  if (!el) return;
+  const row = (icon, nameHtml, sizeText, rm) =>
+    `<div class="upload-state show"><i class="ti ${icon}" style="color:var(--accent)"></i><span class="us-name">${nameHtml}</span><span class="us-size">${sizeText}</span><span class="us-clear" onclick="${rm}" title="제거">×</span></div>`;
+  el.innerHTML =
+    attachExisting.map((f, i) => row('ti-file-check',
+      `<a href="https://drive.google.com/file/d/${_attEsc(f.id)}/view" target="_blank" style="color:inherit;text-decoration:none">${_attEsc(f.name || ('첨부 파일 ' + (i + 1)))}</a>`,
+      '등록됨', `removeAttachExisting(${i})`)).join('') +
+    attachNew.map((f, i) => row('ti-file-upload', _attEsc(f.name), _fmtSize(f.size) + ' · 저장 시 업로드', `removeAttachNew(${i})`)).join('');
+  const total = attachExisting.length + attachNew.length;
+  const msg = document.getElementById('f-msg');
+  if (msg) {
+    msg.className = notice ? 'upload-msg err' : 'upload-msg';
+    msg.textContent = notice || (total ? `${total} / ${ATTACH_MAX}개 첨부됨` + (attachNew.length ? ' — 저장 버튼을 누르면 업로드됩니다.' : '') : '');
+  }
+}
 
 // ── 드롭존 + 파일 업로드 ─────────────────────────────────
 let currentUploadFile = null;
