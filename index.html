@@ -5146,6 +5146,8 @@ async function syncResearchNow(manual) {
   await refreshSheet('competitor');
   await refreshSheet('industry');
   const cnt = `(시트 반영: 경쟁사 ${(DATA.competitor || []).length}건 · 산업동향 ${(DATA.industry || []).length}건)`;
+  // 이미 쌓여 있던 중복 / "특이 소식 없음" 행을 정리했으면 몇 건인지 알려줌
+  const cleaned = (res.removedDup || res.removedNoNews) ? ` · 정리: 중복 ${res.removedDup || 0}건, "특이 소식 없음" ${res.removedNoNews || 0}건 삭제` : '';
 
   if (res.failedCount) {
     setResearchStatus('err', `⚠️ ${hh}:${mm} 일부 파일을 읽지 못했어요 (${res.failedCount}개) — ${res.failedFiles.slice(0, 2).join(' / ')}${(res.failedFiles[0] || '').indexOf('원본 줄 1개') !== -1 || (res.failedFiles[0] || '').indexOf('원본 줄 0개') !== -1 ? '  ※ 파일에 헤더만 있고 자료가 아직 없다면, CLI가 자료를 채운 뒤 자동으로 반영돼요.' : ''}`);
@@ -5156,11 +5158,11 @@ async function syncResearchNow(manual) {
   } else if (res.syncedCount && !res.rowsAdded) {
     // 파일은 읽었지만 새로 추가된 행이 없음 → 이유(이미 있음/제목·내용이 비어있음)와 읽힌 컬럼을 알려줌
     const hdr = (((res.details || [])[0] || {}).sheets || []).find(s => s.headers) || {};
-    setResearchStatus('warn', `⚠️ ${hh}:${mm} 파일을 읽었지만 새로 추가된 자료가 없어요 — 읽은 행 ${res.rowsRead || 0}개 중 이미 있음 ${res.rowsDup || 0}개 · 제목/내용 비어있음 ${res.rowsEmpty || 0}개. 읽은 컬럼: [${(hdr.headers || []).join(', ')}] ${cnt}`);
+    setResearchStatus('warn', `⚠️ ${hh}:${mm} 파일을 읽었지만 새로 추가된 자료가 없어요 — 읽은 행 ${res.rowsRead || 0}개 중 이미 있음 ${res.rowsDup || 0}개 · "특이 소식 없음" ${res.rowsNoNews || 0}개 · 제목/내용 비어있음 ${res.rowsEmpty || 0}개${cleaned}. 읽은 컬럼: [${(hdr.headers || []).join(', ')}] ${cnt}`);
   } else {
     const more = res.remaining ? ` · 남은 파일 ${res.remaining}개는 곧 이어서 반영돼요` : '';
     const nochange = (!res.rowsAdded && !res.syncedCount) ? ' · 새로 바뀐 파일 없음' : '';
-    setResearchStatus('ok', `✅ ${hh}:${mm} 동기화 완료 — 파일 ${res.totalFilesFound}개 확인, 새 자료 ${res.rowsAdded || 0}건 추가${nochange}${more} ${cnt}`);
+    setResearchStatus('ok', `✅ ${hh}:${mm} 동기화 완료 — 파일 ${res.totalFilesFound}개 확인, 새 자료 ${res.rowsAdded || 0}건 추가${(res.rowsNoNews ? ` · "특이 소식 없음" ${res.rowsNoNews}건 제외` : '')}${(res.rowsEnriched ? ` · 기존 ${res.rowsEnriched}건의 링크·내용 보완` : '')}${nochange}${more}${cleaned} ${cnt}`);
   }
   if (manual) banner(`동기화 완료: 새 자료 ${res.rowsAdded || 0}건 추가`, 'success');
 }
