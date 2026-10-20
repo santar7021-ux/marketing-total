@@ -1050,9 +1050,9 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
 
 
 /* ── 전시회 일정 테이블 통일 ── */
-.es-tbl { font-size: 13.5px; }
-.es-tbl td, .es-tbl th { padding: 9px 8px; vertical-align: middle; }
-.es-tbl td { color: var(--text); }
+.es-tbl { font-size: 13px; border-collapse: collapse; table-layout: fixed; width: 100%; }
+.es-tbl th { white-space: nowrap; padding: 10px 8px; font-size: 12px; font-weight: 600; color: var(--muted); letter-spacing: -0.02em; vertical-align: middle; border-bottom: 2px solid var(--border-md); }
+.es-tbl td { padding: 10px 8px; vertical-align: top; font-size: 13px; color: var(--text); line-height: 1.5; border-bottom: 1px solid var(--border); }
 
 @media (max-width: 700px) {
   /* 전시회 일정 모바일 */ #exhSchedule-tbl .es-hide-mo { display: none; }
@@ -2256,25 +2256,25 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
         <div class="scroll-body">
         <table class="tbl es-tbl" id="exhSchedule-tbl">
           <colgroup>
-            <col class="es-hide-mo" style="width:56px">
-            <col class="es-hide-mo" style="width:56px">
-            <col style="width:42px">
-            <col style="width:32px">
-            <col style="width:128px">
-            <col style="width:42px">
-            <col style="width:62px">
-            <col style="width:auto">
-            <col class="es-hide-mo" style="width:110px">
-            <col class="es-hide-mo" style="width:110px">
-            <col class="es-hide-mo" style="width:110px">
-            <col class="es-hide-mo" style="width:90px">
-            <col class="es-hide-mo" style="width:148px">
-            <col class="es-hide-mo" style="width:50px">
+            <col class="es-hide-mo" style="width:62px">
+            <col class="es-hide-mo" style="width:62px">
+            <col style="width:36px">
+            <col style="width:28px">
+            <col style="width:110px">
+            <col style="width:36px">
+            <col style="width:52px">
+            <col>
+            <col class="es-hide-mo" style="width:96px">
+            <col class="es-hide-mo" style="width:96px">
+            <col class="es-hide-mo" style="width:96px">
+            <col class="es-hide-mo" style="width:76px">
+            <col class="es-hide-mo" style="width:200px">
+            <col class="es-hide-mo" style="width:46px">
           </colgroup>
           <thead>
             <tr>
-              <th class="es-hide-mo">참가 고려</th>
-              <th class="es-hide-mo">국비 지원</th>
+              <th class="es-hide-mo" style="text-align:center">참가 고려</th>
+              <th class="es-hide-mo" style="text-align:center">국비 지원</th>
               <th>연도</th>
               <th>월</th>
               <th>세부 일정</th>
@@ -2284,7 +2284,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
               <th class="es-hide-mo">장소</th>
               <th class="es-hide-mo">주요 산업</th>
               <th class="es-hide-mo" style="text-align:right">규모</th>
-              <th class="es-hide-mo" style="text-align:right">부스비</th>
+              <th class="es-hide-mo" style="text-align:right">참가비용</th>
               <th class="es-hide-mo">비고</th>
               <th class="es-hide-mo"></th>
             </tr>
@@ -4341,43 +4341,41 @@ function renderExhScheduleRows(rows) {
     rowCache[cKey] = r;
   });
 
-  // 산업별 컬러 매핑
   const IND_COLOR = {
-    '건설':       { bg:'#E3F2FD', fg:'#1565C0' },
-    '플랜트':     { bg:'#E8EAF6', fg:'#283593' },
-    '제조':       { bg:'#E8F5E9', fg:'#2E7D32' },
-    '기계':       { bg:'#E0F2F1', fg:'#00695C' },
-    '전기전자':   { bg:'#F3E5F5', fg:'#6A1B9A' },
-    'AI':         { bg:'#FCE4EC', fg:'#C62828' },
-    'ICT':        { bg:'#FFF3E0', fg:'#E65100' },
-    '디지털트윈': { bg:'#E8EAF6', fg:'#4527A0' },
-    'XR':         { bg:'#F8BBD0', fg:'#AD1457' },
-    'IoT':        { bg:'#E0F7FA', fg:'#00838F' },
-    '스마트시티': { bg:'#F1F8E9', fg:'#558B2F' },
-    '환경/에너지':{ bg:'#E8F5E9', fg:'#1B5E20' },
-    '방산':       { bg:'#ECEFF1', fg:'#37474F' },
+    '건설':       { bg:'#DBEAFE', fg:'#1E40AF' },
+    '플랜트':     { bg:'#E0E7FF', fg:'#3730A3' },
+    '제조':       { bg:'#D1FAE5', fg:'#065F46' },
+    '기계':       { bg:'#CCFBF1', fg:'#115E59' },
+    '전기전자':   { bg:'#EDE9FE', fg:'#5B21B6' },
+    'AI':         { bg:'#FFE4E6', fg:'#BE123C' },
+    'ICT':        { bg:'#FFEDD5', fg:'#C2410C' },
+    '디지털트윈': { bg:'#E0E7FF', fg:'#4338CA' },
+    'XR':         { bg:'#FCE7F3', fg:'#9D174D' },
+    'IoT':        { bg:'#CFFAFE', fg:'#155E75' },
+    '스마트시티': { bg:'#ECFCCB', fg:'#3F6212' },
+    '환경/에너지':{ bg:'#D1FAE5', fg:'#14532D' },
+    '방산':       { bg:'#E2E8F0', fg:'#334155' },
   };
-  const IND_DEFAULT = { bg:'#F5F5F5', fg:'#616161' };
+  const IND_DEFAULT = { bg:'#F1F5F9', fg:'#475569' };
 
   el.innerHTML = sorted.map(r => {
     const consider = String(r['참가고려']||'').trim();
     const conBadge = consider === '●'
-      ? '<span style="color:#1D7A4C;font-weight:600" title="참가 고려">●</span>'
+      ? '<span style="color:#1D7A4C;font-weight:700">●</span>'
       : consider === '▲'
-      ? '<span style="color:#B7791F;font-weight:600" title="기간/연관성 미비">▲</span>'
-      : '—';
+      ? '<span style="color:#B7791F;font-weight:700">▲</span>'
+      : '<span style="color:var(--muted)">—</span>';
     const govVal = String(r['국가지원']||'').trim();
     const govBadge = govVal === '지원'
-      ? '<span style="background:#E8F5E9;color:#2E7D32;padding:2px 7px;border-radius:100px;font-weight:500">지원</span>'
+      ? '<span style="background:#D1FAE5;color:#065F46;padding:2px 8px;border-radius:100px;font-weight:500;font-size:12px">지원</span>'
       : govVal === '미정'
-      ? '<span style="background:#FFF8E1;color:#F57F17;padding:2px 7px;border-radius:100px;font-weight:500">미정</span>'
+      ? '<span style="background:#FEF3C7;color:#92400E;padding:2px 8px;border-radius:100px;font-weight:500;font-size:12px">미정</span>'
       : govVal === '없음'
       ? '<span style="color:var(--muted)">없음</span>'
-      : '—';
+      : '<span style="color:var(--muted)">—</span>';
     const yr = r['연도'] ? String(r['연도']).replace(/[^0-9]/g,'') : '';
     const mo = String(r['월']||'').replace(/[^0-9]/g,'');
     const detail = r['상세일정'] || '';
-    // 세부 일정: 2026-10-14~2026-10-16 형식이면 보기 좋게 변환
     let detailDisp = detail;
     const dateRng = detail.match(/^(\d{4})-(\d{2})-(\d{2})~(\d{4})-(\d{2})-(\d{2})$/);
     if (dateRng) {
@@ -4389,15 +4387,15 @@ function renderExhScheduleRows(rows) {
 
     const domestic = r['국내/해외'] || '';
     const domBadge = domestic === '국내'
-      ? '<span style="background:#E3F2FD;color:#1565C0;padding:2px 7px;border-radius:100px;font-weight:500">국내</span>'
+      ? '<span style="background:#DBEAFE;color:#1E40AF;padding:2px 8px;border-radius:100px;font-weight:500;font-size:12px">국내</span>'
       : domestic === '해외'
-      ? '<span style="background:#FFF3E0;color:#E65100;padding:2px 7px;border-radius:100px;font-weight:500">해외</span>'
+      ? '<span style="background:#FFEDD5;color:#C2410C;padding:2px 8px;border-radius:100px;font-weight:500;font-size:12px">해외</span>'
       : '';
     const venue = [r['장소'], r['상세홀']].filter(Boolean).join(' ');
     const industries = String(r['주요산업']||'').split(/[,，]+/).map(s=>s.trim()).filter(Boolean);
     const indTags = industries.map(t => {
       const c = IND_COLOR[t] || IND_DEFAULT;
-      return `<span style="background:${c.bg};color:${c.fg};padding:2px 6px;border-radius:100px;display:inline-block;margin:1px 1px;white-space:nowrap">${t}</span>`;
+      return `<span style="background:${c.bg};color:${c.fg};padding:1px 6px;border-radius:100px;display:inline-block;margin:1px;white-space:nowrap;font-size:11px;font-weight:500;line-height:1.6">${t}</span>`;
     }).join('');
     const visitors = r['예상참관객'] ? _fmtNum(r['예상참관객'])+'명' : '';
     const companies = r['참가기업수'] ? _fmtNum(r['참가기업수'])+'개사' : '';
@@ -4410,20 +4408,20 @@ function renderExhScheduleRows(rows) {
     const titleHtml = url ? `<a href="${url}" target="_blank" style="color:var(--text);text-decoration:none;border-bottom:1px dashed var(--border-md)">${r['전시회명']||''}</a>` : (r['전시회명']||'');
 
     return `<tr>
-      <td class="es-hide-mo" style="text-align:center">${conBadge}</td>
-      <td class="es-hide-mo" style="text-align:center">${govBadge}</td>
+      <td class="es-hide-mo" style="text-align:center;vertical-align:middle">${conBadge}</td>
+      <td class="es-hide-mo" style="text-align:center;vertical-align:middle">${govBadge}</td>
       <td style="color:var(--muted)">${yr||'—'}</td>
       <td>${mo ? mo+'월' : '—'}</td>
       <td style="white-space:nowrap">${detailDisp||'—'}</td>
-      <td style="text-align:center">${domBadge}</td>
+      <td style="text-align:center;vertical-align:middle">${domBadge}</td>
       <td>${r['도시']||''}</td>
       <td style="font-weight:500">${titleHtml}</td>
       <td class="es-hide-mo" style="color:var(--muted)">${venue||'—'}</td>
       <td class="es-hide-mo">${indTags || '—'}</td>
       <td class="es-hide-mo" style="text-align:right;color:var(--muted);white-space:nowrap">${scale}</td>
       <td class="es-hide-mo" style="text-align:right;color:var(--muted);white-space:nowrap">${boothInfo}</td>
-      <td class="es-hide-mo" style="color:var(--muted);max-width:148px;overflow:hidden;text-overflow:ellipsis" title="${(r['비고']||'').replace(/"/g,'&quot;')}">${note||'—'}</td>
-      <td class="es-hide-mo" style="text-align:right;white-space:nowrap">
+      <td class="es-hide-mo" style="color:var(--muted);max-width:140px;word-break:keep-all;overflow-wrap:break-word">${note||'—'}</td>
+      <td class="es-hide-mo" style="text-align:right;white-space:nowrap;vertical-align:middle">
         <button class="btn sm edit-btn" data-type="exhibitionSchedule" data-key="${r._cacheKey}"><i class="ti ti-edit"></i></button>
         <button class="btn sm danger del-btn" data-type="exhibitionSchedule" data-row="${r._row}"><i class="ti ti-trash"></i></button>
       </td>
