@@ -4292,16 +4292,19 @@ function renderExhScheduleRows(rows) {
   const el = document.getElementById('exhSchedule-list');
   if (!el) return;
   if (!rows || !rows.length) {
-    el.innerHTML = '<tr><td colspan="11"><div class="empty"><i class="ti ti-calendar-event"></i><p>등록된 전시회 일정이 없습니다.</p></div></td></tr>';
+    el.innerHTML = '<tr><td colspan="12"><div class="empty"><i class="ti ti-calendar-event"></i><p>등록된 전시회 일정이 없습니다.</p></div></td></tr>';
     return;
   }
-  // 일정 순 정렬 (월.일 기준)
+  // 월 → 상세일정 순 정렬
   const sorted = [...rows].sort((a,b) => {
-    const am = parseInt(String(a['일정']||'').match(/^(\d+)/)?.[1]||'99');
-    const bm = parseInt(String(b['일정']||'').match(/^(\d+)/)?.[1]||'99');
+    const ay = parseInt(String(a['연도']||'9999'));
+    const by = parseInt(String(b['연도']||'9999'));
+    if (ay !== by) return ay - by;
+    const am = parseInt(String(a['월']||'99').replace(/[^0-9]/g,''));
+    const bm = parseInt(String(b['월']||'99').replace(/[^0-9]/g,''));
     if (am !== bm) return am - bm;
-    const ad = parseInt(String(a['일정']||'').match(/\.(\d+)/)?.[1]||'99');
-    const bd = parseInt(String(b['일정']||'').match(/\.(\d+)/)?.[1]||'99');
+    const ad = parseInt(String(a['상세일정']||'').match(/(\d+)/)?.[1]||'99');
+    const bd = parseInt(String(b['상세일정']||'').match(/(\d+)/)?.[1]||'99');
     return ad - bd;
   });
   sorted.forEach((r, idx) => {
@@ -4317,12 +4320,31 @@ function renderExhScheduleRows(rows) {
       : consider === '▲'
       ? '<span style="color:#B7791F;font-weight:700;font-size:14px" title="기간/연관성 미비">▲</span>'
       : '<span style="color:var(--muted)">—</span>';
+    const govVal = String(r['국가지원']||'').trim();
+    const govBadge = govVal === '지원'
+      ? '<span style="background:#E8F5E9;color:#2E7D32;padding:1px 6px;border-radius:100px;font-size:10.5px;font-weight:500">지원</span>'
+      : govVal === '미정'
+      ? '<span style="background:#FFF8E1;color:#F57F17;padding:1px 6px;border-radius:100px;font-size:10.5px;font-weight:500">미정</span>'
+      : govVal === '없음'
+      ? '<span style="color:var(--muted);font-size:11px">없음</span>'
+      : '<span style="color:var(--muted)">—</span>';
+    // 일정 표시: 연도 + 월 + 상세일정
+    const yr = r['연도'] ? String(r['연도']).replace(/[^0-9]/g,'') : '';
+    const mo = String(r['월']||'').replace(/[^0-9]/g,'');
+    const detail = r['상세일정'] || '';
+    let schedHtml = '';
+    if (yr) schedHtml += `<span style="font-size:11px;color:var(--muted)">${yr}년</span> `;
+    if (mo) schedHtml += `<span style="font-weight:500">${mo}월</span> `;
+    if (detail) schedHtml += `<span style="font-size:12.5px">${detail}</span>`;
+    if (!schedHtml) schedHtml = '—';
+
     const domestic = r['국내/해외'] || '';
     const domBadge = domestic === '국내'
       ? '<span style="background:#E3F2FD;color:#1565C0;padding:1px 6px;border-radius:100px;font-size:10.5px;font-weight:500">국내</span>'
       : domestic === '해외'
       ? '<span style="background:#FFF3E0;color:#E65100;padding:1px 6px;border-radius:100px;font-size:10.5px;font-weight:500">해외</span>'
       : '';
+    const venue = [r['장소'], r['상세홀']].filter(Boolean).join(' ');
     const industries = String(r['주요산업']||'').split(/[,，·]+/).map(s=>s.trim()).filter(Boolean);
     const indTags = industries.map(t => `<span style="background:var(--accent-lt);color:var(--accent-dk);padding:1px 5px;border-radius:100px;font-size:10px;margin:1px 2px;display:inline-block">${t}</span>`).join('');
     const visitors = r['예상참관객'] ? _fmtNum(r['예상참관객'])+'명' : '';
@@ -4336,17 +4358,18 @@ function renderExhScheduleRows(rows) {
     const titleHtml = url ? `<a href="${url}" target="_blank" style="color:var(--text);text-decoration:none;border-bottom:1px dashed var(--border-md)">${r['전시회명']||''}</a>` : (r['전시회명']||'');
 
     return `<tr>
-      <td style="text-align:center">${conBadge}</td>
-      <td style="color:var(--muted);white-space:nowrap;font-size:13px">${r['일정']||''}</td>
+      <td class="es-hide-mo" style="text-align:center">${conBadge}</td>
+      <td class="es-hide-mo" style="text-align:center">${govBadge}</td>
+      <td style="white-space:nowrap;font-size:13px">${schedHtml}</td>
       <td style="text-align:center">${domBadge}</td>
       <td>${r['도시']||''}</td>
       <td style="font-weight:500">${titleHtml}</td>
-      <td style="font-size:13px;color:var(--muted)">${r['장소']||''}</td>
-      <td>${indTags || '—'}</td>
-      <td style="text-align:right;font-size:12.5px;color:var(--muted);white-space:nowrap">${scale}</td>
-      <td style="text-align:right;font-size:12px;color:var(--muted);white-space:nowrap">${boothInfo}</td>
-      <td style="font-size:12.5px;color:var(--muted);max-width:180px;overflow:hidden;text-overflow:ellipsis" title="${(r['비고']||'').replace(/"/g,'&quot;')}">${note||'—'}</td>
-      <td style="text-align:right;white-space:nowrap">
+      <td class="es-hide-mo" style="font-size:13px;color:var(--muted)">${venue||'—'}</td>
+      <td class="es-hide-mo">${indTags || '—'}</td>
+      <td class="es-hide-mo" style="text-align:right;font-size:12.5px;color:var(--muted);white-space:nowrap">${scale}</td>
+      <td class="es-hide-mo" style="text-align:right;font-size:12px;color:var(--muted);white-space:nowrap">${boothInfo}</td>
+      <td class="es-hide-mo" style="font-size:12.5px;color:var(--muted);max-width:170px;overflow:hidden;text-overflow:ellipsis" title="${(r['비고']||'').replace(/"/g,'&quot;')}">${note||'—'}</td>
+      <td class="es-hide-mo" style="text-align:right;white-space:nowrap">
         <button class="btn sm edit-btn" data-type="exhibitionSchedule" data-key="${r._cacheKey}"><i class="ti ti-edit"></i></button>
         <button class="btn sm danger del-btn" data-type="exhibitionSchedule" data-row="${r._row}"><i class="ti ti-trash"></i></button>
       </td>
