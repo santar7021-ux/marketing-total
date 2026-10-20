@@ -2254,33 +2254,39 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
         </div>
         <div id="esf-info" style="font-size:13.5px;color:var(--muted);padding:6px 16px;display:none"></div>
         <div class="scroll-body">
-        <table class="tbl" id="exhSchedule-tbl">
+        <table class="tbl es-tbl" id="exhSchedule-tbl">
           <colgroup>
-            <col style="width:48px">
-            <col style="width:140px">
-            <col style="width:52px">
-            <col style="width:80px">
-            <col style="width:200px">
-            <col style="width:160px">
-            <col style="width:110px">
-            <col style="width:120px">
-            <col style="width:100px">
-            <col style="width:180px">
-            <col style="width:60px">
+            <col class="es-hide-mo" style="width:36px">
+            <col class="es-hide-mo" style="width:40px">
+            <col style="width:42px">
+            <col style="width:36px">
+            <col style="width:130px">
+            <col style="width:42px">
+            <col style="width:64px">
+            <col style="width:auto">
+            <col class="es-hide-mo" style="width:110px">
+            <col class="es-hide-mo" style="width:90px">
+            <col class="es-hide-mo" style="width:110px">
+            <col class="es-hide-mo" style="width:90px">
+            <col class="es-hide-mo" style="width:150px">
+            <col class="es-hide-mo" style="width:50px">
           </colgroup>
           <thead>
             <tr>
-              <th>고려</th>
-              <th>일정</th>
+              <th class="es-hide-mo">고려</th>
+              <th class="es-hide-mo">지원</th>
+              <th>연도</th>
+              <th>월</th>
+              <th>세부 일정</th>
               <th style="text-align:center">구분</th>
               <th>도시</th>
               <th>전시회명</th>
-              <th>장소</th>
-              <th>주요 산업</th>
-              <th style="text-align:right">규모</th>
-              <th style="text-align:right">부스비</th>
-              <th>비고</th>
-              <th></th>
+              <th class="es-hide-mo">장소</th>
+              <th class="es-hide-mo">주요 산업</th>
+              <th class="es-hide-mo" style="text-align:right">규모</th>
+              <th class="es-hide-mo" style="text-align:right">부스비</th>
+              <th class="es-hide-mo">비고</th>
+              <th class="es-hide-mo"></th>
             </tr>
           </thead>
           <tbody id="exhSchedule-list"></tbody>
