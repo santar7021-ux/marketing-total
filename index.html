@@ -1051,9 +1051,10 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
 
 /* ── 전시회 일정 테이블 통일 ── */
 .es-tbl { font-size: 13px; border-collapse: collapse; width: 100%; }
-.es-tbl th { white-space: nowrap; padding: 10px 10px; font-size: 12px; font-weight: 600; color: var(--muted); vertical-align: middle; border-bottom: 2px solid var(--border-md); }
-.es-tbl td { padding: 10px 10px; vertical-align: top; font-size: 13px; color: var(--text); line-height: 1.5; white-space: nowrap; }
+.es-tbl th { white-space: nowrap; padding: 10px 10px; font-size: 12px; font-weight: 600; color: var(--muted); vertical-align: middle; text-align: center; border-bottom: 2px solid var(--border-md); }
+.es-tbl td { padding: 10px 10px; vertical-align: middle; font-size: 13px; color: var(--text); line-height: 1.5; white-space: nowrap; text-align: center; }
 .es-tbl td.es-wrap { white-space: normal; word-break: keep-all; }
+.es-tbl td.es-left { text-align: left; }
 
 @media (max-width: 700px) {
   /* 전시회 일정 모바일 */ #exhSchedule-tbl .es-hide-mo { display: none; }
@@ -2274,18 +2275,18 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
           </colgroup>
           <thead>
             <tr>
-              <th class="es-hide-mo" style="text-align:center">참가 고려</th>
-              <th class="es-hide-mo" style="text-align:center">국비 지원</th>
+              <th class="es-hide-mo">참가 고려</th>
+              <th class="es-hide-mo">국비 지원</th>
               <th>연도</th>
               <th>월</th>
               <th>세부 일정</th>
-              <th style="text-align:center">구분</th>
+              <th>구분</th>
               <th>도시</th>
               <th>전시회명</th>
               <th class="es-hide-mo">장소</th>
               <th class="es-hide-mo">주요 산업</th>
-              <th class="es-hide-mo" style="text-align:right">규모</th>
-              <th class="es-hide-mo" style="text-align:right">참가비용</th>
+              <th class="es-hide-mo">규모</th>
+              <th class="es-hide-mo">참가비용</th>
               <th class="es-hide-mo">비고</th>
               <th class="es-hide-mo"></th>
             </tr>
@@ -4325,6 +4326,19 @@ function renderExhScheduleRows(rows) {
     el.innerHTML = '<tr><td colspan="14"><div class="empty"><i class="ti ti-calendar-event"></i><p>등록된 전시회 일정이 없습니다.</p></div></td></tr>';
     return;
   }
+
+  // 시작일 파싱 함수: "3.11~3.13" → 311, "2026-03-11~2026-03-13" → 311, "4.1~10.2" → 401
+  function parseStartDay(r) {
+    const d = String(r['상세일정']||'');
+    // YYYY-MM-DD~ 형식
+    const iso = d.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (iso) return parseInt(iso[2]) * 100 + parseInt(iso[3]);
+    // M.D~ 형식
+    const md = d.match(/^(\d{1,2})\.(\d{1,2})/);
+    if (md) return parseInt(md[1]) * 100 + parseInt(md[2]);
+    return 9999;
+  }
+
   const sorted = [...rows].sort((a,b) => {
     const ay = parseInt(String(a['연도']||'9999'));
     const by = parseInt(String(b['연도']||'9999'));
@@ -4332,10 +4346,9 @@ function renderExhScheduleRows(rows) {
     const am = parseInt(String(a['월']||'99').replace(/[^0-9]/g,''));
     const bm = parseInt(String(b['월']||'99').replace(/[^0-9]/g,''));
     if (am !== bm) return am - bm;
-    const ad = parseInt(String(a['상세일정']||'').match(/(\d+)/)?.[1]||'99');
-    const bd = parseInt(String(b['상세일정']||'').match(/(\d+)/)?.[1]||'99');
-    return ad - bd;
+    return parseStartDay(a) - parseStartDay(b);
   });
+
   sorted.forEach((r, idx) => {
     const cKey = 'exhibitionSchedule_' + (r._row !== undefined && r._row !== null ? String(r._row) : 'i' + idx);
     r._cacheKey = cKey;
@@ -4375,7 +4388,8 @@ function renderExhScheduleRows(rows) {
       ? '<span style="color:var(--muted)">없음</span>'
       : '<span style="color:var(--muted)">—</span>';
     const yr = r['연도'] ? String(r['연도']).replace(/[^0-9]/g,'') : '';
-    const mo = String(r['월']||'').replace(/[^0-9]/g,'');
+    const moRaw = String(r['월']||'').replace(/[^0-9]/g,'');
+    const moDisp = moRaw ? parseInt(moRaw) + '월' : '—';
     const detail = r['상세일정'] || '';
     let detailDisp = detail;
     const dateRng = detail.match(/^(\d{4})-(\d{2})-(\d{2})~(\d{4})-(\d{2})-(\d{2})$/);
@@ -4409,20 +4423,20 @@ function renderExhScheduleRows(rows) {
     const titleHtml = url ? `<a href="${url}" target="_blank" style="color:var(--text);text-decoration:none;border-bottom:1px dashed var(--border-md)">${r['전시회명']||''}</a>` : (r['전시회명']||'');
 
     return `<tr>
-      <td class="es-hide-mo" style="text-align:center;vertical-align:middle">${conBadge}</td>
-      <td class="es-hide-mo" style="text-align:center;vertical-align:middle">${govBadge}</td>
+      <td class="es-hide-mo">${conBadge}</td>
+      <td class="es-hide-mo">${govBadge}</td>
       <td style="color:var(--muted)">${yr||'—'}</td>
-      <td>${mo ? mo+'월' : '—'}</td>
-      <td style="white-space:nowrap">${detailDisp||'—'}</td>
-      <td style="text-align:center;vertical-align:middle">${domBadge}</td>
+      <td>${moDisp}</td>
+      <td>${detailDisp||'—'}</td>
+      <td>${domBadge}</td>
       <td>${r['도시']||''}</td>
-      <td class="es-wrap" style="font-weight:500">${titleHtml}</td>
-      <td class="es-hide-mo es-wrap" style="color:var(--muted)">${venue||'—'}</td>
+      <td class="es-wrap es-left" style="font-weight:500">${titleHtml}</td>
+      <td class="es-hide-mo es-wrap">${venue||'—'}</td>
       <td class="es-hide-mo es-wrap">${indTags || '—'}</td>
-      <td class="es-hide-mo" style="text-align:right;color:var(--muted);white-space:nowrap">${scale}</td>
-      <td class="es-hide-mo" style="text-align:right;color:var(--muted);white-space:nowrap">${boothInfo}</td>
-      <td class="es-hide-mo es-wrap" style="color:var(--muted)">${note||'—'}</td>
-      <td class="es-hide-mo" style="text-align:right;white-space:nowrap;vertical-align:middle">
+      <td class="es-hide-mo" style="color:var(--muted)">${scale}</td>
+      <td class="es-hide-mo" style="color:var(--muted)">${boothInfo}</td>
+      <td class="es-hide-mo es-wrap es-left" style="color:var(--muted)">${note||'—'}</td>
+      <td class="es-hide-mo">
         <button class="btn sm edit-btn" data-type="exhibitionSchedule" data-key="${r._cacheKey}"><i class="ti ti-edit"></i></button>
         <button class="btn sm danger del-btn" data-type="exhibitionSchedule" data-row="${r._row}"><i class="ti ti-trash"></i></button>
       </td>
