@@ -4257,7 +4257,7 @@ function renderExhSchedule(rows) {
   // 주요산업 드롭다운 (고정 목록)
   const isel = document.getElementById('esf-industry');
   if (isel && !isel.dataset.init) {
-    const opts = ['건설','플랜트','제조','기계','전기전자','AI','ICT','디지털트윈','XR','IoT','스마트시티','환경/에너지','방산'];
+    const opts = ['건설','플랜트','제조','기계','전기전자','AI','ICT','디지털트윈','XR','IoT','스마트시티','환경/에너지','방산','항공/우주','조선·해양','금형'];
     isel.innerHTML = '<option value="">산업 전체</option>' + opts.map(t => `<option value="${t}">${t}</option>`).join('');
     isel.dataset.init = '1';
   }
@@ -4374,12 +4374,15 @@ function renderExhScheduleRows(rows) {
     '전기전자':   { bg:'#EDE9FE', fg:'#5B21B6' },
     'AI':         { bg:'#FFE4E6', fg:'#BE123C' },
     'ICT':        { bg:'#FFEDD5', fg:'#C2410C' },
-    '디지털트윈': { bg:'#E0E7FF', fg:'#4338CA' },
-    'XR':         { bg:'#FCE7F3', fg:'#9D174D' },
+    '디지털트윈': { bg:'#E0F2FE', fg:'#0369A1' },
+    'XR':         { bg:'#FAE8FF', fg:'#A21CAF' },
     'IoT':        { bg:'#CFFAFE', fg:'#155E75' },
     '스마트시티': { bg:'#ECFCCB', fg:'#3F6212' },
-    '환경/에너지':{ bg:'#D1FAE5', fg:'#14532D' },
+    '환경/에너지':{ bg:'#DCFCE7', fg:'#166534' },
     '방산':       { bg:'#E2E8F0', fg:'#334155' },
+    '항공/우주':  { bg:'#FEF3C7', fg:'#92400E' },
+    '조선·해양':  { bg:'#BFDBFE', fg:'#1E3A8A' },
+    '금형':       { bg:'#F5F5F4', fg:'#57534E' },
   };
   const IND_DEFAULT = { bg:'#F1F5F9', fg:'#475569' };
 
@@ -5209,7 +5212,7 @@ const MODAL_FORMS = {
     <div class="form-row"><label>주요 산업 <span style="font-size:11px;color:var(--muted)">(최대 10개)</span></label>
       <div id="f-industry-wrap" style="display:flex;flex-wrap:wrap;gap:6px;padding:8px;border:1px solid var(--border-md);border-radius:8px;background:var(--bg)">
         ${(() => {
-          const opts = ['건설','플랜트','제조','기계','전기전자','AI','ICT','디지털트윈','XR','IoT','스마트시티','환경/에너지','방산'];
+          const opts = ['건설','플랜트','제조','기계','전기전자','AI','ICT','디지털트윈','XR','IoT','스마트시티','환경/에너지','방산','항공/우주','조선·해양','금형'];
           const sel = (d['주요산업']||'').split(',').map(s=>s.trim()).filter(Boolean);
           return opts.map(o => {
             const chk = sel.includes(o) ? 'checked' : '';
