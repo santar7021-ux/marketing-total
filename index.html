@@ -1050,9 +1050,10 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
 
 
 /* ── 전시회 일정 테이블 통일 ── */
-.es-tbl { font-size: 13px; border-collapse: collapse; table-layout: fixed; width: 100%; }
-.es-tbl th { white-space: nowrap; padding: 10px 8px; font-size: 12px; font-weight: 600; color: var(--muted); letter-spacing: -0.02em; vertical-align: middle; border-bottom: 2px solid var(--border-md); }
-.es-tbl td { padding: 10px 8px; vertical-align: top; font-size: 13px; color: var(--text); line-height: 1.5; border-bottom: 1px solid var(--border); }
+.es-tbl { font-size: 13px; border-collapse: collapse; width: 100%; }
+.es-tbl th { white-space: nowrap; padding: 10px 10px; font-size: 12px; font-weight: 600; color: var(--muted); vertical-align: middle; border-bottom: 2px solid var(--border-md); }
+.es-tbl td { padding: 10px 10px; vertical-align: top; font-size: 13px; color: var(--text); line-height: 1.5; white-space: nowrap; }
+.es-tbl td.es-wrap { white-space: normal; word-break: keep-all; }
 
 @media (max-width: 700px) {
   /* 전시회 일정 모바일 */ #exhSchedule-tbl .es-hide-mo { display: none; }
@@ -2256,20 +2257,20 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
         <div class="scroll-body">
         <table class="tbl es-tbl" id="exhSchedule-tbl">
           <colgroup>
-            <col class="es-hide-mo" style="width:62px">
-            <col class="es-hide-mo" style="width:62px">
-            <col style="width:36px">
-            <col style="width:28px">
-            <col style="width:110px">
-            <col style="width:36px">
-            <col style="width:52px">
+            <col class="es-hide-mo">
+            <col class="es-hide-mo">
             <col>
-            <col class="es-hide-mo" style="width:96px">
-            <col class="es-hide-mo" style="width:96px">
-            <col class="es-hide-mo" style="width:96px">
-            <col class="es-hide-mo" style="width:76px">
-            <col class="es-hide-mo" style="width:200px">
-            <col class="es-hide-mo" style="width:46px">
+            <col>
+            <col>
+            <col>
+            <col>
+            <col>
+            <col class="es-hide-mo">
+            <col class="es-hide-mo">
+            <col class="es-hide-mo">
+            <col class="es-hide-mo">
+            <col class="es-hide-mo">
+            <col class="es-hide-mo">
           </colgroup>
           <thead>
             <tr>
@@ -4415,12 +4416,12 @@ function renderExhScheduleRows(rows) {
       <td style="white-space:nowrap">${detailDisp||'—'}</td>
       <td style="text-align:center;vertical-align:middle">${domBadge}</td>
       <td>${r['도시']||''}</td>
-      <td style="font-weight:500">${titleHtml}</td>
-      <td class="es-hide-mo" style="color:var(--muted)">${venue||'—'}</td>
-      <td class="es-hide-mo">${indTags || '—'}</td>
+      <td class="es-wrap" style="font-weight:500">${titleHtml}</td>
+      <td class="es-hide-mo es-wrap" style="color:var(--muted)">${venue||'—'}</td>
+      <td class="es-hide-mo es-wrap">${indTags || '—'}</td>
       <td class="es-hide-mo" style="text-align:right;color:var(--muted);white-space:nowrap">${scale}</td>
       <td class="es-hide-mo" style="text-align:right;color:var(--muted);white-space:nowrap">${boothInfo}</td>
-      <td class="es-hide-mo" style="color:var(--muted);max-width:140px;word-break:keep-all;overflow-wrap:break-word">${note||'—'}</td>
+      <td class="es-hide-mo es-wrap" style="color:var(--muted)">${note||'—'}</td>
       <td class="es-hide-mo" style="text-align:right;white-space:nowrap;vertical-align:middle">
         <button class="btn sm edit-btn" data-type="exhibitionSchedule" data-key="${r._cacheKey}"><i class="ti ti-edit"></i></button>
         <button class="btn sm danger del-btn" data-type="exhibitionSchedule" data-row="${r._row}"><i class="ti ti-trash"></i></button>
