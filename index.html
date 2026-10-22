@@ -1562,6 +1562,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
         <div onclick="navTo('research-competitor');closeMobileNav()" style="padding:11px 20px 11px 32px;color:#fff;font-size:14px;cursor:pointer"><i class="ti ti-building-store" style="margin-right:8px"></i>경쟁사 조사</div>
         <div onclick="navTo('research-industry');closeMobileNav()" style="padding:11px 20px 11px 32px;color:#fff;font-size:14px;cursor:pointer"><i class="ti ti-chart-line" style="margin-right:8px"></i>산업 동향 조사</div>
         <div onclick="navTo('research-exhibition');closeMobileNav()" style="padding:11px 20px 11px 32px;color:#fff;font-size:14px;cursor:pointer"><i class="ti ti-presentation" style="margin-right:8px"></i>전시회 자료</div>
+        <div onclick="navTo('research-schedule');closeMobileNav()" style="padding:11px 20px 11px 32px;color:#fff;font-size:14px;cursor:pointer"><i class="ti ti-calendar-event" style="margin-right:8px"></i>전시회 일정</div>
         <div style="padding:8px 20px 4px;font-size:11px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:1px">마케팅 물품 관리</div>
         <div onclick="navTo('goods-stock');closeMobileNav()" style="padding:11px 20px 11px 32px;color:#fff;font-size:14px;cursor:pointer"><i class="ti ti-boxes" style="margin-right:8px"></i>마케팅 물품 재고</div>
       </nav>
@@ -2281,8 +2282,8 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
             <tr>
               <th class="es-hide-mo">참가 고려</th>
               <th class="es-hide-mo">국비 지원</th>
-              <th>연도</th>
-              <th>월</th>
+              <th style="cursor:pointer;user-select:none" onclick="toggleEsSort('year')" id="es-th-year">연도 <span id="es-sort-year" style="font-size:10px">▼</span></th>
+              <th style="cursor:pointer;user-select:none" onclick="toggleEsSort('month')" id="es-th-month">월 <span id="es-sort-month" style="font-size:10px"></span></th>
               <th>세부 일정</th>
               <th>구분</th>
               <th class="es-hide-mo">국가</th>
@@ -4228,6 +4229,23 @@ function resetContentFilter(key) {
   renderContentRows(key, _contentAllRows[key] || []);
 }
 
+// ── 전시회 일정: 정렬 상태 관리 ──
+let _esSortYear = 'desc';   // 'desc' = 최신순(▼), 'asc' = 과거순(▲)
+let _esSortMonth = 'desc';  // 'desc' = 12→1(▼), 'asc' = 1→12(▲)
+
+function toggleEsSort(field) {
+  if (field === 'year') {
+    _esSortYear = _esSortYear === 'desc' ? 'asc' : 'desc';
+    const el = document.getElementById('es-sort-year');
+    if (el) el.textContent = _esSortYear === 'desc' ? '▼' : '▲';
+  } else if (field === 'month') {
+    _esSortMonth = _esSortMonth === 'desc' ? 'asc' : 'desc';
+    const el = document.getElementById('es-sort-month');
+    if (el) el.textContent = _esSortMonth === 'desc' ? '▼' : '▲';
+  }
+  applyExhScheduleFilter();
+}
+
 // ── 전시회 일정: 산업 체크박스 최대 10개 제한 + 스타일 토글 ──
 function esIndCheckLimit(el) {
   const all = document.querySelectorAll('input[name=f-ind]');
@@ -4349,14 +4367,16 @@ function renderExhScheduleRows(rows) {
     return 9999;
   }
 
-  // 최신 연도 → 최신 월 → 시작일 순 (내림차순)
+  // 연도·월 정렬 방향 반영
+  const yDir = _esSortYear === 'desc' ? -1 : 1;
+  const mDir = _esSortMonth === 'desc' ? -1 : 1;
   const sorted = [...rows].sort((a,b) => {
     const ay = parseInt(String(a['연도']||'0'));
     const by = parseInt(String(b['연도']||'0'));
-    if (ay !== by) return by - ay;
+    if (ay !== by) return (ay - by) * yDir;
     const am = parseInt(String(a['월']||'0').replace(/[^0-9]/g,''));
     const bm = parseInt(String(b['월']||'0').replace(/[^0-9]/g,''));
-    if (am !== bm) return bm - am;
+    if (am !== bm) return (am - bm) * mDir;
     return parseStartDay(a) - parseStartDay(b);
   });
 
