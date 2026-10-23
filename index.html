@@ -1418,6 +1418,14 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
     </div>
 
     <div class="nav-group">
+      <div class="nav-item">
+        <div class="nav-main" data-page="mkt-schedule" onclick="go('mkt-schedule',this)">
+          <span class="nav-icon3d ic-main"><i class="ti ti-calendar-check"></i></span> 마케팅 일정 관리
+        </div>
+      </div>
+    </div>
+
+    <div class="nav-group">
       <div class="nav-item" id="ni-budget">
         <div class="nav-main" onclick="toggle('ni-budget','budget')">
           <span class="nav-icon3d ic-budget"><i class="ti ti-wallet"></i></span> 예산 관리
@@ -1538,6 +1546,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
       </div>
       <nav style="padding:8px 0">
         <div onclick="navTo('main');closeMobileNav()" style="padding:13px 20px;color:#fff;font-size:15px;cursor:pointer;display:flex;align-items:center;gap:10px"><i class="ti ti-home"></i> 메인</div>
+        <div onclick="navTo('mkt-schedule');closeMobileNav()" style="padding:13px 20px;color:#fff;font-size:15px;cursor:pointer;display:flex;align-items:center;gap:10px"><i class="ti ti-calendar-check"></i> 마케팅 일정 관리</div>
         <div style="padding:8px 20px 4px;font-size:11px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:1px">예산 관리</div>
         <div onclick="navTo('budget');closeMobileNav()" style="padding:11px 20px 11px 32px;color:#fff;font-size:14px;cursor:pointer"><i class="ti ti-chart-pie" style="margin-right:8px"></i>마케팅 예산 현황</div>
         <div style="padding:8px 20px 4px;font-size:11px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:1px">광고홍보</div>
@@ -1628,6 +1637,40 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
     </div>
 
     <!-- ══ iframe 탭 공용 ══ -->
+    
+    <!-- ══ 마케팅 일정 관리 ══ -->
+    <div id="pg-mkt-schedule" class="page">
+      <div class="page-hd"><h1>마케팅 일정 관리</h1><p>(주)소프트힐스 마케팅 운영 일정을 관리할 수 있습니다.</p></div>
+      <div class="card card-res">
+        <div class="card-hd">
+          <h2><i class="ti ti-calendar-check"></i> 마케팅 일정 <span id="count-mktSchedule" style="font-size:13px;font-weight:400;color:var(--muted);margin-left:6px"></span></h2>
+          <div style="display:flex;gap:6px">
+            <button class="btn sm" onclick="downloadExcel('mktSchedule')"><i class="ti ti-file-spreadsheet"></i> 엑셀 다운로드</button>
+            <button class="btn sm primary" onclick="openModal('mktSchedule')"><i class="ti ti-plus"></i> 항목 추가</button>
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;padding:0 16px 12px;flex-wrap:wrap">
+          <select id="msf-category" onchange="applyMktSchedFilter()" style="font-size:13px;padding:6px 10px;border:1px solid var(--border-md);border-radius:6px">
+            <option value="">구분 전체</option>
+            <option value="일일 업무">일일 업무</option>
+            <option value="주간 업무">주간 업무</option>
+            <option value="월 업무">월 업무</option>
+            <option value="중장기 업무">중장기 업무</option>
+          </select>
+          <select id="msf-status" onchange="applyMktSchedFilter()" style="font-size:13px;padding:6px 10px;border:1px solid var(--border-md);border-radius:6px">
+            <option value="">상태 전체</option>
+            <option value="예정">예정</option>
+            <option value="진행 중">진행 중</option>
+            <option value="보류">보류</option>
+            <option value="완료">완료</option>
+          </select>
+          <input type="text" id="msf-keyword" placeholder="내용 검색" oninput="applyMktSchedFilter()" style="font-size:13px;padding:6px 10px;border:1px solid var(--border-md);border-radius:6px;width:180px">
+          <button class="btn sm" onclick="resetMktSchedFilter()"><i class="ti ti-x"></i> 초기화</button>
+        </div>
+        <div id="mkt-schedule-body"></div>
+      </div>
+    </div>
+
     <div id="pg-budget" class="page">
       <div class="page-hd"><h1>마케팅 예산 현황</h1><p>해당 페이지는 마케팅 운영에 대한 비용을 관리합니다.</p></div>
       <div class="iframe-wrap">
@@ -3150,6 +3193,7 @@ async function refreshAll(silent) {
     ['industry',    'industry'],
     ['exhibition',  'exhibition'],
     ['exhibitionSchedule', 'exhibitionSchedule'],
+    ['mktSchedule', 'mktSchedule'],
   ].filter(([key]) => !d[key]);
 
   if (fallbackJobs.length) {
@@ -3186,6 +3230,7 @@ function renderAllData(d) {
   renderContentTable('industry',   d.industry);
   renderExhibition(d.exhibition);
   renderExhSchedule(d.exhibitionSchedule);
+  renderMktSchedule(d.mktSchedule);
   renderCopyright(d.copyright);
   renderContentTable('press', d.press);
   renderContentTable('blog',  d.blog);
@@ -3244,6 +3289,7 @@ function renderPage(pageId) {
     case 'research-industry':   renderContentTable('industry', DATA.industry); syncResearchNow(false); break;
     case 'research-exhibition': renderExhibition(DATA.exhibition); break;
     case 'research-schedule': renderExhSchedule(DATA.exhibitionSchedule); break;
+    case 'mkt-schedule': renderMktSchedule(DATA.mktSchedule); break;
     case 'ad-media':       initAdMediaPage(); break;
   }
   queueApplyMobileCards();
@@ -3971,7 +4017,7 @@ function renderGoodsUsageHistory(row) {
     <div style="display:flex;align-items:flex-start;gap:8px;padding:10px 14px;border-bottom:1px solid var(--border);font-size:13px">
       <div style="flex:1;min-width:0">
         <div style="display:flex;justify-content:space-between;color:var(--muted);font-size:12px;margin-bottom:3px">
-          <span>${u['사용일자'] || '—'}</span><span style="color:var(--accent-dk);font-weight:600">-${u['사용수량'] || 0}</span>
+          <span>${(() => { const raw = u['사용일자']||''; const m = String(raw).match(/^(\d{4})-(\d{2})-(\d{2})/); return m ? m[1]+'.'+parseInt(m[2])+'.'+parseInt(m[3]) : raw || '—'; })()}</span><span style="color:var(--accent-dk);font-weight:600">-${u['사용수량'] || 0}</span>
         </div>
         <div>${[u['사용처'], u['사용사유']].filter(Boolean).join(' · ') || '—'}</div>
       </div>
@@ -4227,6 +4273,134 @@ function resetContentFilter(key) {
   const info = document.getElementById(p + '-info');
   if (info) info.style.display = 'none';
   renderContentRows(key, _contentAllRows[key] || []);
+}
+
+// ── 마케팅 일정 관리 ────────────────────────────────────
+let _mktSchedAllRows = [];
+const MKT_CATS = ['일일 업무','주간 업무','월 업무','중장기 업무'];
+const MKT_STATUS_STYLE = {
+  '예정':   { bg:'#E0E7FF', fg:'#3730A3' },
+  '진행 중':{ bg:'#DBEAFE', fg:'#1E40AF' },
+  '보류':   { bg:'#FEF3C7', fg:'#92400E' },
+  '완료':   { bg:'#D1FAE5', fg:'#065F46' },
+};
+let _mktAccordionState = { '일일 업무':true, '주간 업무':true, '월 업무':true, '중장기 업무':true };
+
+function renderMktSchedule(rows) {
+  _mktSchedAllRows = rows || [];
+  setCountBadge('count-mktSchedule', _mktSchedAllRows.length);
+  applyMktSchedFilter();
+}
+
+function applyMktSchedFilter() {
+  const cat = document.getElementById('msf-category')?.value || '';
+  const status = document.getElementById('msf-status')?.value || '';
+  const kw = document.getElementById('msf-keyword')?.value.trim().toLowerCase() || '';
+  const filtered = _mktSchedAllRows.filter(r => {
+    if (cat && r['구분'] !== cat) return false;
+    if (status && r['상태'] !== status) return false;
+    if (kw && !String(r['내용']||'').toLowerCase().replace(/\s/g,'').includes(kw.replace(/\s/g,''))) return false;
+    return true;
+  });
+  renderMktSchedBody(filtered);
+}
+
+function resetMktSchedFilter() {
+  ['msf-category','msf-status','msf-keyword'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+  renderMktSchedBody(_mktSchedAllRows);
+}
+
+function toggleMktAccordion(cat) {
+  _mktAccordionState[cat] = !_mktAccordionState[cat];
+  applyMktSchedFilter();
+}
+
+function renderMktSchedBody(rows) {
+  const el = document.getElementById('mkt-schedule-body');
+  if (!el) return;
+  if (!rows || !rows.length) {
+    el.innerHTML = '<div class="empty" style="padding:40px"><i class="ti ti-calendar-check"></i><p>등록된 일정이 없습니다.</p></div>';
+    return;
+  }
+  // 카테고리별 그룹
+  const grouped = {};
+  MKT_CATS.forEach(c => grouped[c] = []);
+  rows.forEach(r => {
+    const c = r['구분'] || '일일 업무';
+    if (!grouped[c]) grouped[c] = [];
+    grouped[c].push(r);
+  });
+  // 각 그룹 내 일자 내림차순
+  Object.values(grouped).forEach(arr => arr.sort((a,b) => String(b['일자']||'').localeCompare(String(a['일자']||''))));
+
+  // row cache
+  let idx = 0;
+  rows.forEach(r => {
+    const cKey = 'mktSchedule_' + (r._row !== undefined && r._row !== null ? String(r._row) : 'i' + (idx++));
+    r._cacheKey = cKey;
+    rowCache[cKey] = r;
+  });
+
+  const catFilter = document.getElementById('msf-category')?.value || '';
+
+  el.innerHTML = MKT_CATS.map(cat => {
+    const items = grouped[cat];
+    if (catFilter && catFilter !== cat) return '';
+    if (!items.length && catFilter) return '';
+    const open = _mktAccordionState[cat];
+    const chevron = open ? 'ti-chevron-up' : 'ti-chevron-down';
+    return `
+      <div style="border-bottom:1px solid var(--border)">
+        <div onclick="toggleMktAccordion('${cat}')" style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;cursor:pointer;user-select:none;background:var(--bg)">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-weight:600;font-size:14px">${cat}</span>
+            <span style="font-size:12px;color:var(--muted)">${items.length}건</span>
+          </div>
+          <i class="ti ${chevron}" style="color:var(--muted)"></i>
+        </div>
+        ${open ? `<table class="tbl" style="font-size:13px;width:100%">
+          <thead><tr>
+            <th style="padding:8px 10px;text-align:center;width:110px;font-size:12px;font-weight:600;color:var(--muted)">일자</th>
+            <th style="padding:8px 10px;text-align:left;font-size:12px;font-weight:600;color:var(--muted)">내용</th>
+            <th style="padding:8px 10px;text-align:center;width:80px;font-size:12px;font-weight:600;color:var(--muted)">상태</th>
+            <th style="padding:8px 10px;text-align:center;width:50px;font-size:12px;font-weight:600;color:var(--muted)">첨부</th>
+            <th style="padding:8px 10px;width:50px"></th>
+          </tr></thead>
+          <tbody>${items.length ? items.map(r => {
+            const st = r['상태'] || '예정';
+            const sc = MKT_STATUS_STYLE[st] || { bg:'#F1F5F9', fg:'#475569' };
+            const dateVal = r['일자'] || '';
+            let dateDisp = dateVal;
+            const dm = dateVal.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+            if (dm) dateDisp = dm[1]+'.'+parseInt(dm[2])+'.'+parseInt(dm[3]);
+            const url = r['첨부URL'] || '';
+            const attach = url ? '<a href="'+url+'" target="_blank" style="color:var(--accent)"><i class="ti ti-link"></i></a>' : '<span style="color:var(--muted)">—</span>';
+            const content = String(r['내용']||'').replace(/\n/g,'<br>');
+            return `<tr style="border-top:1px solid var(--border)">
+              <td style="padding:10px;text-align:center;white-space:nowrap;color:var(--muted)">${dateDisp||'—'}</td>
+              <td style="padding:10px;text-align:left;line-height:1.5;word-break:keep-all">${content||'—'}</td>
+              <td style="padding:10px;text-align:center">
+                <span onclick="cycleMktStatus(${r._row},'${st}')" style="background:${sc.bg};color:${sc.fg};padding:3px 10px;border-radius:100px;font-size:12px;font-weight:500;cursor:pointer;user-select:none" title="클릭하여 상태 변경">${st}</span>
+              </td>
+              <td style="padding:10px;text-align:center">${attach}</td>
+              <td style="padding:10px;text-align:right;white-space:nowrap">
+                <button class="btn sm edit-btn" data-type="mktSchedule" data-key="${r._cacheKey}"><i class="ti ti-edit"></i></button>
+                <button class="btn sm danger del-btn" data-type="mktSchedule" data-row="${r._row}"><i class="ti ti-trash"></i></button>
+              </td>
+            </tr>`;
+          }).join('') : '<tr><td colspan="5" style="padding:20px;text-align:center;color:var(--muted)">항목 없음</td></tr>'}</tbody>
+        </table>` : ''}
+      </div>`;
+  }).join('');
+}
+
+// 인라인 상태 변경 (클릭 시 순환)
+async function cycleMktStatus(rowNum, current) {
+  const order = ['예정','진행 중','보류','완료'];
+  const idx = order.indexOf(current);
+  const next = order[(idx + 1) % order.length];
+  const res = await apiPost({ action:'update', sheet:'마케팅일정', row: rowNum, data:{ '상태': next } });
+  if (res) await refreshSheet('mktSchedule');
 }
 
 // ── 전시회 일정: 정렬 상태 관리 ──
@@ -4834,7 +5008,7 @@ async function toggleStatus(rowNum) {
 }
 
 // ── 삭제 ─────────────────────────────────────────────────
-const SHEET_MAP = { cert:'인증', award:'수상', patent:'특허', brand:'상표', copyright:'프로그램저작', history:'연혁', intro:'소개자료', youtube:'유튜브', press:'언론보도', blog:'블로그', goods:'물품재고', designDraft:'디자인시안', support:'지원사업', competitor:'경쟁사조사', industry:'산업동향조사', exhibition:'전시회자료', exhibitionSchedule:'전시회일정' };
+const SHEET_MAP = { cert:'인증', award:'수상', patent:'특허', brand:'상표', copyright:'프로그램저작', history:'연혁', intro:'소개자료', youtube:'유튜브', press:'언론보도', blog:'블로그', goods:'물품재고', designDraft:'디자인시안', support:'지원사업', competitor:'경쟁사조사', industry:'산업동향조사', exhibition:'전시회자료', exhibitionSchedule:'전시회일정', mktSchedule:'마케팅일정' };
 async function deleteItem(key, rowNum) {
   if (!confirm('이 항목을 삭제하시겠습니까?')) return;
   const res = await apiPost({ action: 'delete', sheet: SHEET_MAP[key], row: rowNum });
@@ -5167,6 +5341,33 @@ const MODAL_FORMS = {
     <input type="hidden" id="f-imgname" value="${existName}">`;
   },
 
+  mktSchedule: (d) => `
+    <div class="form-row"><label>구분</label>
+      <select id="f-ms-cat">
+        <option value="일일 업무" ${!d['구분']||d['구분']==='일일 업무'?'selected':''}>일일 업무</option>
+        <option value="주간 업무" ${d['구분']==='주간 업무'?'selected':''}>주간 업무</option>
+        <option value="월 업무" ${d['구분']==='월 업무'?'selected':''}>월 업무</option>
+        <option value="중장기 업무" ${d['구분']==='중장기 업무'?'selected':''}>중장기 업무</option>
+      </select>
+    </div>
+    <div class="form-row"><label>일자</label>
+      <input type="date" id="f-ms-date" value="${d['일자']||''}">
+    </div>
+    <div class="form-row"><label>내용</label>
+      <textarea id="f-ms-content" rows="4" placeholder="업무 내용을 입력하세요">${d['내용']||''}</textarea>
+    </div>
+    <div class="form-row"><label>상태</label>
+      <select id="f-ms-status">
+        <option value="예정" ${!d['상태']||d['상태']==='예정'?'selected':''}>예정</option>
+        <option value="진행 중" ${d['상태']==='진행 중'?'selected':''}>진행 중</option>
+        <option value="보류" ${d['상태']==='보류'?'selected':''}>보류</option>
+        <option value="완료" ${d['상태']==='완료'?'selected':''}>완료</option>
+      </select>
+    </div>
+    <div class="form-row"><label>첨부 URL</label>
+      <input type="url" id="f-ms-url" placeholder="https://..." value="${d['첨부URL']||''}">
+    </div>`,
+
   exhibitionSchedule: (d) => {
     const venues = ['코엑스','킨텍스','벡스코','SETEC','aT센터','수원컨벤션센터','창원컨벤션센터','울산전시컨벤션센터(UECO)'];
     const curVenue = d['장소']||'';
@@ -5324,12 +5525,14 @@ const EXCEL_COLS = {
   competitor: ['게시일','경쟁사명','구분','타이틀','내용','URL'],
   industry:   ['게시일','구분','타이틀','내용','URL'],
   exhibitionSchedule: ['참가고려','국가지원','연도','월','상세일정','국내/해외','국가','도시','장소','상세홀','전시회명','주최/주관','주요산업','예상참관객','참가기업수','조립부스비','독립부스비','조기혜택','비고','URL'],
+  mktSchedule: ['구분','일자','내용','상태','첨부URL','파일ID','파일명'],
 };
 const EXCEL_LABELS = {
   cert:'인증', award:'수상', patent:'특허', brand:'상표', copyright:'프로그램저작등록',
   history:'연혁', intro:'소개자료', youtube:'유튜브영상', press:'언론보도및칼럼', blog:'블로그',
   goods:'마케팅물품재고', designDraft:'디자인시안', competitor:'경쟁사조사', industry:'산업동향조사',
-  exhibitionSchedule:'전시회일정'
+  exhibitionSchedule:'전시회일정',
+  mktSchedule:'마케팅일정'
 };
 
 // 여러 첨부 파일명은 한 칸에 '|'로 저장돼 있어서, 엑셀에는 읽기 좋게 ', '로 바꿔서 내보냄
@@ -5374,13 +5577,13 @@ function openModalFixedCat(type, fixedCategory) {
 function openModal(type, data = {}) {
   currentModal = type;
   editRow = data._row || null;
-  document.getElementById('modal-title').textContent = (editRow ? '항목 수정' : '항목 추가') + ' — ' + ({ cert:'인증', award:'수상', patent:'특허', brand:'상표', copyright:'프로그램 저작/등록', history:'연혁', intro:'소개자료', youtube:'유튜브', press:'언론보도 및 칼럼', blog:'블로그', goods:'마케팅 물품', designDraft:'디자인 시안', support:'지원사업', competitor:'경쟁사 조사', industry:'산업 동향 조사', exhibition:'전시회 자료', exhibitionSchedule:'전시회 일정' }[type] || type);
+  document.getElementById('modal-title').textContent = (editRow ? '항목 수정' : '항목 추가') + ' — ' + ({ cert:'인증', award:'수상', patent:'특허', brand:'상표', copyright:'프로그램 저작/등록', history:'연혁', intro:'소개자료', youtube:'유튜브', press:'언론보도 및 칼럼', blog:'블로그', goods:'마케팅 물품', designDraft:'디자인 시안', support:'지원사업', competitor:'경쟁사 조사', industry:'산업 동향 조사', exhibition:'전시회 자료', exhibitionSchedule:'전시회 일정', mktSchedule:'마케팅 일정' }[type] || type);
   document.getElementById('modal-body').innerHTML = MODAL_FORMS[type](data);
   if (ATTACH_TYPES.includes(type)) { attachExisting = parseAttachFromRow(type, data); attachNew = []; }
   document.getElementById('modal-bg').classList.add('open');
   // 연/월(/일) 드롭다운 초기 동기화
   setTimeout(() => {
-    if (type === 'exhibitionSchedule') { /* 전시회 일정은 자체 연도/월 사용 */ }
+    if (type === 'exhibitionSchedule' || type === 'mktSchedule') { /* 자체 필드 */ }
     else if (['youtube','press','blog','competitor','industry'].includes(type)) syncDateFieldYMD();
     else syncDateField();
     if (type === 'designDraft') { initMultiDropzone(); renderMultiUploadPreview(); }
@@ -5393,7 +5596,8 @@ function openModal(type, data = {}) {
     cert: '인증', award: '수상', patent: '특허', brand: '상표', copyright: '프로그램저작',
     intro: '소개자료', youtube: '유튜브', history: '연혁', press: '언론보도', blog: '블로그', goods: '물품재고',
     designDraft: '디자인시안', support: '지원사업', exhibition: '전시회자료',
-    exhibitionSchedule: '전시회일정'
+    exhibitionSchedule: '전시회일정',
+    mktSchedule: '마케팅일정'
   };
   currentUploadSheet = MODAL_TO_SHEET[type] || '';
 }
@@ -5417,7 +5621,7 @@ async function submitModal() {
   try {
 
   // 저장 직전 날짜 필드 강제 동기화 (월 선택 후 연도 변경 순서 이슈 방지)
-  if (t === 'exhibitionSchedule') { /* 자체 연도/월 */ }
+  if (t === 'exhibitionSchedule' || t === 'mktSchedule') { /* 자체 필드 */ }
   else if (['youtube','press','blog','competitor','industry'].includes(t)) syncDateFieldYMD();
   else syncDateField();
 
@@ -5514,6 +5718,8 @@ async function submitModal() {
     data = { '게시일': getDateFromSelects(), '경쟁사명': v('f-competitor-name'), '구분': v('f-category'), '타이틀': v('f-title'), '내용': v('f-content'), 'URL': v('f-url') };
   } else if (t === 'industry') {
     data = { '게시일': getDateFromSelects(), '구분': v('f-category'), '타이틀': v('f-title'), '내용': v('f-content'), 'URL': v('f-url') };
+  } else if (t === 'mktSchedule') {
+    data = { '구분': v('f-ms-cat'), '일자': v('f-ms-date'), '내용': v('f-ms-content'), '상태': v('f-ms-status'), '첨부URL': v('f-ms-url') };
   } else if (t === 'exhibitionSchedule') {
     const venueSel = v('f-venue-sel');
     const venueVal = venueSel === '__custom__' ? v('f-venue-custom') : venueSel;
@@ -5552,7 +5758,8 @@ async function refreshSheet(type) {
     brand: 'brand', copyright: 'copyright', intro: 'intro',
     youtube: 'youtube', press: 'press', blog: 'blog', goods: 'goods', designDraft: 'designDraft',
     support: 'support', competitor: 'competitor', industry: 'industry', exhibition: 'exhibition',
-    exhibitionSchedule: 'exhibitionSchedule'
+    exhibitionSchedule: 'exhibitionSchedule',
+    mktSchedule: 'mktSchedule'
   };
   const action = actionMap[type];
   if (!action) { await refreshAll(); return; }
@@ -5581,6 +5788,7 @@ async function refreshSheet(type) {
     case 'industry':   renderContentTable('industry', rows); break;
     case 'exhibition': renderExhibition(rows); break;
     case 'exhibitionSchedule': renderExhSchedule(rows); break;
+    case 'mktSchedule': renderMktSchedule(rows); break;
   }
   // 지표 카드 빠른 갱신 (메인에 영향 있는 카테고리)
   if (['cert','award','patent','brand','copyright','history'].includes(type)) {
@@ -6441,6 +6649,7 @@ const AIS_CAT = {
   designDraft: { label:'디자인 시안', icon:'ti-photo',     page:'content-design', navId:'ni-content', dateKey:'날짜',   titleKey:'제목' },
   competitor: { label:'경쟁사 조사', icon:'ti-building-store', page:'research-competitor', navId:'ni-research', dateKey:'게시일', titleKey:'타이틀' },
   exhibition: { label:'전시회 자료', icon:'ti-presentation', page:'research-exhibition', navId:'ni-research', dateKey:'게시일', titleKey:'제목' },
+  mktSchedule: { label:'마케팅 일정', icon:'ti-calendar-check', page:'mkt-schedule', navId:null, dateKey:'일자', titleKey:'내용' },
   exhibitionSchedule: { label:'전시회 일정', icon:'ti-calendar-event', page:'research-schedule', navId:'ni-research', dateKey:'일정', titleKey:'전시회명', searchFields:['전시회명','장소','도시','주요산업','비고'] },
   industry:   { label:'산업 동향 조사', icon:'ti-chart-line',   page:'research-industry',   navId:'ni-research', dateKey:'게시일', titleKey:'타이틀' },
   goods:     { label:'마케팅 물품', icon:'ti-package',     page:'goods-stock',   navId:'ni-goods',   dateKey:'제작일시', titleKey:'품목' },
