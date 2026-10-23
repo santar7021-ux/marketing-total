@@ -4371,7 +4371,7 @@ function renderMktSchedBody(rows) {
             const sc = MKT_STATUS_STYLE[st] || { bg:'#F1F5F9', fg:'#475569' };
             const dateVal = r['일자'] || '';
             let dateDisp = dateVal;
-            const dm = dateVal.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+            const dm = String(dateVal).match(/^(\d{4})-(\d{2})-(\d{2})/);
             if (dm) dateDisp = dm[1]+'.'+parseInt(dm[2])+'.'+parseInt(dm[3]);
             const url = r['첨부URL'] || '';
             const attach = url ? '<a href="'+url+'" target="_blank" style="color:var(--accent)"><i class="ti ti-link"></i></a>' : '<span style="color:var(--muted)">—</span>';
