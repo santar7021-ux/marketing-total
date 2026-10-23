@@ -4017,7 +4017,7 @@ function renderGoodsUsageHistory(row) {
     <div style="display:flex;align-items:flex-start;gap:8px;padding:10px 14px;border-bottom:1px solid var(--border);font-size:13px">
       <div style="flex:1;min-width:0">
         <div style="display:flex;justify-content:space-between;color:var(--muted);font-size:12px;margin-bottom:3px">
-          <span>${(() => { const raw = u['사용일자']||''; const m = String(raw).match(/^(\d{4})-(\d{2})-(\d{2})/); return m ? m[1]+'.'+parseInt(m[2])+'.'+parseInt(m[3]) : raw || '—'; })()}</span><span style="color:var(--accent-dk);font-weight:600">-${u['사용수량'] || 0}</span>
+          <span>${fmtDate(u['사용일자'])}</span><span style="color:var(--accent-dk);font-weight:600">-${u['사용수량'] || 0}</span>
         </div>
         <div>${[u['사용처'], u['사용사유']].filter(Boolean).join(' · ') || '—'}</div>
       </div>
@@ -4275,6 +4275,22 @@ function resetContentFilter(key) {
   renderContentRows(key, _contentAllRows[key] || []);
 }
 
+// ── 범용 날짜 포맷 (ISO/시리얼/문자열 → YYYY.M.D) ──
+function fmtDate(v) {
+  if (!v) return '—';
+  const s = String(v);
+  // ISO: 2026-10-22T15:00:00.000Z 또는 2026-10-22
+  const m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (m) return m[1]+'.'+parseInt(m[2])+'.'+parseInt(m[3]);
+  // 시리얼 넘버 (Google Sheets 날짜)
+  const n = Number(v);
+  if (!isNaN(n) && n > 40000 && n < 60000) {
+    const d = new Date((n - 25569) * 86400000);
+    return d.getFullYear()+'.'+(d.getMonth()+1)+'.'+d.getDate();
+  }
+  return s;
+}
+
 // ── 마케팅 일정 관리 ────────────────────────────────────
 let _mktSchedAllRows = [];
 const MKT_CATS = ['일일 업무','주간 업무','월 업무','중장기 업무'];
@@ -4369,10 +4385,7 @@ function renderMktSchedBody(rows) {
           <tbody>${items.length ? items.map(r => {
             const st = r['상태'] || '예정';
             const sc = MKT_STATUS_STYLE[st] || { bg:'#F1F5F9', fg:'#475569' };
-            const dateVal = r['일자'] || '';
-            let dateDisp = dateVal;
-            const dm = String(dateVal).match(/^(\d{4})-(\d{2})-(\d{2})/);
-            if (dm) dateDisp = dm[1]+'.'+parseInt(dm[2])+'.'+parseInt(dm[3]);
+            const dateDisp = fmtDate(r['일자']);
             const url = r['첨부URL'] || '';
             const attach = url ? '<a href="'+url+'" target="_blank" style="color:var(--accent)"><i class="ti ti-link"></i></a>' : '<span style="color:var(--muted)">—</span>';
             const content = String(r['내용']||'').replace(/\n/g,'<br>');
