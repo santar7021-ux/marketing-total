@@ -3834,9 +3834,11 @@ function _renderIntroList(elId, rows, emptyMsg, type) {
     el.innerHTML = `<div class="empty"><i class="ti ti-files"></i><p>${emptyMsg}</p></div>`;
     return;
   }
-  // 게시일 최신순 정렬 (같은 게시일이면 _row 오름차순 유지)
+  // 일정(있으면) → 게시일 기준 최신순 정렬
   const sorted = [...rows].sort((a,b) => {
-    const dDiff = parseDateNum(b['게시일']) - parseDateNum(a['게시일']);
+    const aDate = parseDateNum(a['일정'] || a['게시일']);
+    const bDate = parseDateNum(b['일정'] || b['게시일']);
+    const dDiff = bDate - aDate;
     return dDiff !== 0 ? dDiff : (a._row||0) - (b._row||0);
   });
   sorted.forEach((r, idx) => {
