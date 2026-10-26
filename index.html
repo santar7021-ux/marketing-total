@@ -790,10 +790,12 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
 .post-content { font-size: 16.2px; color: var(--muted); line-height: 1.6; white-space: pre-wrap; }
 .post-note { font-size: 15px; color: var(--accent); }
 .post-note span { font-weight: 500; }
-/* 전시회 일정 테이블 */
-#exhSched-tbl { font-size: 12.5px; }
-#exhSched-tbl th { font-size: 11.5px; white-space: nowrap; padding: 8px 6px; background: var(--surface); }
-#exhSched-tbl td { padding: 7px 6px; vertical-align: middle; line-height: 1.45; }
+/* ── 전시회 일정 테이블 통일 ── */
+.es-tbl { font-size: 13px; border-collapse: collapse; width: 100%; }
+.es-tbl th { white-space: nowrap; padding: 10px 10px; font-size: 12px; font-weight: 600; color: var(--muted); vertical-align: middle; text-align: center; border-bottom: 2px solid var(--border-md); }
+.es-tbl td { padding: 10px 10px; vertical-align: middle; font-size: 13px; color: var(--text); line-height: 1.5; white-space: nowrap; text-align: center; }
+.es-tbl td.es-wrap { white-space: normal; word-break: keep-all; }
+.es-tbl td.es-left { text-align: left; }
 
 /* 전시회 자료: 주제 / 일정 / 장소를 한 줄씩(세로로) — 라벨 폭을 맞춰서 값 시작 위치가 가지런하게 */
 .post-info { display: flex; flex-direction: column; gap: 4px; font-size: 15px; margin: 4px 0 6px; }
@@ -1054,6 +1056,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
 }
 
 @media (max-width: 700px) {
+  /* 전시회 일정 모바일 */ #exhSchedule-tbl .es-hide-mo { display: none; }
   /* ── 기본 폰트 (PC 17.5px → 모바일 축소) ── */
   body { font-size: 14.5px; }
 
@@ -1493,7 +1496,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
           <div class="nav-sub-item" data-page="research-competitor" onclick="goSub('research-competitor',this,'ni-research')"><i class="ti ti-building-store"></i> 경쟁사 조사</div>
           <div class="nav-sub-item" data-page="research-industry"   onclick="goSub('research-industry',this,'ni-research')"><i class="ti ti-chart-line"></i> 산업 동향 조사</div>
           <div class="nav-sub-item" data-page="research-exhibition" onclick="goSub('research-exhibition',this,'ni-research')"><i class="ti ti-presentation"></i> 전시회 자료</div>
-          <div class="nav-sub-item" data-page="research-exhSchedule" onclick="goSub('research-exhSchedule',this,'ni-research')"><i class="ti ti-calendar-stats"></i> 전시회 일정</div>
+          <div class="nav-sub-item" data-page="research-schedule" onclick="goSub('research-schedule',this,'ni-research')"><i class="ti ti-calendar-event"></i> 전시회 일정</div>
         </div>
       </div>
     </div>
@@ -1566,7 +1569,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
         <div onclick="navTo('research-competitor');closeMobileNav()" style="padding:11px 20px 11px 32px;color:#fff;font-size:14px;cursor:pointer"><i class="ti ti-building-store" style="margin-right:8px"></i>경쟁사 조사</div>
         <div onclick="navTo('research-industry');closeMobileNav()" style="padding:11px 20px 11px 32px;color:#fff;font-size:14px;cursor:pointer"><i class="ti ti-chart-line" style="margin-right:8px"></i>산업 동향 조사</div>
         <div onclick="navTo('research-exhibition');closeMobileNav()" style="padding:11px 20px 11px 32px;color:#fff;font-size:14px;cursor:pointer"><i class="ti ti-presentation" style="margin-right:8px"></i>전시회 자료</div>
-        <div onclick="navTo('research-exhSchedule');closeMobileNav()" style="padding:11px 20px 11px 32px;color:#fff;font-size:14px;cursor:pointer"><i class="ti ti-calendar-stats" style="margin-right:8px"></i>전시회 일정</div>
+        <div onclick="navTo('research-schedule');closeMobileNav()" style="padding:11px 20px 11px 32px;color:#fff;font-size:14px;cursor:pointer"><i class="ti ti-calendar-event" style="margin-right:8px"></i>전시회 일정</div>
         <div style="padding:8px 20px 4px;font-size:11px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:1px">마케팅 물품 관리</div>
         <div onclick="navTo('goods-stock');closeMobileNav()" style="padding:11px 20px 11px 32px;color:#fff;font-size:14px;cursor:pointer"><i class="ti ti-boxes" style="margin-right:8px"></i>마케팅 물품 재고</div>
       </nav>
@@ -2269,52 +2272,93 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
     </div>
 
     <!-- ══ 전시회 일정 ══ -->
-    <div id="pg-research-exhSchedule" class="page">
-      <div class="page-hd-with-btn">
-        <div><h1>전시회 일정</h1><p>국내외 전시회 일정 및 참가 정보를 관리합니다.</p></div>
-        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-          <span id="exhSched-count" style="font-size:13px;color:var(--muted)"></span>
-          <select id="exhSched-year" onchange="renderExhSchedule()" style="padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-size:13px;background:var(--card);color:var(--fg)">
-            <option value="">연도 전체</option>
+    <div id="pg-research-schedule" class="page">
+      <div class="page-hd"><h1>전시회 일정</h1><p>(주)소프트힐스와 관련된 전시회 정보를 제공합니다.</p></div>
+      <div class="card card-res">
+        <div class="card-hd">
+          <h2><i class="ti ti-calendar-event"></i> 전시회 일정 <span id="count-exhibitionSchedule" style="font-size:13px;font-weight:400;color:var(--muted);margin-left:6px"></span></h2>
+          <div style="display:flex;gap:6px">
+            <button class="btn sm" onclick="downloadExcel('exhibitionSchedule')"><i class="ti ti-file-spreadsheet"></i> 엑셀 다운로드</button>
+            <button class="btn sm primary" onclick="openModal('exhibitionSchedule')"><i class="ti ti-plus"></i> 항목 추가</button>
+          </div>
+        </div>
+        <div class="history-filter-bar">
+          <select id="esf-consider" onchange="applyExhScheduleFilter()">
+            <option value="">참가고려 전체</option>
+            <option value="●">● 참가 고려</option>
+            <option value="▲">▲ 기간/연관성 미비</option>
           </select>
-          <select id="exhSched-region" onchange="renderExhSchedule()" style="padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-size:13px;background:var(--card);color:var(--fg)">
+          <select id="esf-gov" onchange="applyExhScheduleFilter()">
+            <option value="">국가지원 전체</option>
+            <option value="지원">지원</option>
+            <option value="미정">미정</option>
+            <option value="없음">없음</option>
+          </select>
+          <select id="esf-domestic" onchange="applyExhScheduleFilter()">
             <option value="">국내/해외 전체</option>
             <option value="국내">국내</option>
             <option value="해외">해외</option>
           </select>
-          <input id="exhSched-search" type="text" placeholder="검색 (전시회명, 도시, 산업…)" oninput="renderExhSchedule()" style="padding:5px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px;background:var(--card);color:var(--fg);width:200px">
-          <button class="btn sm" onclick="document.getElementById('exhSched-year').value='';document.getElementById('exhSched-region').value='';document.getElementById('exhSched-search').value='';renderExhSchedule()"><i class="ti ti-x"></i> 초기화</button>
-          <button class="btn sm" onclick="downloadExcel('exhibitionSchedule')"><i class="ti ti-file-spreadsheet"></i> 엑셀 다운로드</button>
-          <button class="btn sm primary" onclick="openModal('exhibitionSchedule')"><i class="ti ti-plus"></i> 항목 추가</button>
+          <select id="esf-year" onchange="applyExhScheduleFilter()">
+            <option value="">연도 전체</option>
+          </select>
+          <select id="esf-month" onchange="applyExhScheduleFilter()">
+            <option value="">월 전체</option>
+            <option value="1">1월</option><option value="2">2월</option><option value="3">3월</option>
+            <option value="4">4월</option><option value="5">5월</option><option value="6">6월</option>
+            <option value="7">7월</option><option value="8">8월</option><option value="9">9월</option>
+            <option value="10">10월</option><option value="11">11월</option><option value="12">12월</option>
+          </select>
+          <select id="esf-industry" onchange="applyExhScheduleFilter()">
+            <option value="">산업 전체</option>
+          </select>
+          <input type="text" id="esf-keyword" placeholder="전시회명 · 장소 · 비고 검색" oninput="applyExhScheduleFilter()">
+          <button class="btn sm" onclick="resetExhScheduleFilter()"><i class="ti ti-x"></i> 필터 초기화</button>
         </div>
-      </div>
-      <div style="overflow-x:auto;-webkit-overflow-scrolling:touch">
-        <table class="tbl" id="exhSched-tbl" style="min-width:1600px">
-          <thead><tr>
-            <th style="min-width:50px">참가<br>고려</th>
-            <th style="min-width:50px">국가<br>지원</th>
-            <th style="min-width:50px">연도</th>
-            <th style="min-width:45px">월</th>
-            <th style="min-width:120px">상세일정</th>
-            <th style="min-width:55px">국내/<br>해외</th>
-            <th style="min-width:60px">국가</th>
-            <th style="min-width:70px">도시</th>
-            <th style="min-width:100px">장소</th>
-            <th style="min-width:80px">상세홀</th>
-            <th style="min-width:200px">전시회명</th>
-            <th style="min-width:100px">주최/주관</th>
-            <th style="min-width:120px">주요산업</th>
-            <th style="min-width:70px">예상<br>참관객</th>
-            <th style="min-width:60px">참가<br>기업수</th>
-            <th style="min-width:80px">조립부스비</th>
-            <th style="min-width:80px">독립부스비</th>
-            <th style="min-width:80px">조기혜택</th>
-            <th style="min-width:120px">비고</th>
-            <th style="min-width:50px">URL</th>
-            <th style="min-width:70px">액션</th>
-          </tr></thead>
-          <tbody id="exhSched-body"></tbody>
+        <div id="esf-info" style="font-size:13.5px;color:var(--muted);padding:6px 16px;display:none"></div>
+        <div class="scroll-body">
+        <table class="tbl es-tbl" id="exhSchedule-tbl">
+          <colgroup>
+            <col class="es-hide-mo">
+            <col class="es-hide-mo">
+            <col>
+            <col>
+            <col>
+            <col>
+            <col class="es-hide-mo">
+            <col>
+            <col>
+            <col class="es-hide-mo">
+            <col class="es-hide-mo">
+            <col class="es-hide-mo">
+            <col class="es-hide-mo">
+            <col class="es-hide-mo">
+            <col class="es-hide-mo">
+            <col class="es-hide-mo">
+          </colgroup>
+          <thead>
+            <tr>
+              <th class="es-hide-mo">참가 고려</th>
+              <th class="es-hide-mo">국비 지원</th>
+              <th style="cursor:pointer;user-select:none" onclick="toggleEsSort('year')" id="es-th-year">연도 <span id="es-sort-year" style="font-size:10px">▼</span></th>
+              <th style="cursor:pointer;user-select:none" onclick="toggleEsSort('month')" id="es-th-month">월 <span id="es-sort-month" style="font-size:10px"></span></th>
+              <th>세부 일정</th>
+              <th>구분</th>
+              <th class="es-hide-mo">국가</th>
+              <th>도시</th>
+              <th>전시회명</th>
+              <th class="es-hide-mo">장소</th>
+              <th class="es-hide-mo">주요 산업</th>
+              <th class="es-hide-mo">규모</th>
+              <th class="es-hide-mo">참가비용</th>
+              <th class="es-hide-mo">조기 혜택</th>
+              <th class="es-hide-mo">비고</th>
+              <th class="es-hide-mo"></th>
+            </tr>
+          </thead>
+          <tbody id="exhSchedule-list"></tbody>
         </table>
+        </div>
       </div>
     </div>
 
@@ -3258,7 +3302,7 @@ function renderPage(pageId) {
     case 'research-competitor': renderContentTable('competitor', DATA.competitor); syncResearchNow(false); break;
     case 'research-industry':   renderContentTable('industry', DATA.industry); syncResearchNow(false); break;
     case 'research-exhibition': renderExhibition(DATA.exhibition); break;
-    case 'research-exhSchedule': renderExhSchedule(DATA.exhibitionSchedule); break;
+    case 'research-schedule': renderExhSchedule(DATA.exhibitionSchedule); break;
     case 'ad-media':       initAdMediaPage(); break;
     case 'mktSchedule':    if(_mktSchedUnlocked) renderMktSchedRows(); break;
   }
@@ -4712,77 +4756,270 @@ function syncDateFieldYMD() {
 }
 
 // ── 마케팅 일정 관리: 암호 보호 & 렌더링 ──────────────────
-// ── 전시회 일정 ────────────────────────────────────────────
-let _exhSchedAllRows = [];
+// ── 전시회 일정: 정렬 상태 관리 ──
+let _esSortYear = 'desc';   // 'desc' = 최신순(▼), 'asc' = 과거순(▲)
+let _esSortMonth = 'desc';  // 'desc' = 12→1(▼), 'asc' = 1→12(▲)
+
+function toggleEsSort(field) {
+  if (field === 'year') {
+    _esSortYear = _esSortYear === 'desc' ? 'asc' : 'desc';
+    const el = document.getElementById('es-sort-year');
+    if (el) el.textContent = _esSortYear === 'desc' ? '▼' : '▲';
+  } else if (field === 'month') {
+    _esSortMonth = _esSortMonth === 'desc' ? 'asc' : 'desc';
+    const el = document.getElementById('es-sort-month');
+    if (el) el.textContent = _esSortMonth === 'desc' ? '▼' : '▲';
+  }
+  applyExhScheduleFilter();
+}
+
+// ── 전시회 일정: 산업 체크박스 최대 10개 제한 + 스타일 토글 ──
+function esIndCheckLimit(el) {
+  const all = document.querySelectorAll('input[name=f-ind]');
+  const checked = [...all].filter(c => c.checked);
+  if (checked.length > 10) { el.checked = false; banner('주요 산업은 최대 10개까지 선택할 수 있습니다.', 'error'); return; }
+  all.forEach(c => {
+    const lbl = c.parentElement;
+    if (c.checked) { lbl.style.background = 'var(--accent-lt)'; lbl.style.borderColor = 'var(--accent)'; }
+    else { lbl.style.background = ''; lbl.style.borderColor = 'var(--border-md)'; }
+  });
+}
+
+// ── 전시회 일정 렌더 ────────────────────────────────────
+let _exhScheduleAllRows = [];
 
 function renderExhSchedule(rows) {
-  if (rows) { DATA.exhibitionSchedule = rows; _exhSchedAllRows = rows; }
-  const allRows = _exhSchedAllRows || [];
+  _exhScheduleAllRows = rows || [];
+  setCountBadge('count-exhibitionSchedule', _exhScheduleAllRows.length);
+  // 연도 드롭다운 자동 구성 (데이터 기반)
+  const ysel = document.getElementById('esf-year');
+  if (ysel) {
+    const prevY = ysel.value;
+    const years = [...new Set(_exhScheduleAllRows.map(r => String(r['연도']||'').replace(/[^0-9]/g,'')).filter(Boolean))].sort((a,b) => b-a);
+    ysel.innerHTML = '<option value="">연도 전체</option>' + years.map(y => `<option value="${y}">${y}년</option>`).join('');
+    if (years.includes(prevY)) ysel.value = prevY;
+  }
+  // 주요산업 드롭다운 (고정 목록)
+  const isel = document.getElementById('esf-industry');
+  if (isel && !isel.dataset.init) {
+    const opts = ['건설','플랜트','제조','기계','전기전자','AI','ICT','디지털트윈','XR','IoT','스마트시티','환경/에너지','방산','항공/우주','조선·해양','금형'];
+    isel.innerHTML = '<option value="">산업 전체</option>' + opts.map(t => `<option value="${t}">${t}</option>`).join('');
+    isel.dataset.init = '1';
+  }
+  applyExhScheduleFilter();
+}
 
-  // 연도 필터 옵션 구성
-  const yearSel = document.getElementById('exhSched-year');
-  if (yearSel && yearSel.options.length <= 1) {
-    const years = [...new Set(allRows.map(r => r['연도']).filter(Boolean))].sort();
-    years.forEach(y => { const o = document.createElement('option'); o.value = y; o.textContent = y; yearSel.appendChild(o); });
+function applyExhScheduleFilter() {
+  const consider = document.getElementById('esf-consider')?.value || '';
+  const gov      = document.getElementById('esf-gov')?.value || '';
+  const domestic = document.getElementById('esf-domestic')?.value || '';
+  const year     = document.getElementById('esf-year')?.value || '';
+  const month    = document.getElementById('esf-month')?.value || '';
+  const industry = document.getElementById('esf-industry')?.value || '';
+  const keyword  = document.getElementById('esf-keyword')?.value.trim().toLowerCase() || '';
+
+  const all = _exhScheduleAllRows;
+  const filtered = all.filter(r => {
+    if (consider && String(r['참가고려']||'').trim() !== consider) return false;
+    if (gov && String(r['국가지원']||'').trim() !== gov) return false;
+    if (domestic && r['국내/해외'] !== domestic) return false;
+    if (year) {
+      const ry = String(r['연도']||'').replace(/[^0-9]/g,'');
+      if (ry !== year) return false;
+    }
+    if (month) {
+      const rm = String(parseInt(String(r['월']||'').replace(/[^0-9]/g,''))||'');
+      if (rm !== month) return false;
+    }
+    if (industry) {
+      const tags = String(r['주요산업']||'').toLowerCase();
+      if (!tags.includes(industry.toLowerCase())) return false;
+    }
+    if (keyword) {
+      const haystack = [r['전시회명'],r['장소'],r['상세홀'],r['도시'],r['주최/주관'],r['비고'],r['주요산업'],r['국가'],r['조기혜택']].join(' ').toLowerCase();
+      const kw = keyword.replace(/\s+/g,'');
+      const hs = haystack.replace(/\s+/g,'');
+      if (!hs.includes(kw)) return false;
+    }
+    return true;
+  });
+
+  const info = document.getElementById('esf-info');
+  const hasFilter = consider || gov || domestic || year || month || industry || keyword;
+  if (info) {
+    if (hasFilter) {
+      info.style.display = 'block';
+      info.textContent = `필터 적용 중 — ${filtered.length}건 / 전체 ${all.length}건`;
+    } else { info.style.display = 'none'; }
+  }
+  renderExhScheduleRows(filtered);
+}
+
+function resetExhScheduleFilter() {
+  ['esf-consider','esf-gov','esf-domestic','esf-year','esf-month','esf-industry','esf-keyword'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
+  });
+  const info = document.getElementById('esf-info');
+  if (info) info.style.display = 'none';
+  renderExhScheduleRows(_exhScheduleAllRows);
+}
+
+function _fmtNum(v) {
+  const n = parseInt(String(v||'').replace(/[^0-9]/g,''));
+  return isNaN(n) ? v||'' : n.toLocaleString();
+}
+function _fmtWon(v) {
+  const s = String(v||'').trim();
+  if (!s || s === 'NaN') return '';
+  const n = parseInt(s.replace(/[^0-9]/g,''));
+  if (isNaN(n)) return s;
+  if (n >= 10000) return (n/10000).toFixed(0) + '만원';
+  return n.toLocaleString() + '원';
+}
+
+function renderExhScheduleRows(rows) {
+  const el = document.getElementById('exhSchedule-list');
+  if (!el) return;
+  if (!rows || !rows.length) {
+    el.innerHTML = '<tr><td colspan="16"><div class="empty"><i class="ti ti-calendar-event"></i><p>등록된 전시회 일정이 없습니다.</p></div></td></tr>';
+    return;
   }
 
-  const filterYear = (document.getElementById('exhSched-year') || {}).value || '';
-  const filterRegion = (document.getElementById('exhSched-region') || {}).value || '';
-  const searchQ = ((document.getElementById('exhSched-search') || {}).value || '').trim().toLowerCase();
+  function parseStartDay(r) {
+    const d = String(r['상세일정']||'');
+    const iso = d.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (iso) return parseInt(iso[2]) * 100 + parseInt(iso[3]);
+    const md = d.match(/^(\d{1,2})\.(\d{1,2})/);
+    if (md) return parseInt(md[1]) * 100 + parseInt(md[2]);
+    return 9999;
+  }
 
-  let list = allRows.map((r, i) => ({ ...r, _row: r._row || (i + 2) }));
-  if (filterYear) list = list.filter(r => r['연도'] === filterYear);
-  if (filterRegion) list = list.filter(r => r['국내/해외'] === filterRegion);
-  if (searchQ) list = list.filter(r => {
-    return ['전시회명','도시','국가','장소','주요산업','주최/주관','비고'].some(k => (r[k]||'').toLowerCase().includes(searchQ));
+  // 연도·월 정렬 방향 반영
+  const yDir = _esSortYear === 'desc' ? -1 : 1;
+  const mDir = _esSortMonth === 'desc' ? -1 : 1;
+  const sorted = [...rows].sort((a,b) => {
+    const ay = parseInt(String(a['연도']||'0'));
+    const by = parseInt(String(b['연도']||'0'));
+    if (ay !== by) return (ay - by) * yDir;
+    const am = parseInt(String(a['월']||'0').replace(/[^0-9]/g,''));
+    const bm = parseInt(String(b['월']||'0').replace(/[^0-9]/g,''));
+    if (am !== bm) return (am - bm) * mDir;
+    return parseStartDay(a) - parseStartDay(b);
   });
 
-  // 월 순서 정렬
-  list.sort((a, b) => {
-    const ya = parseInt(a['연도']||'0'), yb = parseInt(b['연도']||'0');
-    if (ya !== yb) return ya - yb;
-    const ma = parseInt((a['월']||'0').replace(/[^0-9]/g,'')), mb = parseInt((b['월']||'0').replace(/[^0-9]/g,''));
-    return ma - mb;
+  sorted.forEach((r, idx) => {
+    const cKey = 'exhibitionSchedule_' + (r._row !== undefined && r._row !== null ? String(r._row) : 'i' + idx);
+    r._cacheKey = cKey;
+    rowCache[cKey] = r;
   });
 
-  const countEl = document.getElementById('exhSched-count');
-  if (countEl) countEl.textContent = allRows.length > 0 ? `(총 ${allRows.length}건${list.length !== allRows.length ? ', 필터 ' + list.length + '건' : ''})` : '';
+  const IND_COLOR = {
+    '건설':       { bg:'#DBEAFE', fg:'#1E40AF' },
+    '플랜트':     { bg:'#E0E7FF', fg:'#3730A3' },
+    '제조':       { bg:'#D1FAE5', fg:'#065F46' },
+    '기계':       { bg:'#CCFBF1', fg:'#115E59' },
+    '전기전자':   { bg:'#EDE9FE', fg:'#5B21B6' },
+    'AI':         { bg:'#FFE4E6', fg:'#BE123C' },
+    'ICT':        { bg:'#FFEDD5', fg:'#C2410C' },
+    '디지털트윈': { bg:'#E0F2FE', fg:'#0369A1' },
+    'XR':         { bg:'#FAE8FF', fg:'#A21CAF' },
+    'IoT':        { bg:'#CFFAFE', fg:'#155E75' },
+    '스마트시티': { bg:'#ECFCCB', fg:'#3F6212' },
+    '환경/에너지':{ bg:'#DCFCE7', fg:'#166534' },
+    '방산':       { bg:'#E2E8F0', fg:'#334155' },
+    '항공/우주':  { bg:'#FEF3C7', fg:'#92400E' },
+    '조선·해양':  { bg:'#BFDBFE', fg:'#1E3A8A' },
+    '금형':       { bg:'#F5F5F4', fg:'#57534E' },
+  };
+  const IND_DEFAULT = { bg:'#F1F5F9', fg:'#475569' };
 
-  const body = document.getElementById('exhSched-body');
-  if (!body) return;
-  if (!list.length) { body.innerHTML = '<tr><td colspan="21"><div class="empty"><i class="ti ti-calendar-off"></i><p>등록된 전시회 일정이 없습니다.</p></div></td></tr>'; return; }
+  function truncate(s, max) {
+    if (!s) return '—';
+    return s.length > max ? s.slice(0, max) + '…' : s;
+  }
 
-  body.innerHTML = list.map(r => {
-    const consider = r['참가고려'] || '';
-    const considerColor = consider === '▲' ? '#ef4444' : consider === '△' ? '#f59e0b' : consider === '○' ? '#10b981' : 'var(--muted)';
+  el.innerHTML = sorted.map(r => {
+    const consider = String(r['참가고려']||'').trim();
+    const conBadge = consider === '●'
+      ? '<span style="color:#1D7A4C;font-weight:700">●</span>'
+      : consider === '▲'
+      ? '<span style="color:#B7791F;font-weight:700">▲</span>'
+      : '<span style="color:var(--muted)">—</span>';
+    const govVal = String(r['국가지원']||'').trim();
+    const govBadge = govVal === '지원'
+      ? '<span style="background:#D1FAE5;color:#065F46;padding:2px 8px;border-radius:100px;font-weight:500;font-size:12px">지원</span>'
+      : govVal === '미정'
+      ? '<span style="background:#FEF3C7;color:#92400E;padding:2px 8px;border-radius:100px;font-weight:500;font-size:12px">미정</span>'
+      : govVal === '없음'
+      ? '<span style="color:var(--muted)">없음</span>'
+      : '<span style="color:var(--muted)">—</span>';
+    const yr = r['연도'] ? String(r['연도']).replace(/[^0-9]/g,'') : '';
+    const moRaw = String(r['월']||'').replace(/[^0-9]/g,'');
+    const moDisp = moRaw ? parseInt(moRaw) + '월' : '—';
+    const detail = r['상세일정'] || '';
+    let detailDisp = detail;
+    const dateRng = detail.match(/^(\d{4})-(\d{2})-(\d{2})~(\d{4})-(\d{2})-(\d{2})$/);
+    if (dateRng) {
+      detailDisp = `${parseInt(dateRng[2])}.${parseInt(dateRng[3])}~${parseInt(dateRng[5])}.${parseInt(dateRng[6])}`;
+    } else {
+      const dateSingle = detail.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      if (dateSingle) detailDisp = `${parseInt(dateSingle[2])}.${parseInt(dateSingle[3])}`;
+    }
+
+    const domestic = r['국내/해외'] || '';
+    const domBadge = domestic === '국내'
+      ? '<span style="background:#DBEAFE;color:#1E40AF;padding:2px 8px;border-radius:100px;font-weight:500;font-size:12px">국내</span>'
+      : domestic === '해외'
+      ? '<span style="background:#FFEDD5;color:#C2410C;padding:2px 8px;border-radius:100px;font-weight:500;font-size:12px">해외</span>'
+      : '';
+    const country = r['국가'] || '';
+    const venue = [r['장소'], r['상세홀']].filter(Boolean).join(' ');
+    const industries = String(r['주요산업']||'').split(/[,，]+/).map(s=>s.trim()).filter(Boolean);
+    const indTags = industries.map(t => {
+      const c = IND_COLOR[t] || IND_DEFAULT;
+      return `<span style="background:${c.bg};color:${c.fg};padding:1px 6px;border-radius:100px;display:inline-block;margin:1px;white-space:nowrap;font-size:11px;font-weight:500;line-height:1.6">${t}</span>`;
+    }).join('');
+    const visitors = r['예상참관객'] ? _fmtNum(r['예상참관객'])+'명' : '';
+    const companies = r['참가기업수'] ? _fmtNum(r['참가기업수'])+'개사' : '';
+    const scale = [visitors, companies].filter(Boolean).join(' / ') || '—';
+    const ba = _fmtWon(r['조립부스비']);
+    const bi = _fmtWon(r['독립부스비']);
+    const boothInfo = (ba || bi) ? [ba?'조립 '+ba:'', bi?'독립 '+bi:''].filter(Boolean).join('<br>') : '—';
+    const earlyRaw = String(r['조기혜택']||'');
+    const noteRaw = String(r['비고']||'');
+    const earlyDisp = truncate(earlyRaw.replace(/\n/g,' '), 20);
+    const noteDisp = truncate(noteRaw.replace(/\n/g,' '), 24);
     const url = r['URL'] || '';
+    const titleHtml = url ? `<a href="${url}" target="_blank" style="color:var(--text);text-decoration:none;border-bottom:1px dashed var(--border-md)">${r['전시회명']||''}</a>` : (r['전시회명']||'');
+
     return `<tr>
-      <td style="text-align:center;font-weight:700;color:${considerColor};font-size:15px">${consider}</td>
-      <td style="text-align:center;font-size:12px">${r['국가지원'] || ''}</td>
-      <td style="text-align:center">${r['연도'] || ''}</td>
-      <td style="text-align:center">${r['월'] || ''}</td>
-      <td style="font-size:12px;white-space:pre-wrap">${r['상세일정'] || ''}</td>
-      <td style="text-align:center"><span style="padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;background:${r['국내/해외']==='국내'?'#dbeafe':'#fef3c7'};color:${r['국내/해외']==='국내'?'#1e40af':'#92400e'}">${r['국내/해외'] || ''}</span></td>
-      <td style="text-align:center;font-size:12px">${r['국가'] || ''}</td>
-      <td style="font-size:12px">${r['도시'] || ''}</td>
-      <td style="font-size:12px">${r['장소'] || ''}</td>
-      <td style="font-size:12px">${r['상세홀'] || ''}</td>
-      <td style="font-weight:600;font-size:13px">${r['전시회명'] || ''}</td>
-      <td style="font-size:12px">${r['주최/주관'] || ''}</td>
-      <td style="font-size:12px;white-space:pre-wrap">${r['주요산업'] || ''}</td>
-      <td style="text-align:right;font-size:12px">${r['예상참관객'] ? Number(r['예상참관객']).toLocaleString() : ''}</td>
-      <td style="text-align:right;font-size:12px">${r['참가기업수'] ? Number(r['참가기업수']).toLocaleString() : ''}</td>
-      <td style="text-align:right;font-size:12px">${r['조립부스비'] ? Number(r['조립부스비']).toLocaleString() : ''}</td>
-      <td style="text-align:right;font-size:12px">${r['독립부스비'] ? Number(r['독립부스비']).toLocaleString() : ''}</td>
-      <td style="font-size:11px;white-space:pre-wrap">${r['조기혜택'] || ''}</td>
-      <td style="font-size:11px;white-space:pre-wrap;max-width:200px">${r['비고'] || ''}</td>
-      <td style="text-align:center">${url ? `<a href="${url}" target="_blank" title="${url}"><i class="ti ti-external-link" style="font-size:15px"></i></a>` : ''}</td>
-      <td style="text-align:center;white-space:nowrap">
-        <button class="btn sm" onclick="openModal('exhibitionSchedule',${r._row})" title="수정"><i class="ti ti-pencil"></i></button>
-        <button class="btn sm danger" onclick="deleteRow('exhibitionSchedule',${r._row})" title="삭제"><i class="ti ti-trash"></i></button>
+      <td class="es-hide-mo">${conBadge}</td>
+      <td class="es-hide-mo">${govBadge}</td>
+      <td style="color:var(--muted)">${yr||'—'}</td>
+      <td>${moDisp}</td>
+      <td>${detailDisp||'—'}</td>
+      <td>${domBadge}</td>
+      <td class="es-hide-mo">${country||'—'}</td>
+      <td>${r['도시']||''}</td>
+      <td class="es-wrap es-left" style="font-weight:500">${titleHtml}</td>
+      <td class="es-hide-mo es-wrap">${venue||'—'}</td>
+      <td class="es-hide-mo es-wrap">${indTags || '—'}</td>
+      <td class="es-hide-mo" style="color:var(--muted)">${scale}</td>
+      <td class="es-hide-mo" style="color:var(--muted)">${boothInfo}</td>
+      <td class="es-hide-mo" style="color:var(--muted)" title="${earlyRaw.replace(/"/g,'&quot;')}">${earlyDisp}</td>
+      <td class="es-hide-mo es-left" style="color:var(--muted)" title="${noteRaw.replace(/"/g,'&quot;')}">${noteDisp}</td>
+      <td class="es-hide-mo">
+        <button class="btn sm edit-btn" data-type="exhibitionSchedule" data-key="${r._cacheKey}"><i class="ti ti-edit"></i></button>
+        <button class="btn sm danger del-btn" data-type="exhibitionSchedule" data-row="${r._row}"><i class="ti ti-trash"></i></button>
       </td>
     </tr>`;
   }).join('');
+}
+
+function downloadExhScheduleFiltered() {
+  const rows = _exhScheduleAllRows;
+  if (!rows.length) { banner('다운로드할 데이터가 없습니다.', 'error'); return; }
+  downloadExcel('exhibitionSchedule');
 }
 
 let _mktSchedUnlocked = false;
@@ -5001,41 +5238,94 @@ const MODAL_FORMS = {
     ${attachFormSection(d, 'file')}`;
   },
 
-  exhibitionSchedule: (d) => `
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-      <div class="form-row"><label>참가고려</label><select id="f-exh-consider">
-        <option value="" ${!d['참가고려']?'selected':''}>선택</option>
-        <option value="▲" ${d['참가고려']==='▲'?'selected':''}>▲ (상)</option>
-        <option value="△" ${d['참가고려']==='△'?'selected':''}>△ (중)</option>
-        <option value="○" ${d['참가고려']==='○'?'selected':''}>○ (하)</option>
-      </select></div>
-      <div class="form-row"><label>국가지원</label><input type="text" id="f-exh-gov" placeholder="국가지원 여부" value="${d['국가지원']||''}"></div>
-      <div class="form-row"><label>연도</label><input type="text" id="f-exh-year" placeholder="2026" value="${d['연도']||''}"></div>
-      <div class="form-row"><label>월</label><input type="text" id="f-exh-month" placeholder="03월" value="${d['월']||''}"></div>
+  exhibitionSchedule: (d) => {
+    const venues = ['코엑스','킨텍스','벡스코','SETEC','aT센터','수원컨벤션센터','창원컨벤션센터','울산전시컨벤션센터(UECO)'];
+    const curVenue = d['장소']||'';
+    const isCustom = curVenue && !venues.includes(curVenue);
+    return `
+    <div class="form-row"><label>참가고려</label>
+      <select id="f-consider">
+        <option value="●" ${(d['참가고려']||'')==='●'||!d['참가고려']?'selected':''}>● 참가 고려</option>
+        <option value="▲" ${d['참가고려']==='▲'?'selected':''}>▲ 기간/연관성 미비</option>
+        <option value="" ${d['참가고려']===''?'selected':''}>미정</option>
+      </select>
     </div>
-    <div class="form-row"><label>상세일정</label><input type="text" id="f-exh-detail-date" placeholder="3.11(수)~3.13(금)" value="${d['상세일정']||''}"></div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-      <div class="form-row"><label>국내/해외</label><select id="f-exh-region">
-        <option value="국내" ${(d['국내/해외']||'국내')==='국내'?'selected':''}>국내</option>
+    <div class="form-row"><label>국가지원</label>
+      <select id="f-gov">
+        <option value="" ${!d['국가지원']?'selected':''}>선택 안함</option>
+        <option value="지원" ${d['국가지원']==='지원'?'selected':''}>지원</option>
+        <option value="미정" ${d['국가지원']==='미정'?'selected':''}>미정</option>
+        <option value="없음" ${d['국가지원']==='없음'?'selected':''}>없음</option>
+      </select>
+    </div>
+    <div class="form-row"><label>연도</label>
+      <select id="f-es-year">
+        <option value="">선택</option>
+        <option value="2024" ${String(d['연도']||'')=='2024'?'selected':''}>2024년</option>
+        <option value="2025" ${String(d['연도']||'')=='2025'?'selected':''}>2025년</option>
+        <option value="2026" ${String(d['연도']||'')=='2026'?'selected':''}>2026년</option>
+        <option value="2027" ${String(d['연도']||'')=='2027'?'selected':''}>2027년</option>
+        <option value="2028" ${String(d['연도']||'')=='2028'?'selected':''}>2028년</option>
+        <option value="2029" ${String(d['연도']||'')=='2029'?'selected':''}>2029년</option>
+        <option value="2030" ${String(d['연도']||'')=='2030'?'selected':''}>2030년</option>
+      </select>
+    </div>
+    <div class="form-row"><label>월</label>
+      <select id="f-es-month">
+        <option value="">선택</option>
+        ${[...Array(12)].map((_,i)=>{const m=String(i+1);const mp=m.padStart(2,'0');return `<option value="${mp}월" ${String(d['월']||'').replace(/[^0-9]/g,'')===mp?'selected':''}>${m}월</option>`;}).join('')}
+      </select>
+    </div>
+    <div class="form-row"><label>세부 일정</label>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input type="date" id="f-sched-start" value="${(d['상세일정']||'').split('~')[0]||''}" style="flex:1">
+        <span style="color:var(--muted)">~</span>
+        <input type="date" id="f-sched-end" value="${(d['상세일정']||'').split('~')[1]||''}" style="flex:1">
+      </div>
+    </div>
+    <div class="form-row"><label>국내/해외</label>
+      <select id="f-domestic">
+        <option value="국내" ${!d['국내/해외']||d['국내/해외']==='국내'?'selected':''}>국내</option>
         <option value="해외" ${d['국내/해외']==='해외'?'selected':''}>해외</option>
-      </select></div>
-      <div class="form-row"><label>국가</label><input type="text" id="f-exh-country" placeholder="대한민국" value="${d['국가']||''}"></div>
-      <div class="form-row"><label>도시</label><input type="text" id="f-exh-city" placeholder="서울" value="${d['도시']||''}"></div>
-      <div class="form-row"><label>장소</label><input type="text" id="f-exh-venue" placeholder="코엑스" value="${d['장소']||''}"></div>
+      </select>
     </div>
-    <div class="form-row"><label>상세홀</label><input type="text" id="f-exh-hall" placeholder="Hall A,B,C" value="${d['상세홀']||''}"></div>
-    <div class="form-row"><label>전시회명</label><input type="text" id="f-exh-name" placeholder="전시회명" value="${d['전시회명']||''}"></div>
-    <div class="form-row"><label>주최/주관</label><input type="text" id="f-exh-organizer" placeholder="주최/주관" value="${d['주최/주관']||''}"></div>
-    <div class="form-row"><label>주요산업</label><input type="text" id="f-exh-industry" placeholder="제조, 기계" value="${d['주요산업']||''}"></div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-      <div class="form-row"><label>예상참관객</label><input type="number" id="f-exh-visitors" placeholder="75000" value="${d['예상참관객']||''}"></div>
-      <div class="form-row"><label>참가기업수</label><input type="number" id="f-exh-companies" placeholder="700" value="${d['참가기업수']||''}"></div>
-      <div class="form-row"><label>조립부스비</label><input type="number" id="f-exh-booth1" placeholder="3800000" value="${d['조립부스비']||''}"></div>
-      <div class="form-row"><label>독립부스비</label><input type="number" id="f-exh-booth2" placeholder="3300000" value="${d['독립부스비']||''}"></div>
+    <div class="form-row"><label>국가</label><input type="text" id="f-country" placeholder="예: 대한민국" value="${d['국가']||''}"></div>
+    <div class="form-row"><label>도시</label><input type="text" id="f-city" placeholder="예: 서울" value="${d['도시']||''}"></div>
+    <div class="form-row"><label>장소</label>
+      <select id="f-venue-sel" onchange="if(this.value==='__custom__'){document.getElementById('f-venue-custom').style.display='';document.getElementById('f-venue-custom').focus();}else{document.getElementById('f-venue-custom').style.display='none';document.getElementById('f-venue-custom').value='';}">
+        <option value="">선택</option>
+        ${venues.map(v=>`<option value="${v}" ${curVenue===v?'selected':''}>${v}</option>`).join('')}
+        <option value="__custom__" ${isCustom?'selected':''}>직접 입력</option>
+      </select>
+      <input type="text" id="f-venue-custom" placeholder="장소 직접 입력" value="${isCustom?curVenue:''}" style="margin-top:6px;${isCustom?'':'display:none'}">
     </div>
-    <div class="form-row"><label>조기혜택</label><input type="text" id="f-exh-early" placeholder="조기 신청 혜택" value="${d['조기혜택']||''}"></div>
-    <div class="form-row"><label>비고</label><textarea id="f-exh-note" placeholder="참고 사항">${d['비고']||''}</textarea></div>
-    <div class="form-row"><label>URL</label><input type="url" id="f-exh-url" placeholder="https://..." value="${d['URL']||''}"></div>`,
+    <div class="form-row"><label>상세 홀 <span style="font-size:11px;color:var(--muted)">(예: Hall A,B,C)</span></label><input type="text" id="f-hall" placeholder="예: Hall A,B,C" value="${d['상세홀']||''}"></div>
+    <div class="form-row"><label>전시회명</label><input type="text" id="f-title" value="${d['전시회명']||''}"></div>
+    <div class="form-row"><label>주최/주관</label><textarea id="f-organizer" placeholder="주최/주관/후원">${d['주최/주관']||''}</textarea></div>
+    <div class="form-row"><label>주요 산업 <span style="font-size:11px;color:var(--muted)">(최대 10개)</span></label>
+      <div id="f-industry-wrap" style="display:flex;flex-wrap:wrap;gap:6px;padding:8px;border:1px solid var(--border-md);border-radius:8px;background:var(--bg)">
+        ${(() => {
+          const opts = ['건설','플랜트','제조','기계','전기전자','AI','ICT','디지털트윈','XR','IoT','스마트시티','환경/에너지','방산','항공/우주','조선·해양','금형'];
+          const sel = (d['주요산업']||'').split(',').map(s=>s.trim()).filter(Boolean);
+          return opts.map(o => {
+            const chk = sel.includes(o) ? 'checked' : '';
+            return `<label style="display:inline-flex;align-items:center;gap:3px;cursor:pointer;font-size:13px;padding:3px 8px;border:1px solid var(--border-md);border-radius:100px;user-select:none;${chk?'background:var(--accent-lt);border-color:var(--accent)':''}"><input type="checkbox" name="f-ind" value="${o}" ${chk} onchange="esIndCheckLimit(this)" style="display:none"><span>${o}</span></label>`;
+          }).join('');
+        })()}
+      </div>
+    </div>
+    <div class="form-row" style="display:flex;gap:10px">
+      <div style="flex:1"><label>예상참관객 (명)</label><input type="text" id="f-visitors" value="${d['예상참관객']||''}"></div>
+      <div style="flex:1"><label>참가기업 (개)</label><input type="text" id="f-companies" value="${d['참가기업수']||''}"></div>
+    </div>
+    <div class="form-row" style="display:flex;gap:10px">
+      <div style="flex:1"><label>조립부스비 (원)</label><input type="text" id="f-boothA" value="${d['조립부스비']||''}"></div>
+      <div style="flex:1"><label>독립부스비 (원)</label><input type="text" id="f-boothI" value="${d['독립부스비']||''}"></div>
+    </div>
+    <div class="form-row"><label>조기 혜택</label><input type="text" id="f-early" placeholder="조기 신청 할인 등" value="${d['조기혜택']||''}"></div>
+    <div class="form-row"><label>비고</label><textarea id="f-note">${d['비고']||''}</textarea></div>
+    <div class="form-row"><label>URL</label><input type="url" id="f-url" placeholder="https://..." value="${d['URL']||''}"></div>`;
+  },
 
   mktSchedule: (d) => `
     <div class="form-row"><label>구분</label><select id="f-mkt-cat">
@@ -5399,16 +5689,9 @@ async function submitModal() {
       '이미지명':   existingDesignImages.map(x => x.name).join('|'),
     };
   } else if (t === 'exhibitionSchedule') {
-    data = {
-      '참가고려': v('f-exh-consider'), '국가지원': v('f-exh-gov'),
-      '연도': v('f-exh-year'), '월': v('f-exh-month'), '상세일정': v('f-exh-detail-date'),
-      '국내/해외': v('f-exh-region'), '국가': v('f-exh-country'), '도시': v('f-exh-city'),
-      '장소': v('f-exh-venue'), '상세홀': v('f-exh-hall'), '전시회명': v('f-exh-name'),
-      '주최/주관': v('f-exh-organizer'), '주요산업': v('f-exh-industry'),
-      '예상참관객': v('f-exh-visitors'), '참가기업수': v('f-exh-companies'),
-      '조립부스비': v('f-exh-booth1'), '독립부스비': v('f-exh-booth2'),
-      '조기혜택': v('f-exh-early'), '비고': v('f-exh-note'), 'URL': v('f-exh-url')
-    };
+    const venueSel = v('f-venue-sel');
+    const venueVal = venueSel === '__custom__' ? v('f-venue-custom') : venueSel;
+    data = { '참가고려': v('f-consider'), '국가지원': v('f-gov'), '연도': v('f-es-year'), '월': v('f-es-month'), '상세일정': (v('f-sched-start')&&v('f-sched-end')) ? v('f-sched-start')+'~'+v('f-sched-end') : v('f-sched-start')||v('f-sched-end')||'', '국내/해외': v('f-domestic'), '국가': v('f-country'), '도시': v('f-city'), '장소': venueVal, '상세홀': v('f-hall'), '전시회명': v('f-title'), '주최/주관': v('f-organizer'), '주요산업': [...document.querySelectorAll('input[name=f-ind]:checked')].map(c=>c.value).join(','), '예상참관객': v('f-visitors'), '참가기업수': v('f-companies'), '조립부스비': v('f-boothA'), '독립부스비': v('f-boothI'), '조기혜택': v('f-early'), '비고': v('f-note'), 'URL': v('f-url') };
   } else if (t === 'mktSchedule') {
     const mktCatVal = v('f-mkt-cat') === '__custom__' ? v('f-mkt-cat-custom').trim() : v('f-mkt-cat');
     if (!mktCatVal) { alert('구분을 입력해주세요.'); if (saveBtn) saveBtn.disabled = false; return; }
@@ -6328,7 +6611,7 @@ const AIS_CAT = {
   designDraft: { label:'디자인 시안', icon:'ti-photo',     page:'content-design', navId:'ni-content', dateKey:'날짜',   titleKey:'제목' },
   competitor: { label:'경쟁사 조사', icon:'ti-building-store', page:'research-competitor', navId:'ni-research', dateKey:'게시일', titleKey:'타이틀' },
   exhibition: { label:'전시회 자료', icon:'ti-presentation', page:'research-exhibition', navId:'ni-research', dateKey:'게시일', titleKey:'제목' },
-  exhibitionSchedule: { label:'전시회 일정', icon:'ti-calendar-stats', page:'research-exhSchedule', navId:'ni-research', dateKey:'연도', titleKey:'전시회명' },
+  exhibitionSchedule: { label:'전시회 일정', icon:'ti-calendar-event', page:'research-schedule', navId:'ni-research', dateKey:'일정', titleKey:'전시회명', searchFields:['전시회명','장소','도시','주요산업','비고'] },
   industry:   { label:'산업 동향 조사', icon:'ti-chart-line',   page:'research-industry',   navId:'ni-research', dateKey:'게시일', titleKey:'타이틀' },
   goods:     { label:'마케팅 물품', icon:'ti-package',     page:'goods-stock',   navId:'ni-goods',   dateKey:'제작일시', titleKey:'품목' },
   support:   { label:'지원사업',   icon:'ti-building-bank', page:'res-support',  navId:'ni-res',     dateKey:'게시일', titleKey:'제목' },
