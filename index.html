@@ -1653,6 +1653,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
                 <option value="매주">매주</option>
                 <option value="매월">매월</option>
                 <option value="장기">장기</option>
+                <option value="진행">진행</option>
                 <option value="처리">처리</option>
               </select>
               <button class="btn primary sm" onclick="openModal('mktSchedule')"><i class="ti ti-plus"></i> 항목 추가</button>
@@ -4653,8 +4654,8 @@ function syncDateFieldYMD() {
 // ── 마케팅 일정 관리: 암호 보호 & 렌더링 ──────────────────
 let _mktSchedUnlocked = false;
 const MKT_SCHED_PW = '12345';
-const MKT_CATS_ORDER = ['매일','매주','매월','장기','처리'];
-const MKT_CAT_COLORS = { '매일':'#3b82f6', '매주':'#8b5cf6', '매월':'#f59e0b', '장기':'#10b981', '처리':'#94a3b8' };
+const MKT_CATS_ORDER = ['매일','매주','매월','장기','진행','처리'];
+const MKT_CAT_COLORS = { '매일':'#3b82f6', '매주':'#8b5cf6', '매월':'#f59e0b', '장기':'#10b981', '진행':'#ef4444', '처리':'#94a3b8' };
 
 function goMktSched(el) {
   // 페이지 전환
@@ -4708,7 +4709,10 @@ function renderMktSchedRows() {
     const cat = r['구분'] || '';
     const color = MKT_CAT_COLORS[cat] || '#94a3b8';
     const attachUrl = r['첨부URL'] || '';
-    const catOptions = MKT_CATS_ORDER.map(c => `<option value="${c}" ${c===cat?'selected':''}>${c}</option>`).join('');
+    const isCustom = !MKT_CATS_ORDER.includes(cat) && cat;
+    const catOptions = MKT_CATS_ORDER.map(c => `<option value="${c}" ${c===cat?'selected':''}>${c}</option>`).join('')
+      + (isCustom ? `<option value="${cat}" selected>${cat}</option>` : '')
+      + `<option value="__custom__">직접 입력</option>`;
     return `<tr>
       <td style="text-align:center"><select onchange="changeMktCat(${r._row},this.value)" style="padding:3px 6px;border:1px solid var(--border);border-radius:5px;font-size:12px;background:var(--card);color:${color};font-weight:600;cursor:pointer">${catOptions}</select></td>
       <td style="white-space:pre-wrap;text-align:left">${r['내용'] || '—'}</td>
@@ -4723,6 +4727,11 @@ function renderMktSchedRows() {
 }
 
 async function changeMktCat(rowNum, newCat) {
+  if (newCat === '__custom__') {
+    const custom = prompt('구분명을 입력하세요:');
+    if (!custom || !custom.trim()) { await refreshSheet('mktSchedule'); return; }
+    newCat = custom.trim();
+  }
   const res = await apiPost({ action: 'update', sheet: SHEET_MAP.mktSchedule, row: rowNum, data: { '구분': newCat } });
   if (res) await refreshSheet('mktSchedule');
 }
@@ -4865,8 +4874,11 @@ const MODAL_FORMS = {
       <option value="매주" ${d['구분']==='매주'?'selected':''}>매주</option>
       <option value="매월" ${d['구분']==='매월'?'selected':''}>매월</option>
       <option value="장기" ${d['구분']==='장기'?'selected':''}>장기</option>
+      <option value="진행" ${d['구분']==='진행'?'selected':''}>진행</option>
       <option value="처리" ${d['구분']==='처리'?'selected':''}>처리</option>
+      <option value="__custom__" ${!['매일','매주','매월','장기','진행','처리'].includes(d['구분']) && d['구분'] ? 'selected' : ''}>직접 입력</option>
     </select></div>
+    <div class="form-row" id="mkt-custom-cat-row" style="display:${!['매일','매주','매월','장기','진행','처리',''].includes(d['구분'])?'block':'none'}"><label>구분 직접 입력</label><input type="text" id="f-mkt-cat-custom" placeholder="구분명을 입력하세요" value="${!['매일','매주','매월','장기','진행','처리'].includes(d['구분']) ? (d['구분']||'') : ''}"></div>
     <div class="form-row"><label>내용</label><textarea id="f-content" placeholder="일정 내용을 입력하세요">${d['내용']||''}</textarea></div>
     <div class="form-row"><label>비고</label><input type="text" id="f-note" placeholder="참고 사항" value="${d['비고']||''}"></div>
     <div class="form-row"><label>첨부 URL</label><input type="url" id="f-attach-url" placeholder="https://..." value="${d['첨부URL']||''}"></div>`,
@@ -5073,6 +5085,14 @@ function openModal(type, data = {}) {
     if (type === 'designDraft') { initMultiDropzone(); renderMultiUploadPreview(); }
     else if (ATTACH_TYPES.includes(type)) { initAttachDropzone(); renderAttachList(); }
     else { initDropzone(); }
+    // 마케팅 일정: 직접 입력 토글
+    if (type === 'mktSchedule') {
+      const sel = document.getElementById('f-mkt-cat');
+      if (sel) sel.addEventListener('change', () => {
+        const row = document.getElementById('mkt-custom-cat-row');
+        if (row) row.style.display = sel.value === '__custom__' ? 'block' : 'none';
+      });
+    }
   }, 0);
   currentUploadFile = null;
   // 모달 타입 → 시트명 매핑
@@ -5208,7 +5228,9 @@ async function submitModal() {
       '이미지명':   existingDesignImages.map(x => x.name).join('|'),
     };
   } else if (t === 'mktSchedule') {
-    data = { '구분': v('f-mkt-cat'), '내용': v('f-content'), '비고': v('f-note'), '첨부URL': v('f-attach-url') };
+    const mktCatVal = v('f-mkt-cat') === '__custom__' ? v('f-mkt-cat-custom').trim() : v('f-mkt-cat');
+    if (!mktCatVal) { alert('구분을 입력해주세요.'); if (saveBtn) saveBtn.disabled = false; return; }
+    data = { '구분': mktCatVal, '내용': v('f-content'), '비고': v('f-note'), '첨부URL': v('f-attach-url') };
   }
 
   const sheetName = SHEET_MAP[t];
