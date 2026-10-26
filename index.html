@@ -1048,16 +1048,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
   #mobile-nav-drawer.open { transform: translateX(0) !important; }
 }
 
-
-/* ── 전시회 일정 테이블 통일 ── */
-.es-tbl { font-size: 13px; border-collapse: collapse; width: 100%; }
-.es-tbl th { white-space: nowrap; padding: 10px 10px; font-size: 12px; font-weight: 600; color: var(--muted); vertical-align: middle; text-align: center; border-bottom: 2px solid var(--border-md); }
-.es-tbl td { padding: 10px 10px; vertical-align: middle; font-size: 13px; color: var(--text); line-height: 1.5; white-space: nowrap; text-align: center; }
-.es-tbl td.es-wrap { white-space: normal; word-break: keep-all; }
-.es-tbl td.es-left { text-align: left; }
-
 @media (max-width: 700px) {
-  /* 전시회 일정 모바일 */ #exhSchedule-tbl .es-hide-mo { display: none; }
   /* ── 기본 폰트 (PC 17.5px → 모바일 축소) ── */
   body { font-size: 14.5px; }
 
@@ -1419,8 +1410,8 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
 
     <div class="nav-group">
       <div class="nav-item">
-        <div class="nav-main" data-page="mkt-schedule" onclick="go('mkt-schedule',this)">
-          <span class="nav-icon3d ic-main"><i class="ti ti-calendar-check"></i></span> 마케팅 일정 관리
+        <div class="nav-main" data-page="mktSchedule" onclick="goMktSched(this)">
+          <span class="nav-icon3d ic-budget"><i class="ti ti-calendar-event"></i></span> 마케팅 일정 관리
         </div>
       </div>
     </div>
@@ -1497,7 +1488,6 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
           <div class="nav-sub-item" data-page="research-competitor" onclick="goSub('research-competitor',this,'ni-research')"><i class="ti ti-building-store"></i> 경쟁사 조사</div>
           <div class="nav-sub-item" data-page="research-industry"   onclick="goSub('research-industry',this,'ni-research')"><i class="ti ti-chart-line"></i> 산업 동향 조사</div>
           <div class="nav-sub-item" data-page="research-exhibition" onclick="goSub('research-exhibition',this,'ni-research')"><i class="ti ti-presentation"></i> 전시회 자료</div>
-          <div class="nav-sub-item" data-page="research-schedule" onclick="goSub('research-schedule',this,'ni-research')"><i class="ti ti-calendar-event"></i> 전시회 일정</div>
         </div>
       </div>
     </div>
@@ -1546,7 +1536,6 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
       </div>
       <nav style="padding:8px 0">
         <div onclick="navTo('main');closeMobileNav()" style="padding:13px 20px;color:#fff;font-size:15px;cursor:pointer;display:flex;align-items:center;gap:10px"><i class="ti ti-home"></i> 메인</div>
-        <div onclick="navTo('mkt-schedule');closeMobileNav()" style="padding:13px 20px;color:#fff;font-size:15px;cursor:pointer;display:flex;align-items:center;gap:10px"><i class="ti ti-calendar-check"></i> 마케팅 일정 관리</div>
         <div style="padding:8px 20px 4px;font-size:11px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:1px">예산 관리</div>
         <div onclick="navTo('budget');closeMobileNav()" style="padding:11px 20px 11px 32px;color:#fff;font-size:14px;cursor:pointer"><i class="ti ti-chart-pie" style="margin-right:8px"></i>마케팅 예산 현황</div>
         <div style="padding:8px 20px 4px;font-size:11px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:1px">광고홍보</div>
@@ -1571,7 +1560,6 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
         <div onclick="navTo('research-competitor');closeMobileNav()" style="padding:11px 20px 11px 32px;color:#fff;font-size:14px;cursor:pointer"><i class="ti ti-building-store" style="margin-right:8px"></i>경쟁사 조사</div>
         <div onclick="navTo('research-industry');closeMobileNav()" style="padding:11px 20px 11px 32px;color:#fff;font-size:14px;cursor:pointer"><i class="ti ti-chart-line" style="margin-right:8px"></i>산업 동향 조사</div>
         <div onclick="navTo('research-exhibition');closeMobileNav()" style="padding:11px 20px 11px 32px;color:#fff;font-size:14px;cursor:pointer"><i class="ti ti-presentation" style="margin-right:8px"></i>전시회 자료</div>
-        <div onclick="navTo('research-schedule');closeMobileNav()" style="padding:11px 20px 11px 32px;color:#fff;font-size:14px;cursor:pointer"><i class="ti ti-calendar-event" style="margin-right:8px"></i>전시회 일정</div>
         <div style="padding:8px 20px 4px;font-size:11px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:1px">마케팅 물품 관리</div>
         <div onclick="navTo('goods-stock');closeMobileNav()" style="padding:11px 20px 11px 32px;color:#fff;font-size:14px;cursor:pointer"><i class="ti ti-boxes" style="margin-right:8px"></i>마케팅 물품 재고</div>
       </nav>
@@ -1636,46 +1624,57 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
       </div>
     </div>
 
-    <!-- ══ iframe 탭 공용 ══ -->
-    
     <!-- ══ 마케팅 일정 관리 ══ -->
-    <div id="pg-mkt-schedule" class="page">
-      <div class="page-hd"><h1>마케팅 일정 관리</h1><p>(주)소프트힐스 마케팅 운영 일정을 관리할 수 있습니다.</p></div>
-      <div class="card card-res">
-        <div class="card-hd">
-          <h2><i class="ti ti-calendar-check"></i> 마케팅 일정 <span id="count-mktSchedule" style="font-size:13px;font-weight:400;color:var(--muted);margin-left:6px"></span></h2>
-          <div style="display:flex;gap:6px">
-            <button class="btn sm" onclick="downloadExcel('mktSchedule')"><i class="ti ti-file-spreadsheet"></i> 엑셀 다운로드</button>
-            <button class="btn sm primary" onclick="openModal('mktSchedule')"><i class="ti ti-plus"></i> 항목 추가</button>
+    <div id="pg-mktSchedule" class="page">
+      <div class="page-hd">
+        <h1>마케팅 일정 관리</h1>
+        <p>(주)소프트힐스 마케팅 운영 일정을 관리할 수 있습니다.</p>
+      </div>
+      <!-- 암호 잠금 화면 -->
+      <div id="mktSched-lock" class="card" style="max-width:400px;margin:60px auto;text-align:center;padding:40px 30px">
+        <i class="ti ti-lock" style="font-size:48px;color:var(--muted);margin-bottom:16px;display:block"></i>
+        <h3 style="margin:0 0 6px">암호 입력</h3>
+        <p style="color:var(--muted);font-size:13px;margin:0 0 20px">이 페이지에 접근하려면 암호를 입력해주세요.</p>
+        <div style="display:flex;gap:8px;justify-content:center">
+          <input type="password" id="mktSched-pw" placeholder="암호 입력" style="width:180px;padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--card);color:var(--fg)" onkeydown="if(event.key==='Enter')verifyMktSchedPw()">
+          <button class="btn primary" onclick="verifyMktSchedPw()">확인</button>
+        </div>
+        <p id="mktSched-pw-err" style="color:#e74c3c;font-size:12px;margin-top:10px;display:none">암호가 올바르지 않습니다.</p>
+      </div>
+      <!-- 일정 콘텐츠 (암호 통과 후 표시) -->
+      <div id="mktSched-content" style="display:none">
+        <div class="card">
+          <div class="card-hd" style="flex-wrap:wrap;gap:8px">
+            <h2 style="margin:0"><i class="ti ti-calendar-event"></i> 일정 목록</h2>
+            <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+              <select id="mktSched-filter" onchange="renderMktSchedRows()" style="padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-size:13px;background:var(--card);color:var(--fg)">
+                <option value="">전체</option>
+                <option value="매일">매일</option>
+                <option value="매주">매주</option>
+                <option value="매월">매월</option>
+                <option value="장기">장기</option>
+                <option value="처리">처리</option>
+              </select>
+              <button class="btn primary sm" onclick="openModal('mktSchedule')"><i class="ti ti-plus"></i> 항목 추가</button>
+            </div>
           </div>
-        </div>
-        <div style="display:flex;gap:6px;padding:0 16px 12px;flex-wrap:wrap">
-          <select id="msf-category" onchange="applyMktSchedFilter()" style="font-size:13px;padding:6px 10px;border:1px solid var(--border-md);border-radius:6px">
-            <option value="">구분 전체</option>
-            <option value="매일">매일</option>
-            <option value="매주">매주</option>
-            <option value="매월">매월</option>
-            <option value="장기">장기</option>
-            <option value="처리">처리</option>
-          </select>
-          <input type="text" id="msf-keyword" placeholder="내용 · 비고 검색" oninput="applyMktSchedFilter()" style="font-size:13px;padding:6px 10px;border:1px solid var(--border-md);border-radius:6px;width:200px">
-          <button class="btn sm" onclick="resetMktSchedFilter()"><i class="ti ti-x"></i> 초기화</button>
-        </div>
-        <div class="scroll-body">
-          <table class="tbl" id="mktSched-tbl" style="font-size:13px;width:100%">
-            <thead><tr>
-              <th style="padding:10px;text-align:center;width:72px">구분</th>
-              <th style="padding:10px;text-align:left">내용</th>
-              <th style="padding:10px;text-align:left;width:160px">비고</th>
-              <th style="padding:10px;text-align:center;width:50px">첨부</th>
-              <th style="padding:10px;width:50px"></th>
-            </tr></thead>
-            <tbody id="mktSched-list"></tbody>
+          <table class="tbl" id="mktSched-tbl">
+            <thead>
+              <tr>
+                <th style="width:80px">구분</th>
+                <th>내용</th>
+                <th style="width:180px">비고</th>
+                <th style="width:60px">첨부</th>
+                <th style="width:70px">액션</th>
+              </tr>
+            </thead>
+            <tbody id="mktSched-body"></tbody>
           </table>
         </div>
       </div>
     </div>
 
+    <!-- ══ iframe 탭 공용 ══ -->
     <div id="pg-budget" class="page">
       <div class="page-hd"><h1>마케팅 예산 현황</h1><p>해당 페이지는 마케팅 운영에 대한 비용을 관리합니다.</p></div>
       <div class="iframe-wrap">
@@ -2259,97 +2258,6 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
       </div>
       <div id="ex-info" style="font-size:13.5px;color:var(--muted);padding:0 4px 10px;display:none"></div>
       <div class="post-list" id="exhibition-list"></div>
-    </div>
-
-    <!-- ══ 전시회 일정 ══ -->
-    <div id="pg-research-schedule" class="page">
-      <div class="page-hd"><h1>전시회 일정</h1><p>(주)소프트힐스와 관련된 전시회 정보를 제공합니다.</p></div>
-      <div class="card card-res">
-        <div class="card-hd">
-          <h2><i class="ti ti-calendar-event"></i> 전시회 일정 <span id="count-exhibitionSchedule" style="font-size:13px;font-weight:400;color:var(--muted);margin-left:6px"></span></h2>
-          <div style="display:flex;gap:6px">
-            <button class="btn sm" onclick="downloadExcel('exhibitionSchedule')"><i class="ti ti-file-spreadsheet"></i> 엑셀 다운로드</button>
-            <button class="btn sm primary" onclick="openModal('exhibitionSchedule')"><i class="ti ti-plus"></i> 항목 추가</button>
-          </div>
-        </div>
-        <div class="history-filter-bar">
-          <select id="esf-consider" onchange="applyExhScheduleFilter()">
-            <option value="">참가고려 전체</option>
-            <option value="●">● 참가 고려</option>
-            <option value="▲">▲ 기간/연관성 미비</option>
-          </select>
-          <select id="esf-gov" onchange="applyExhScheduleFilter()">
-            <option value="">국가지원 전체</option>
-            <option value="지원">지원</option>
-            <option value="미정">미정</option>
-            <option value="없음">없음</option>
-          </select>
-          <select id="esf-domestic" onchange="applyExhScheduleFilter()">
-            <option value="">국내/해외 전체</option>
-            <option value="국내">국내</option>
-            <option value="해외">해외</option>
-          </select>
-          <select id="esf-year" onchange="applyExhScheduleFilter()">
-            <option value="">연도 전체</option>
-          </select>
-          <select id="esf-month" onchange="applyExhScheduleFilter()">
-            <option value="">월 전체</option>
-            <option value="1">1월</option><option value="2">2월</option><option value="3">3월</option>
-            <option value="4">4월</option><option value="5">5월</option><option value="6">6월</option>
-            <option value="7">7월</option><option value="8">8월</option><option value="9">9월</option>
-            <option value="10">10월</option><option value="11">11월</option><option value="12">12월</option>
-          </select>
-          <select id="esf-industry" onchange="applyExhScheduleFilter()">
-            <option value="">산업 전체</option>
-          </select>
-          <input type="text" id="esf-keyword" placeholder="전시회명 · 장소 · 비고 검색" oninput="applyExhScheduleFilter()">
-          <button class="btn sm" onclick="resetExhScheduleFilter()"><i class="ti ti-x"></i> 필터 초기화</button>
-        </div>
-        <div id="esf-info" style="font-size:13.5px;color:var(--muted);padding:6px 16px;display:none"></div>
-        <div class="scroll-body">
-        <table class="tbl es-tbl" id="exhSchedule-tbl">
-          <colgroup>
-            <col class="es-hide-mo">
-            <col class="es-hide-mo">
-            <col>
-            <col>
-            <col>
-            <col>
-            <col class="es-hide-mo">
-            <col>
-            <col>
-            <col class="es-hide-mo">
-            <col class="es-hide-mo">
-            <col class="es-hide-mo">
-            <col class="es-hide-mo">
-            <col class="es-hide-mo">
-            <col class="es-hide-mo">
-            <col class="es-hide-mo">
-          </colgroup>
-          <thead>
-            <tr>
-              <th class="es-hide-mo">참가 고려</th>
-              <th class="es-hide-mo">국비 지원</th>
-              <th style="cursor:pointer;user-select:none" onclick="toggleEsSort('year')" id="es-th-year">연도 <span id="es-sort-year" style="font-size:10px">▼</span></th>
-              <th style="cursor:pointer;user-select:none" onclick="toggleEsSort('month')" id="es-th-month">월 <span id="es-sort-month" style="font-size:10px"></span></th>
-              <th>세부 일정</th>
-              <th>구분</th>
-              <th class="es-hide-mo">국가</th>
-              <th>도시</th>
-              <th>전시회명</th>
-              <th class="es-hide-mo">장소</th>
-              <th class="es-hide-mo">주요 산업</th>
-              <th class="es-hide-mo">규모</th>
-              <th class="es-hide-mo">참가비용</th>
-              <th class="es-hide-mo">조기 혜택</th>
-              <th class="es-hide-mo">비고</th>
-              <th class="es-hide-mo"></th>
-            </tr>
-          </thead>
-          <tbody id="exhSchedule-list"></tbody>
-        </table>
-        </div>
-      </div>
     </div>
 
     <!-- ══ 마케팅 물품 재고 ══ -->
@@ -3077,7 +2985,8 @@ function restoreLastPage() {
   const hash = (location.hash || '').replace(/^#/, '');
   if (!hash || hash === 'main') return; // 기본값(메인)이 이미 표시된 상태라 별도 처리 불필요
   const target = document.querySelector(`[data-page="${hash}"]`);
-  if (!target && hash !== 'changelog' && hash !== 'settings') return; // 알 수 없는 해시면 메인 유지
+  if (!target && hash !== 'changelog' && hash !== 'settings' && hash !== 'mktSchedule') return;
+  if (hash === 'mktSchedule') { goMktSched(document.querySelector('[data-page="mktSchedule"]')); return; }
   if (hash === 'changelog' || hash === 'settings') {
     go(hash, target || null);
     return;
@@ -3197,8 +3106,6 @@ async function refreshAll(silent) {
     ['competitor',  'competitor'],
     ['industry',    'industry'],
     ['exhibition',  'exhibition'],
-    ['exhibitionSchedule', 'exhibitionSchedule'],
-    ['mktSchedule', 'mktSchedule'],
   ].filter(([key]) => !d[key]);
 
   if (fallbackJobs.length) {
@@ -3234,8 +3141,6 @@ function renderAllData(d) {
   renderContentTable('competitor', d.competitor);
   renderContentTable('industry',   d.industry);
   renderExhibition(d.exhibition);
-  renderExhSchedule(d.exhibitionSchedule);
-  renderMktSchedule(d.mktSchedule);
   renderCopyright(d.copyright);
   renderContentTable('press', d.press);
   renderContentTable('blog',  d.blog);
@@ -3293,9 +3198,8 @@ function renderPage(pageId) {
     case 'research-competitor': renderContentTable('competitor', DATA.competitor); syncResearchNow(false); break;
     case 'research-industry':   renderContentTable('industry', DATA.industry); syncResearchNow(false); break;
     case 'research-exhibition': renderExhibition(DATA.exhibition); break;
-    case 'research-schedule': renderExhSchedule(DATA.exhibitionSchedule); break;
-    case 'mkt-schedule': renderMktSchedule(DATA.mktSchedule); break;
     case 'ad-media':       initAdMediaPage(); break;
+    case 'mktSchedule':    if(_mktSchedUnlocked) renderMktSchedRows(); break;
   }
   queueApplyMobileCards();
 }
@@ -3834,11 +3738,9 @@ function _renderIntroList(elId, rows, emptyMsg, type) {
     el.innerHTML = `<div class="empty"><i class="ti ti-files"></i><p>${emptyMsg}</p></div>`;
     return;
   }
-  // 일정(있으면) → 게시일 기준 최신순 정렬
+  // 게시일 최신순 정렬 (같은 게시일이면 _row 오름차순 유지)
   const sorted = [...rows].sort((a,b) => {
-    const aDate = parseDateNum(a['일정'] || a['게시일']);
-    const bDate = parseDateNum(b['일정'] || b['게시일']);
-    const dDiff = bDate - aDate;
+    const dDiff = parseDateNum(b['게시일']) - parseDateNum(a['게시일']);
     return dDiff !== 0 ? dDiff : (a._row||0) - (b._row||0);
   });
   sorted.forEach((r, idx) => {
@@ -4024,7 +3926,7 @@ function renderGoodsUsageHistory(row) {
     <div style="display:flex;align-items:flex-start;gap:8px;padding:10px 14px;border-bottom:1px solid var(--border);font-size:13px">
       <div style="flex:1;min-width:0">
         <div style="display:flex;justify-content:space-between;color:var(--muted);font-size:12px;margin-bottom:3px">
-          <span>${fmtDate(u['사용일자'])}</span><span style="color:var(--accent-dk);font-weight:600">-${u['사용수량'] || 0}</span>
+          <span>${fmtDate(u['사용일자']) || '—'}</span><span style="color:var(--accent-dk);font-weight:600">-${u['사용수량'] || 0}</span>
         </div>
         <div>${[u['사용처'], u['사용사유']].filter(Boolean).join(' · ') || '—'}</div>
       </div>
@@ -4281,387 +4183,6 @@ function resetContentFilter(key) {
   if (info) info.style.display = 'none';
   renderContentRows(key, _contentAllRows[key] || []);
 }
-
-// ── 범용 날짜 포맷 (ISO/시리얼/문자열 → YYYY.M.D) ──
-function fmtDate(v) {
-  if (!v) return '—';
-  const s = String(v);
-  // ISO: 2026-10-22T15:00:00.000Z 또는 2026-10-22
-  const m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
-  if (m) return m[1]+'.'+parseInt(m[2])+'.'+parseInt(m[3]);
-  // 시리얼 넘버 (Google Sheets 날짜)
-  const n = Number(v);
-  if (!isNaN(n) && n > 40000 && n < 60000) {
-    const d = new Date((n - 25569) * 86400000);
-    return d.getFullYear()+'.'+(d.getMonth()+1)+'.'+d.getDate();
-  }
-  return s;
-}
-
-// ── 마케팅 일정 관리 ────────────────────────────────────
-let _mktSchedAllRows = [];
-const MKT_CAT_STYLE = {
-  '매일': { bg:'#DBEAFE', fg:'#1E40AF' },
-  '매주': { bg:'#E0E7FF', fg:'#3730A3' },
-  '매월': { bg:'#D1FAE5', fg:'#065F46' },
-  '장기': { bg:'#FEF3C7', fg:'#92400E' },
-  '처리': { bg:'#E2E8F0', fg:'#334155' },
-};
-const MKT_CATS_ORDER = ['매일','매주','매월','장기','처리'];
-
-function renderMktSchedule(rows) {
-  _mktSchedAllRows = rows || [];
-  setCountBadge('count-mktSchedule', _mktSchedAllRows.length);
-  applyMktSchedFilter();
-}
-
-function applyMktSchedFilter() {
-  const cat = document.getElementById('msf-category')?.value || '';
-  const kw = document.getElementById('msf-keyword')?.value.trim().toLowerCase() || '';
-  const filtered = _mktSchedAllRows.filter(r => {
-    if (cat && r['구분'] !== cat) return false;
-    if (kw) {
-      const h = [r['내용'],r['비고']].join(' ').toLowerCase().replace(/\s/g,'');
-      if (!h.includes(kw.replace(/\s/g,''))) return false;
-    }
-    return true;
-  });
-  renderMktSchedRows(filtered);
-}
-
-function resetMktSchedFilter() {
-  ['msf-category','msf-keyword'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
-  renderMktSchedRows(_mktSchedAllRows);
-}
-
-function renderMktSchedRows(rows) {
-  const el = document.getElementById('mktSched-list');
-  if (!el) return;
-  if (!rows || !rows.length) {
-    el.innerHTML = '<tr><td colspan="5"><div class="empty" style="padding:40px"><i class="ti ti-calendar-check"></i><p>등록된 일정이 없습니다.</p></div></td></tr>';
-    return;
-  }
-  // 구분 순서대로, 같은 구분 내 등록순
-  const sorted = [...rows].sort((a,b) => {
-    const ai = MKT_CATS_ORDER.indexOf(a['구분']||'');
-    const bi = MKT_CATS_ORDER.indexOf(b['구분']||'');
-    if (ai !== bi) return (ai<0?99:ai) - (bi<0?99:bi);
-    return 0;
-  });
-
-  sorted.forEach((r, idx) => {
-    const cKey = 'mktSchedule_' + (r._row !== undefined && r._row !== null ? String(r._row) : 'i' + idx);
-    r._cacheKey = cKey;
-    rowCache[cKey] = r;
-  });
-
-  el.innerHTML = sorted.map(r => {
-    const cat = r['구분'] || '매일';
-    const cs = MKT_CAT_STYLE[cat] || { bg:'#F1F5F9', fg:'#475569' };
-    const catOpts = MKT_CATS_ORDER.map(c => `<option value="${c}" ${c===cat?'selected':''}>${c}</option>`).join('');
-    const content = String(r['내용']||'').replace(/\n/g,'<br>');
-    const note = String(r['비고']||'').replace(/\n/g,'<br>');
-    const url = r['첨부URL'] || '';
-    const fileNm = r['파일명'] || '';
-    const fileId = r['파일ID'] || '';
-    let attachHtml = '';
-    if (fileId) {
-      attachHtml = `<a href="https://drive.google.com/file/d/${fileId}/view" target="_blank" title="${fileNm}" style="color:var(--accent)"><i class="ti ti-photo"></i></a>`;
-    } else if (url) {
-      attachHtml = `<a href="${url}" target="_blank" style="color:var(--accent)"><i class="ti ti-link"></i></a>`;
-    } else {
-      attachHtml = '<span style="color:var(--muted)">—</span>';
-    }
-
-    return `<tr style="border-top:1px solid var(--border)">
-      <td style="padding:10px;text-align:center;vertical-align:middle">
-        <select onchange="changeMktCat(${r._row},this.value)" style="background:${cs.bg};color:${cs.fg};border:none;padding:3px 8px;border-radius:100px;font-size:12px;font-weight:600;cursor:pointer;text-align:center;appearance:none;-webkit-appearance:none">
-          ${catOpts}
-        </select>
-      </td>
-      <td style="padding:10px;text-align:left;line-height:1.6;word-break:keep-all">${content||'—'}</td>
-      <td style="padding:10px;text-align:left;color:var(--muted);line-height:1.5;word-break:keep-all">${note||'—'}</td>
-      <td style="padding:10px;text-align:center;vertical-align:middle">${attachHtml}</td>
-      <td style="padding:10px;text-align:right;white-space:nowrap;vertical-align:middle">
-        <button class="btn sm edit-btn" data-type="mktSchedule" data-key="${r._cacheKey}"><i class="ti ti-edit"></i></button>
-        <button class="btn sm danger del-btn" data-type="mktSchedule" data-row="${r._row}"><i class="ti ti-trash"></i></button>
-      </td>
-    </tr>`;
-  }).join('');
-}
-
-// 구분 인라인 변경
-async function changeMktCat(rowNum, newCat) {
-  const res = await apiPost({ action:'update', sheet:'마케팅일정', row: rowNum, data:{ '구분': newCat } });
-  if (res) await refreshSheet('mktSchedule');
-}
-
-// ── 전시회 일정: 정렬 상태 관리 ──
-let _esSortYear = 'desc';   // 'desc' = 최신순(▼), 'asc' = 과거순(▲)
-let _esSortMonth = 'desc';  // 'desc' = 12→1(▼), 'asc' = 1→12(▲)
-
-function toggleEsSort(field) {
-  if (field === 'year') {
-    _esSortYear = _esSortYear === 'desc' ? 'asc' : 'desc';
-    const el = document.getElementById('es-sort-year');
-    if (el) el.textContent = _esSortYear === 'desc' ? '▼' : '▲';
-  } else if (field === 'month') {
-    _esSortMonth = _esSortMonth === 'desc' ? 'asc' : 'desc';
-    const el = document.getElementById('es-sort-month');
-    if (el) el.textContent = _esSortMonth === 'desc' ? '▼' : '▲';
-  }
-  applyExhScheduleFilter();
-}
-
-// ── 전시회 일정: 산업 체크박스 최대 10개 제한 + 스타일 토글 ──
-function esIndCheckLimit(el) {
-  const all = document.querySelectorAll('input[name=f-ind]');
-  const checked = [...all].filter(c => c.checked);
-  if (checked.length > 10) { el.checked = false; banner('주요 산업은 최대 10개까지 선택할 수 있습니다.', 'error'); return; }
-  all.forEach(c => {
-    const lbl = c.parentElement;
-    if (c.checked) { lbl.style.background = 'var(--accent-lt)'; lbl.style.borderColor = 'var(--accent)'; }
-    else { lbl.style.background = ''; lbl.style.borderColor = 'var(--border-md)'; }
-  });
-}
-
-// ── 전시회 일정 렌더 ────────────────────────────────────
-let _exhScheduleAllRows = [];
-
-function renderExhSchedule(rows) {
-  _exhScheduleAllRows = rows || [];
-  setCountBadge('count-exhibitionSchedule', _exhScheduleAllRows.length);
-  // 연도 드롭다운 자동 구성 (데이터 기반)
-  const ysel = document.getElementById('esf-year');
-  if (ysel) {
-    const prevY = ysel.value;
-    const years = [...new Set(_exhScheduleAllRows.map(r => String(r['연도']||'').replace(/[^0-9]/g,'')).filter(Boolean))].sort((a,b) => b-a);
-    ysel.innerHTML = '<option value="">연도 전체</option>' + years.map(y => `<option value="${y}">${y}년</option>`).join('');
-    if (years.includes(prevY)) ysel.value = prevY;
-  }
-  // 주요산업 드롭다운 (고정 목록)
-  const isel = document.getElementById('esf-industry');
-  if (isel && !isel.dataset.init) {
-    const opts = ['건설','플랜트','제조','기계','전기전자','AI','ICT','디지털트윈','XR','IoT','스마트시티','환경/에너지','방산','항공/우주','조선·해양','금형'];
-    isel.innerHTML = '<option value="">산업 전체</option>' + opts.map(t => `<option value="${t}">${t}</option>`).join('');
-    isel.dataset.init = '1';
-  }
-  applyExhScheduleFilter();
-}
-
-function applyExhScheduleFilter() {
-  const consider = document.getElementById('esf-consider')?.value || '';
-  const gov      = document.getElementById('esf-gov')?.value || '';
-  const domestic = document.getElementById('esf-domestic')?.value || '';
-  const year     = document.getElementById('esf-year')?.value || '';
-  const month    = document.getElementById('esf-month')?.value || '';
-  const industry = document.getElementById('esf-industry')?.value || '';
-  const keyword  = document.getElementById('esf-keyword')?.value.trim().toLowerCase() || '';
-
-  const all = _exhScheduleAllRows;
-  const filtered = all.filter(r => {
-    if (consider && String(r['참가고려']||'').trim() !== consider) return false;
-    if (gov && String(r['국가지원']||'').trim() !== gov) return false;
-    if (domestic && r['국내/해외'] !== domestic) return false;
-    if (year) {
-      const ry = String(r['연도']||'').replace(/[^0-9]/g,'');
-      if (ry !== year) return false;
-    }
-    if (month) {
-      const rm = String(parseInt(String(r['월']||'').replace(/[^0-9]/g,''))||'');
-      if (rm !== month) return false;
-    }
-    if (industry) {
-      const tags = String(r['주요산업']||'').toLowerCase();
-      if (!tags.includes(industry.toLowerCase())) return false;
-    }
-    if (keyword) {
-      const haystack = [r['전시회명'],r['장소'],r['상세홀'],r['도시'],r['주최/주관'],r['비고'],r['주요산업'],r['국가'],r['조기혜택']].join(' ').toLowerCase();
-      const kw = keyword.replace(/\s+/g,'');
-      const hs = haystack.replace(/\s+/g,'');
-      if (!hs.includes(kw)) return false;
-    }
-    return true;
-  });
-
-  const info = document.getElementById('esf-info');
-  const hasFilter = consider || gov || domestic || year || month || industry || keyword;
-  if (info) {
-    if (hasFilter) {
-      info.style.display = 'block';
-      info.textContent = `필터 적용 중 — ${filtered.length}건 / 전체 ${all.length}건`;
-    } else { info.style.display = 'none'; }
-  }
-  renderExhScheduleRows(filtered);
-}
-
-function resetExhScheduleFilter() {
-  ['esf-consider','esf-gov','esf-domestic','esf-year','esf-month','esf-industry','esf-keyword'].forEach(id => {
-    const el = document.getElementById(id); if (el) el.value = '';
-  });
-  const info = document.getElementById('esf-info');
-  if (info) info.style.display = 'none';
-  renderExhScheduleRows(_exhScheduleAllRows);
-}
-
-function _fmtNum(v) {
-  const n = parseInt(String(v||'').replace(/[^0-9]/g,''));
-  return isNaN(n) ? v||'' : n.toLocaleString();
-}
-function _fmtWon(v) {
-  const s = String(v||'').trim();
-  if (!s || s === 'NaN') return '';
-  const n = parseInt(s.replace(/[^0-9]/g,''));
-  if (isNaN(n)) return s;
-  if (n >= 10000) return (n/10000).toFixed(0) + '만원';
-  return n.toLocaleString() + '원';
-}
-
-function renderExhScheduleRows(rows) {
-  const el = document.getElementById('exhSchedule-list');
-  if (!el) return;
-  if (!rows || !rows.length) {
-    el.innerHTML = '<tr><td colspan="16"><div class="empty"><i class="ti ti-calendar-event"></i><p>등록된 전시회 일정이 없습니다.</p></div></td></tr>';
-    return;
-  }
-
-  function parseStartDay(r) {
-    const d = String(r['상세일정']||'');
-    const iso = d.match(/^(\d{4})-(\d{2})-(\d{2})/);
-    if (iso) return parseInt(iso[2]) * 100 + parseInt(iso[3]);
-    const md = d.match(/^(\d{1,2})\.(\d{1,2})/);
-    if (md) return parseInt(md[1]) * 100 + parseInt(md[2]);
-    return 9999;
-  }
-
-  // 연도·월 정렬 방향 반영
-  const yDir = _esSortYear === 'desc' ? -1 : 1;
-  const mDir = _esSortMonth === 'desc' ? -1 : 1;
-  const sorted = [...rows].sort((a,b) => {
-    const ay = parseInt(String(a['연도']||'0'));
-    const by = parseInt(String(b['연도']||'0'));
-    if (ay !== by) return (ay - by) * yDir;
-    const am = parseInt(String(a['월']||'0').replace(/[^0-9]/g,''));
-    const bm = parseInt(String(b['월']||'0').replace(/[^0-9]/g,''));
-    if (am !== bm) return (am - bm) * mDir;
-    return parseStartDay(a) - parseStartDay(b);
-  });
-
-  sorted.forEach((r, idx) => {
-    const cKey = 'exhibitionSchedule_' + (r._row !== undefined && r._row !== null ? String(r._row) : 'i' + idx);
-    r._cacheKey = cKey;
-    rowCache[cKey] = r;
-  });
-
-  const IND_COLOR = {
-    '건설':       { bg:'#DBEAFE', fg:'#1E40AF' },
-    '플랜트':     { bg:'#E0E7FF', fg:'#3730A3' },
-    '제조':       { bg:'#D1FAE5', fg:'#065F46' },
-    '기계':       { bg:'#CCFBF1', fg:'#115E59' },
-    '전기전자':   { bg:'#EDE9FE', fg:'#5B21B6' },
-    'AI':         { bg:'#FFE4E6', fg:'#BE123C' },
-    'ICT':        { bg:'#FFEDD5', fg:'#C2410C' },
-    '디지털트윈': { bg:'#E0F2FE', fg:'#0369A1' },
-    'XR':         { bg:'#FAE8FF', fg:'#A21CAF' },
-    'IoT':        { bg:'#CFFAFE', fg:'#155E75' },
-    '스마트시티': { bg:'#ECFCCB', fg:'#3F6212' },
-    '환경/에너지':{ bg:'#DCFCE7', fg:'#166534' },
-    '방산':       { bg:'#E2E8F0', fg:'#334155' },
-    '항공/우주':  { bg:'#FEF3C7', fg:'#92400E' },
-    '조선·해양':  { bg:'#BFDBFE', fg:'#1E3A8A' },
-    '금형':       { bg:'#F5F5F4', fg:'#57534E' },
-  };
-  const IND_DEFAULT = { bg:'#F1F5F9', fg:'#475569' };
-
-  function truncate(s, max) {
-    if (!s) return '—';
-    return s.length > max ? s.slice(0, max) + '…' : s;
-  }
-
-  el.innerHTML = sorted.map(r => {
-    const consider = String(r['참가고려']||'').trim();
-    const conBadge = consider === '●'
-      ? '<span style="color:#1D7A4C;font-weight:700">●</span>'
-      : consider === '▲'
-      ? '<span style="color:#B7791F;font-weight:700">▲</span>'
-      : '<span style="color:var(--muted)">—</span>';
-    const govVal = String(r['국가지원']||'').trim();
-    const govBadge = govVal === '지원'
-      ? '<span style="background:#D1FAE5;color:#065F46;padding:2px 8px;border-radius:100px;font-weight:500;font-size:12px">지원</span>'
-      : govVal === '미정'
-      ? '<span style="background:#FEF3C7;color:#92400E;padding:2px 8px;border-radius:100px;font-weight:500;font-size:12px">미정</span>'
-      : govVal === '없음'
-      ? '<span style="color:var(--muted)">없음</span>'
-      : '<span style="color:var(--muted)">—</span>';
-    const yr = r['연도'] ? String(r['연도']).replace(/[^0-9]/g,'') : '';
-    const moRaw = String(r['월']||'').replace(/[^0-9]/g,'');
-    const moDisp = moRaw ? parseInt(moRaw) + '월' : '—';
-    const detail = r['상세일정'] || '';
-    let detailDisp = detail;
-    const dateRng = detail.match(/^(\d{4})-(\d{2})-(\d{2})~(\d{4})-(\d{2})-(\d{2})$/);
-    if (dateRng) {
-      detailDisp = `${parseInt(dateRng[2])}.${parseInt(dateRng[3])}~${parseInt(dateRng[5])}.${parseInt(dateRng[6])}`;
-    } else {
-      const dateSingle = detail.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-      if (dateSingle) detailDisp = `${parseInt(dateSingle[2])}.${parseInt(dateSingle[3])}`;
-    }
-
-    const domestic = r['국내/해외'] || '';
-    const domBadge = domestic === '국내'
-      ? '<span style="background:#DBEAFE;color:#1E40AF;padding:2px 8px;border-radius:100px;font-weight:500;font-size:12px">국내</span>'
-      : domestic === '해외'
-      ? '<span style="background:#FFEDD5;color:#C2410C;padding:2px 8px;border-radius:100px;font-weight:500;font-size:12px">해외</span>'
-      : '';
-    const country = r['국가'] || '';
-    const venue = [r['장소'], r['상세홀']].filter(Boolean).join(' ');
-    const industries = String(r['주요산업']||'').split(/[,，]+/).map(s=>s.trim()).filter(Boolean);
-    const indTags = industries.map(t => {
-      const c = IND_COLOR[t] || IND_DEFAULT;
-      return `<span style="background:${c.bg};color:${c.fg};padding:1px 6px;border-radius:100px;display:inline-block;margin:1px;white-space:nowrap;font-size:11px;font-weight:500;line-height:1.6">${t}</span>`;
-    }).join('');
-    const visitors = r['예상참관객'] ? _fmtNum(r['예상참관객'])+'명' : '';
-    const companies = r['참가기업수'] ? _fmtNum(r['참가기업수'])+'개사' : '';
-    const scale = [visitors, companies].filter(Boolean).join(' / ') || '—';
-    const ba = _fmtWon(r['조립부스비']);
-    const bi = _fmtWon(r['독립부스비']);
-    const boothInfo = (ba || bi) ? [ba?'조립 '+ba:'', bi?'독립 '+bi:''].filter(Boolean).join('<br>') : '—';
-    const earlyRaw = String(r['조기혜택']||'');
-    const noteRaw = String(r['비고']||'');
-    const earlyDisp = truncate(earlyRaw.replace(/\n/g,' '), 20);
-    const noteDisp = truncate(noteRaw.replace(/\n/g,' '), 24);
-    const url = r['URL'] || '';
-    const titleHtml = url ? `<a href="${url}" target="_blank" style="color:var(--text);text-decoration:none;border-bottom:1px dashed var(--border-md)">${r['전시회명']||''}</a>` : (r['전시회명']||'');
-
-    return `<tr>
-      <td class="es-hide-mo">${conBadge}</td>
-      <td class="es-hide-mo">${govBadge}</td>
-      <td style="color:var(--muted)">${yr||'—'}</td>
-      <td>${moDisp}</td>
-      <td>${detailDisp||'—'}</td>
-      <td>${domBadge}</td>
-      <td class="es-hide-mo">${country||'—'}</td>
-      <td>${r['도시']||''}</td>
-      <td class="es-wrap es-left" style="font-weight:500">${titleHtml}</td>
-      <td class="es-hide-mo es-wrap">${venue||'—'}</td>
-      <td class="es-hide-mo es-wrap">${indTags || '—'}</td>
-      <td class="es-hide-mo" style="color:var(--muted)">${scale}</td>
-      <td class="es-hide-mo" style="color:var(--muted)">${boothInfo}</td>
-      <td class="es-hide-mo" style="color:var(--muted)" title="${earlyRaw.replace(/"/g,'&quot;')}">${earlyDisp}</td>
-      <td class="es-hide-mo es-left" style="color:var(--muted)" title="${noteRaw.replace(/"/g,'&quot;')}">${noteDisp}</td>
-      <td class="es-hide-mo">
-        <button class="btn sm edit-btn" data-type="exhibitionSchedule" data-key="${r._cacheKey}"><i class="ti ti-edit"></i></button>
-        <button class="btn sm danger del-btn" data-type="exhibitionSchedule" data-row="${r._row}"><i class="ti ti-trash"></i></button>
-      </td>
-    </tr>`;
-  }).join('');
-}
-
-function downloadExhScheduleFiltered() {
-  const rows = _exhScheduleAllRows;
-  if (!rows.length) { banner('다운로드할 데이터가 없습니다.', 'error'); return; }
-  downloadExcel('exhibitionSchedule');
-}
-
 
 function renderContentRows(key, rows) {
   const cfg = CONTENT_TABLE_CFG[key];
@@ -5001,7 +4522,7 @@ async function toggleStatus(rowNum) {
 }
 
 // ── 삭제 ─────────────────────────────────────────────────
-const SHEET_MAP = { cert:'인증', award:'수상', patent:'특허', brand:'상표', copyright:'프로그램저작', history:'연혁', intro:'소개자료', youtube:'유튜브', press:'언론보도', blog:'블로그', goods:'물품재고', designDraft:'디자인시안', support:'지원사업', competitor:'경쟁사조사', industry:'산업동향조사', exhibition:'전시회자료', exhibitionSchedule:'전시회일정', mktSchedule:'마케팅일정' };
+const SHEET_MAP = { cert:'인증', award:'수상', patent:'특허', brand:'상표', copyright:'프로그램저작', history:'연혁', intro:'소개자료', youtube:'유튜브', press:'언론보도', blog:'블로그', goods:'물품재고', designDraft:'디자인시안', support:'지원사업', competitor:'경쟁사조사', industry:'산업동향조사', exhibition:'전시회자료', mktSchedule:'마케팅일정' };
 async function deleteItem(key, rowNum) {
   if (!confirm('이 항목을 삭제하시겠습니까?')) return;
   const res = await apiPost({ action: 'delete', sheet: SHEET_MAP[key], row: rowNum });
@@ -5125,6 +4646,83 @@ function syncDateFieldYMD() {
   let v = y;
   if (m) { v += '.' + m; if (d) v += '.' + d; }
   el.value = v;
+}
+
+// ── 마케팅 일정 관리: 암호 보호 & 렌더링 ──────────────────
+let _mktSchedUnlocked = false;
+const MKT_SCHED_PW = '12345';
+const MKT_CATS_ORDER = ['매일','매주','매월','장기','처리'];
+const MKT_CAT_COLORS = { '매일':'#3b82f6', '매주':'#8b5cf6', '매월':'#f59e0b', '장기':'#10b981', '처리':'#94a3b8' };
+
+function goMktSched(el) {
+  // 페이지 전환
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  const pg = document.getElementById('pg-mktSchedule');
+  if (pg) pg.classList.add('active');
+  document.querySelectorAll('.nav-main, .nav-sub-item').forEach(n => n.classList.remove('active'));
+  if (el) el.classList.add('active');
+  document.querySelectorAll('.nav-item.open').forEach(i => i.classList.remove('open'));
+  try { history.replaceState(null, '', '#mktSchedule'); } catch(e) {}
+
+  if (_mktSchedUnlocked) {
+    renderMktSchedRows();
+  } else {
+    document.getElementById('mktSched-lock').style.display = '';
+    document.getElementById('mktSched-content').style.display = 'none';
+    document.getElementById('mktSched-pw').value = '';
+    document.getElementById('mktSched-pw-err').style.display = 'none';
+    setTimeout(() => document.getElementById('mktSched-pw').focus(), 100);
+  }
+}
+
+function verifyMktSchedPw() {
+  const input = document.getElementById('mktSched-pw').value;
+  if (input === MKT_SCHED_PW) {
+    _mktSchedUnlocked = true;
+    document.getElementById('mktSched-lock').style.display = 'none';
+    document.getElementById('mktSched-content').style.display = '';
+    renderPage('mktSchedule');
+  } else {
+    document.getElementById('mktSched-pw-err').style.display = '';
+    document.getElementById('mktSched-pw').select();
+  }
+}
+
+function renderMktSchedRows() {
+  const rows = DATA.mktSchedule || [];
+  const filter = (document.getElementById('mktSched-filter') || {}).value || '';
+  let list = rows.map((r, i) => ({ ...r, _row: r._row || (i + 2) }));
+  if (filter) list = list.filter(r => r['구분'] === filter);
+  // 구분 순서대로 정렬
+  list.sort((a, b) => {
+    const ia = MKT_CATS_ORDER.indexOf(a['구분'] || '');
+    const ib = MKT_CATS_ORDER.indexOf(b['구분'] || '');
+    return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
+  });
+  const body = document.getElementById('mktSched-body');
+  if (!body) return;
+  if (!list.length) { body.innerHTML = '<tr><td colspan="5"><div class="empty"><i class="ti ti-calendar-off"></i><p>등록된 일정이 없습니다.</p></div></td></tr>'; return; }
+  body.innerHTML = list.map(r => {
+    const cat = r['구분'] || '';
+    const color = MKT_CAT_COLORS[cat] || '#94a3b8';
+    const attachUrl = r['첨부URL'] || '';
+    const catOptions = MKT_CATS_ORDER.map(c => `<option value="${c}" ${c===cat?'selected':''}>${c}</option>`).join('');
+    return `<tr>
+      <td style="text-align:center"><select onchange="changeMktCat(${r._row},this.value)" style="padding:3px 6px;border:1px solid var(--border);border-radius:5px;font-size:12px;background:var(--card);color:${color};font-weight:600;cursor:pointer">${catOptions}</select></td>
+      <td style="white-space:pre-wrap;text-align:left">${r['내용'] || '—'}</td>
+      <td style="font-size:12px;color:var(--muted);white-space:pre-wrap">${r['비고'] || ''}</td>
+      <td style="text-align:center">${attachUrl ? `<a href="${attachUrl}" target="_blank" title="${attachUrl}"><i class="ti ti-paperclip" style="font-size:16px"></i></a>` : ''}</td>
+      <td style="text-align:center">
+        <button class="btn sm" onclick="openModal('mktSchedule',${r._row})" title="수정"><i class="ti ti-pencil"></i></button>
+        <button class="btn sm danger" onclick="deleteRow('mktSchedule',${r._row})" title="삭제"><i class="ti ti-trash"></i></button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+async function changeMktCat(rowNum, newCat) {
+  const res = await apiPost({ action: 'update', sheet: SHEET_MAP.mktSchedule, row: rowNum, data: { '구분': newCat } });
+  if (res) await refreshSheet('mktSchedule');
 }
 
 // ── 날짜 표시 포맷 (2026.6 → 2026.06, 2026.6.1 → 2026.06.01) ──
@@ -5259,6 +4857,18 @@ const MODAL_FORMS = {
     ${attachFormSection(d, 'file')}`;
   },
 
+  mktSchedule: (d) => `
+    <div class="form-row"><label>구분</label><select id="f-mkt-cat">
+      <option value="매일" ${d['구분']==='매일'?'selected':''}>매일</option>
+      <option value="매주" ${d['구분']==='매주'?'selected':''}>매주</option>
+      <option value="매월" ${d['구분']==='매월'?'selected':''}>매월</option>
+      <option value="장기" ${d['구분']==='장기'?'selected':''}>장기</option>
+      <option value="처리" ${d['구분']==='처리'?'selected':''}>처리</option>
+    </select></div>
+    <div class="form-row"><label>내용</label><textarea id="f-content" placeholder="일정 내용을 입력하세요">${d['내용']||''}</textarea></div>
+    <div class="form-row"><label>비고</label><input type="text" id="f-note" placeholder="참고 사항" value="${d['비고']||''}"></div>
+    <div class="form-row"><label>첨부 URL</label><input type="url" id="f-attach-url" placeholder="https://..." value="${d['첨부URL']||''}"></div>`,
+
   youtube: (d) => `
     ${yearMonthDaySelect(d['게시일']||'')}
     <div class="form-row"><label>구분 <span style="font-size:11px;color:var(--muted)">(예: 솔루션 소개, 사용법, 인터뷰 등)</span></label><input type="text" id="f-category" placeholder="구분 직접 입력" value="${d['구분']||''}"></div>
@@ -5334,115 +4944,6 @@ const MODAL_FORMS = {
     <input type="hidden" id="f-imgname" value="${existName}">`;
   },
 
-  mktSchedule: (d) => `
-    <div class="form-row"><label>구분</label>
-      <select id="f-ms-cat">
-        <option value="매일" ${!d['구분']||d['구분']==='매일'?'selected':''}>매일</option>
-        <option value="매주" ${d['구분']==='매주'?'selected':''}>매주</option>
-        <option value="매월" ${d['구분']==='매월'?'selected':''}>매월</option>
-        <option value="장기" ${d['구분']==='장기'?'selected':''}>장기</option>
-        <option value="처리" ${d['구분']==='처리'?'selected':''}>처리</option>
-      </select>
-    </div>
-    <div class="form-row"><label>내용</label>
-      <textarea id="f-ms-content" rows="5" placeholder="업무 내용을 입력하세요">${d['내용']||''}</textarea>
-    </div>
-    <div class="form-row"><label>비고</label>
-      <textarea id="f-ms-note" rows="2" placeholder="비고">${d['비고']||''}</textarea>
-    </div>
-    <div class="form-row"><label>첨부 URL</label>
-      <input type="url" id="f-ms-url" placeholder="https://..." value="${d['첨부URL']||''}">
-    </div>`,
-
-  exhibitionSchedule: (d) => {
-    const venues = ['코엑스','킨텍스','벡스코','SETEC','aT센터','수원컨벤션센터','창원컨벤션센터','울산전시컨벤션센터(UECO)'];
-    const curVenue = d['장소']||'';
-    const isCustom = curVenue && !venues.includes(curVenue);
-    return `
-    <div class="form-row"><label>참가고려</label>
-      <select id="f-consider">
-        <option value="●" ${(d['참가고려']||'')==='●'||!d['참가고려']?'selected':''}>● 참가 고려</option>
-        <option value="▲" ${d['참가고려']==='▲'?'selected':''}>▲ 기간/연관성 미비</option>
-        <option value="" ${d['참가고려']===''?'selected':''}>미정</option>
-      </select>
-    </div>
-    <div class="form-row"><label>국가지원</label>
-      <select id="f-gov">
-        <option value="" ${!d['국가지원']?'selected':''}>선택 안함</option>
-        <option value="지원" ${d['국가지원']==='지원'?'selected':''}>지원</option>
-        <option value="미정" ${d['국가지원']==='미정'?'selected':''}>미정</option>
-        <option value="없음" ${d['국가지원']==='없음'?'selected':''}>없음</option>
-      </select>
-    </div>
-    <div class="form-row"><label>연도</label>
-      <select id="f-es-year">
-        <option value="">선택</option>
-        <option value="2024" ${String(d['연도']||'')=='2024'?'selected':''}>2024년</option>
-        <option value="2025" ${String(d['연도']||'')=='2025'?'selected':''}>2025년</option>
-        <option value="2026" ${String(d['연도']||'')=='2026'?'selected':''}>2026년</option>
-        <option value="2027" ${String(d['연도']||'')=='2027'?'selected':''}>2027년</option>
-        <option value="2028" ${String(d['연도']||'')=='2028'?'selected':''}>2028년</option>
-        <option value="2029" ${String(d['연도']||'')=='2029'?'selected':''}>2029년</option>
-        <option value="2030" ${String(d['연도']||'')=='2030'?'selected':''}>2030년</option>
-      </select>
-    </div>
-    <div class="form-row"><label>월</label>
-      <select id="f-es-month">
-        <option value="">선택</option>
-        ${[...Array(12)].map((_,i)=>{const m=String(i+1);const mp=m.padStart(2,'0');return `<option value="${mp}월" ${String(d['월']||'').replace(/[^0-9]/g,'')===mp?'selected':''}>${m}월</option>`;}).join('')}
-      </select>
-    </div>
-    <div class="form-row"><label>세부 일정</label>
-      <div style="display:flex;gap:8px;align-items:center">
-        <input type="date" id="f-sched-start" value="${(d['상세일정']||'').split('~')[0]||''}" style="flex:1">
-        <span style="color:var(--muted)">~</span>
-        <input type="date" id="f-sched-end" value="${(d['상세일정']||'').split('~')[1]||''}" style="flex:1">
-      </div>
-    </div>
-    <div class="form-row"><label>국내/해외</label>
-      <select id="f-domestic">
-        <option value="국내" ${!d['국내/해외']||d['국내/해외']==='국내'?'selected':''}>국내</option>
-        <option value="해외" ${d['국내/해외']==='해외'?'selected':''}>해외</option>
-      </select>
-    </div>
-    <div class="form-row"><label>국가</label><input type="text" id="f-country" placeholder="예: 대한민국" value="${d['국가']||''}"></div>
-    <div class="form-row"><label>도시</label><input type="text" id="f-city" placeholder="예: 서울" value="${d['도시']||''}"></div>
-    <div class="form-row"><label>장소</label>
-      <select id="f-venue-sel" onchange="if(this.value==='__custom__'){document.getElementById('f-venue-custom').style.display='';document.getElementById('f-venue-custom').focus();}else{document.getElementById('f-venue-custom').style.display='none';document.getElementById('f-venue-custom').value='';}">
-        <option value="">선택</option>
-        ${venues.map(v=>`<option value="${v}" ${curVenue===v?'selected':''}>${v}</option>`).join('')}
-        <option value="__custom__" ${isCustom?'selected':''}>직접 입력</option>
-      </select>
-      <input type="text" id="f-venue-custom" placeholder="장소 직접 입력" value="${isCustom?curVenue:''}" style="margin-top:6px;${isCustom?'':'display:none'}">
-    </div>
-    <div class="form-row"><label>상세 홀 <span style="font-size:11px;color:var(--muted)">(예: Hall A,B,C)</span></label><input type="text" id="f-hall" placeholder="예: Hall A,B,C" value="${d['상세홀']||''}"></div>
-    <div class="form-row"><label>전시회명</label><input type="text" id="f-title" value="${d['전시회명']||''}"></div>
-    <div class="form-row"><label>주최/주관</label><textarea id="f-organizer" placeholder="주최/주관/후원">${d['주최/주관']||''}</textarea></div>
-    <div class="form-row"><label>주요 산업 <span style="font-size:11px;color:var(--muted)">(최대 10개)</span></label>
-      <div id="f-industry-wrap" style="display:flex;flex-wrap:wrap;gap:6px;padding:8px;border:1px solid var(--border-md);border-radius:8px;background:var(--bg)">
-        ${(() => {
-          const opts = ['건설','플랜트','제조','기계','전기전자','AI','ICT','디지털트윈','XR','IoT','스마트시티','환경/에너지','방산','항공/우주','조선·해양','금형'];
-          const sel = (d['주요산업']||'').split(',').map(s=>s.trim()).filter(Boolean);
-          return opts.map(o => {
-            const chk = sel.includes(o) ? 'checked' : '';
-            return `<label style="display:inline-flex;align-items:center;gap:3px;cursor:pointer;font-size:13px;padding:3px 8px;border:1px solid var(--border-md);border-radius:100px;user-select:none;${chk?'background:var(--accent-lt);border-color:var(--accent)':''}"><input type="checkbox" name="f-ind" value="${o}" ${chk} onchange="esIndCheckLimit(this)" style="display:none"><span>${o}</span></label>`;
-          }).join('');
-        })()}
-      </div>
-    </div>
-    <div class="form-row" style="display:flex;gap:10px">
-      <div style="flex:1"><label>예상참관객 (명)</label><input type="text" id="f-visitors" value="${d['예상참관객']||''}"></div>
-      <div style="flex:1"><label>참가기업 (개)</label><input type="text" id="f-companies" value="${d['참가기업수']||''}"></div>
-    </div>
-    <div class="form-row" style="display:flex;gap:10px">
-      <div style="flex:1"><label>조립부스비 (원)</label><input type="text" id="f-boothA" value="${d['조립부스비']||''}"></div>
-      <div style="flex:1"><label>독립부스비 (원)</label><input type="text" id="f-boothI" value="${d['독립부스비']||''}"></div>
-    </div>
-    <div class="form-row"><label>조기 혜택</label><input type="text" id="f-early" placeholder="조기 신청 할인 등" value="${d['조기혜택']||''}"></div>
-    <div class="form-row"><label>비고</label><textarea id="f-note">${d['비고']||''}</textarea></div>
-    <div class="form-row"><label>URL</label><input type="url" id="f-url" placeholder="https://..." value="${d['URL']||''}"></div>`;
-  },
-
   designDraft: (d) => {
     existingDesignImages = String(d['이미지ID'] || '').split('|').map(s => s.trim()).filter(Boolean)
       .map((id, i) => ({ id, name: (String(d['이미지명'] || '').split('|').map(s => s.trim()).filter(Boolean))[i] || '' }));
@@ -5510,15 +5011,11 @@ const EXCEL_COLS = {
   designDraft: ['날짜','분류','제목','내용','비고','이미지명'],
   competitor: ['게시일','경쟁사명','구분','타이틀','내용','URL'],
   industry:   ['게시일','구분','타이틀','내용','URL'],
-  exhibitionSchedule: ['참가고려','국가지원','연도','월','상세일정','국내/해외','국가','도시','장소','상세홀','전시회명','주최/주관','주요산업','예상참관객','참가기업수','조립부스비','독립부스비','조기혜택','비고','URL'],
-  mktSchedule: ['구분','내용','비고','첨부URL','파일ID','파일명'],
 };
 const EXCEL_LABELS = {
   cert:'인증', award:'수상', patent:'특허', brand:'상표', copyright:'프로그램저작등록',
   history:'연혁', intro:'소개자료', youtube:'유튜브영상', press:'언론보도및칼럼', blog:'블로그',
-  goods:'마케팅물품재고', designDraft:'디자인시안', competitor:'경쟁사조사', industry:'산업동향조사',
-  exhibitionSchedule:'전시회일정',
-  mktSchedule:'마케팅일정'
+  goods:'마케팅물품재고', designDraft:'디자인시안', competitor:'경쟁사조사', industry:'산업동향조사'
 };
 
 // 여러 첨부 파일명은 한 칸에 '|'로 저장돼 있어서, 엑셀에는 읽기 좋게 ', '로 바꿔서 내보냄
@@ -5563,15 +5060,13 @@ function openModalFixedCat(type, fixedCategory) {
 function openModal(type, data = {}) {
   currentModal = type;
   editRow = data._row || null;
-  document.getElementById('modal-title').textContent = (editRow ? '항목 수정' : '항목 추가') + ' — ' + ({ cert:'인증', award:'수상', patent:'특허', brand:'상표', copyright:'프로그램 저작/등록', history:'연혁', intro:'소개자료', youtube:'유튜브', press:'언론보도 및 칼럼', blog:'블로그', goods:'마케팅 물품', designDraft:'디자인 시안', support:'지원사업', competitor:'경쟁사 조사', industry:'산업 동향 조사', exhibition:'전시회 자료', exhibitionSchedule:'전시회 일정', mktSchedule:'마케팅 일정' }[type] || type);
+  document.getElementById('modal-title').textContent = (editRow ? '항목 수정' : '항목 추가') + ' — ' + ({ cert:'인증', award:'수상', patent:'특허', brand:'상표', copyright:'프로그램 저작/등록', history:'연혁', intro:'소개자료', youtube:'유튜브', press:'언론보도 및 칼럼', blog:'블로그', goods:'마케팅 물품', designDraft:'디자인 시안', support:'지원사업', competitor:'경쟁사 조사', industry:'산업 동향 조사', exhibition:'전시회 자료' }[type] || type);
   document.getElementById('modal-body').innerHTML = MODAL_FORMS[type](data);
   if (ATTACH_TYPES.includes(type)) { attachExisting = parseAttachFromRow(type, data); attachNew = []; }
   document.getElementById('modal-bg').classList.add('open');
   // 연/월(/일) 드롭다운 초기 동기화
   setTimeout(() => {
-    if (type === 'exhibitionSchedule' || type === 'mktSchedule') { /* 자체 필드 */ }
-    else if (['youtube','press','blog','competitor','industry'].includes(type)) syncDateFieldYMD();
-    else syncDateField();
+    (['youtube','press','blog','competitor','industry'].includes(type) ? syncDateFieldYMD : syncDateField)();
     if (type === 'designDraft') { initMultiDropzone(); renderMultiUploadPreview(); }
     else if (ATTACH_TYPES.includes(type)) { initAttachDropzone(); renderAttachList(); }
     else { initDropzone(); }
@@ -5581,9 +5076,7 @@ function openModal(type, data = {}) {
   const MODAL_TO_SHEET = {
     cert: '인증', award: '수상', patent: '특허', brand: '상표', copyright: '프로그램저작',
     intro: '소개자료', youtube: '유튜브', history: '연혁', press: '언론보도', blog: '블로그', goods: '물품재고',
-    designDraft: '디자인시안', support: '지원사업', exhibition: '전시회자료',
-    exhibitionSchedule: '전시회일정',
-    mktSchedule: '마케팅일정'
+    designDraft: '디자인시안', support: '지원사업', exhibition: '전시회자료'
   };
   currentUploadSheet = MODAL_TO_SHEET[type] || '';
 }
@@ -5607,9 +5100,8 @@ async function submitModal() {
   try {
 
   // 저장 직전 날짜 필드 강제 동기화 (월 선택 후 연도 변경 순서 이슈 방지)
-  if (t === 'exhibitionSchedule' || t === 'mktSchedule') { /* 자체 필드 */ }
-  else if (['youtube','press','blog','competitor','industry'].includes(t)) syncDateFieldYMD();
-  else syncDateField();
+  if (['youtube','press','blog','competitor','industry'].includes(t)) syncDateFieldYMD();
+  else if (t !== 'mktSchedule') syncDateField();
 
   // 파일이 선택된 경우 먼저 업로드
   if (currentUploadFile) {
@@ -5704,12 +5196,6 @@ async function submitModal() {
     data = { '게시일': getDateFromSelects(), '경쟁사명': v('f-competitor-name'), '구분': v('f-category'), '타이틀': v('f-title'), '내용': v('f-content'), 'URL': v('f-url') };
   } else if (t === 'industry') {
     data = { '게시일': getDateFromSelects(), '구분': v('f-category'), '타이틀': v('f-title'), '내용': v('f-content'), 'URL': v('f-url') };
-  } else if (t === 'mktSchedule') {
-    data = { '구분': v('f-ms-cat'), '내용': v('f-ms-content'), '비고': v('f-ms-note'), '첨부URL': v('f-ms-url') };
-  } else if (t === 'exhibitionSchedule') {
-    const venueSel = v('f-venue-sel');
-    const venueVal = venueSel === '__custom__' ? v('f-venue-custom') : venueSel;
-    data = { '참가고려': v('f-consider'), '국가지원': v('f-gov'), '연도': v('f-es-year'), '월': v('f-es-month'), '상세일정': (v('f-sched-start')&&v('f-sched-end')) ? v('f-sched-start')+'~'+v('f-sched-end') : v('f-sched-start')||v('f-sched-end')||'', '국내/해외': v('f-domestic'), '국가': v('f-country'), '도시': v('f-city'), '장소': venueVal, '상세홀': v('f-hall'), '전시회명': v('f-title'), '주최/주관': v('f-organizer'), '주요산업': [...document.querySelectorAll('input[name=f-ind]:checked')].map(c=>c.value).join(','), '예상참관객': v('f-visitors'), '참가기업수': v('f-companies'), '조립부스비': v('f-boothA'), '독립부스비': v('f-boothI'), '조기혜택': v('f-early'), '비고': v('f-note'), 'URL': v('f-url') };
   } else if (t === 'goods') {
     data = { '구분': v('f-category'), '소구분': v('f-subcategory'), '품목': v('f-item'), '제작일시': v('f-madedate'), '제작수량': v('f-qty'), '수량': v('f-qty'), '단위': v('f-unit'), '비고': v('f-note'), '이미지ID': v('f-imgid'), '이미지명': v('f-imgname') };
   } else if (t === 'designDraft') {
@@ -5718,6 +5204,8 @@ async function submitModal() {
       '이미지ID':   existingDesignImages.map(x => x.id).join('|'),
       '이미지명':   existingDesignImages.map(x => x.name).join('|'),
     };
+  } else if (t === 'mktSchedule') {
+    data = { '구분': v('f-mkt-cat'), '내용': v('f-content'), '비고': v('f-note'), '첨부URL': v('f-attach-url') };
   }
 
   const sheetName = SHEET_MAP[t];
@@ -5743,9 +5231,7 @@ async function refreshSheet(type) {
     history: 'history', cert: 'cert', award: 'award', patent: 'patent',
     brand: 'brand', copyright: 'copyright', intro: 'intro',
     youtube: 'youtube', press: 'press', blog: 'blog', goods: 'goods', designDraft: 'designDraft',
-    support: 'support', competitor: 'competitor', industry: 'industry', exhibition: 'exhibition',
-    exhibitionSchedule: 'exhibitionSchedule',
-    mktSchedule: 'mktSchedule'
+    support: 'support', competitor: 'competitor', industry: 'industry', exhibition: 'exhibition', mktSchedule: 'mktSchedule'
   };
   const action = actionMap[type];
   if (!action) { await refreshAll(); return; }
@@ -5773,8 +5259,7 @@ async function refreshSheet(type) {
     case 'competitor': renderContentTable('competitor', rows); break;
     case 'industry':   renderContentTable('industry', rows); break;
     case 'exhibition': renderExhibition(rows); break;
-    case 'exhibitionSchedule': renderExhSchedule(rows); break;
-    case 'mktSchedule': renderMktSchedule(rows); break;
+    case 'mktSchedule': renderMktSchedRows(); break;
   }
   // 지표 카드 빠른 갱신 (메인에 영향 있는 카테고리)
   if (['cert','award','patent','brand','copyright','history'].includes(type)) {
@@ -6635,8 +6120,6 @@ const AIS_CAT = {
   designDraft: { label:'디자인 시안', icon:'ti-photo',     page:'content-design', navId:'ni-content', dateKey:'날짜',   titleKey:'제목' },
   competitor: { label:'경쟁사 조사', icon:'ti-building-store', page:'research-competitor', navId:'ni-research', dateKey:'게시일', titleKey:'타이틀' },
   exhibition: { label:'전시회 자료', icon:'ti-presentation', page:'research-exhibition', navId:'ni-research', dateKey:'게시일', titleKey:'제목' },
-  mktSchedule: { label:'마케팅 일정', icon:'ti-calendar-check', page:'mkt-schedule', navId:null, dateKey:null, titleKey:'내용', searchFields:['내용','비고'] },
-  exhibitionSchedule: { label:'전시회 일정', icon:'ti-calendar-event', page:'research-schedule', navId:'ni-research', dateKey:'일정', titleKey:'전시회명', searchFields:['전시회명','장소','도시','주요산업','비고'] },
   industry:   { label:'산업 동향 조사', icon:'ti-chart-line',   page:'research-industry',   navId:'ni-research', dateKey:'게시일', titleKey:'타이틀' },
   goods:     { label:'마케팅 물품', icon:'ti-package',     page:'goods-stock',   navId:'ni-goods',   dateKey:'제작일시', titleKey:'품목' },
   support:   { label:'지원사업',   icon:'ti-building-bank', page:'res-support',  navId:'ni-res',     dateKey:'게시일', titleKey:'제목' },
@@ -6762,7 +6245,7 @@ function _aisComputeResults(q) {
       const title   = String(r[meta.titleKey] || '');
       const content = String(r['내용'] || r['내용2'] || '');
       const date    = String(r[meta.dateKey] || '');
-      const extra   = String(r['비고'] || '') + String(r['분류'] || '') + String(r['상태'] || '') + String(r['구분'] || '') + String(r['소구분'] || '') + String(r['솔루션명'] || '') + String(r['경쟁사명'] || '') + String(r['주제'] || '') + String(r['장소'] || '') + String(r['일정'] || '') + String(r['주요산업'] || '') + String(r['전시회명'] || '') + String(r['도시'] || '');
+      const extra   = String(r['비고'] || '') + String(r['분류'] || '') + String(r['상태'] || '') + String(r['구분'] || '') + String(r['소구분'] || '') + String(r['솔루션명'] || '') + String(r['경쟁사명'] || '') + String(r['주제'] || '') + String(r['장소'] || '') + String(r['일정'] || '');
       const allNorm = aisNorm(title + content + date + extra);
       allRows.push({ key, meta, row: r, title, date, content, allNorm });
 
