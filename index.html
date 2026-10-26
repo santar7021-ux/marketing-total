@@ -790,27 +790,10 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
 .post-content { font-size: 16.2px; color: var(--muted); line-height: 1.6; white-space: pre-wrap; }
 .post-note { font-size: 15px; color: var(--accent); }
 .post-note span { font-weight: 500; }
-/* 전시회 일정 테이블 — 좁은 셀, 작은 글꼴, 가로 스크롤 */
+/* 전시회 일정 테이블 */
 #exhSched-tbl { font-size: 12.5px; }
 #exhSched-tbl th { font-size: 11.5px; white-space: nowrap; padding: 8px 6px; background: var(--surface); }
 #exhSched-tbl td { padding: 7px 6px; vertical-align: middle; line-height: 1.45; }
-#exhSched-tbl .exh-consider { font-weight: 700; font-size: 14px; text-align: center; }
-#exhSched-tbl .exh-center { text-align: center; }
-#exhSched-tbl .exh-right { text-align: right; font-variant-numeric: tabular-nums; }
-#exhSched-tbl .exh-name { font-weight: 600; font-size: 13px; }
-#exhSched-tbl .exh-note { font-size: 11.5px; color: var(--muted); white-space: pre-wrap; max-width: 180px; }
-#exhSched-tbl .exh-badge {
-  display: inline-block; padding: 1px 7px; border-radius: 4px;
-  font-size: 11px; font-weight: 600; white-space: nowrap;
-}
-#exhSched-tbl .exh-badge-domestic { background: #dbeafe; color: #1e40af; }
-#exhSched-tbl .exh-badge-overseas { background: #fef3c7; color: #92400e; }
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) #exhSched-tbl .exh-badge-domestic { background: #1e3a5f; color: #93c5fd; }
-  :root:not([data-theme="light"]) #exhSched-tbl .exh-badge-overseas { background: #452c11; color: #fcd34d; }
-}
-:root[data-theme="dark"] #exhSched-tbl .exh-badge-domestic { background: #1e3a5f; color: #93c5fd; }
-:root[data-theme="dark"] #exhSched-tbl .exh-badge-overseas { background: #452c11; color: #fcd34d; }
 
 /* 전시회 자료: 주제 / 일정 / 장소를 한 줄씩(세로로) — 라벨 폭을 맞춰서 값 시작 위치가 가지런하게 */
 .post-info { display: flex; flex-direction: column; gap: 4px; font-size: 15px; margin: 4px 0 6px; }
@@ -2287,56 +2270,51 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
 
     <!-- ══ 전시회 일정 ══ -->
     <div id="pg-research-exhSchedule" class="page">
-      <div class="page-hd"><h1>전시회 일정</h1><p>국내외 전시회 일정 및 참가 정보를 관리합니다.</p></div>
-      <div class="card card-res">
-        <div class="card-hd">
-          <h2><i class="ti ti-calendar-stats"></i> 전시회 일정 목록 <span id="exhSched-count" style="font-size:13px;font-weight:400;color:var(--muted);margin-left:6px"></span></h2>
-          <div style="display:flex;gap:6px">
-            <button class="btn sm" onclick="downloadExcel('exhibitionSchedule')"><i class="ti ti-file-spreadsheet"></i> 엑셀 다운로드</button>
-            <button class="btn sm primary" onclick="openModal('exhibitionSchedule')"><i class="ti ti-plus"></i> 항목 추가</button>
-          </div>
-        </div>
-        <div class="history-filter-bar">
-          <select id="exhSched-year" onchange="renderExhSchedule()">
+      <div class="page-hd-with-btn">
+        <div><h1>전시회 일정</h1><p>국내외 전시회 일정 및 참가 정보를 관리합니다.</p></div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <span id="exhSched-count" style="font-size:13px;color:var(--muted)"></span>
+          <select id="exhSched-year" onchange="renderExhSchedule()" style="padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-size:13px;background:var(--card);color:var(--fg)">
             <option value="">연도 전체</option>
           </select>
-          <select id="exhSched-region" onchange="renderExhSchedule()">
+          <select id="exhSched-region" onchange="renderExhSchedule()" style="padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-size:13px;background:var(--card);color:var(--fg)">
             <option value="">국내/해외 전체</option>
             <option value="국내">국내</option>
             <option value="해외">해외</option>
           </select>
-          <input id="exhSched-search" type="text" placeholder="검색 (전시회명, 도시, 산업…)" oninput="renderExhSchedule()">
-          <button class="btn sm" onclick="document.getElementById('exhSched-year').value='';document.getElementById('exhSched-region').value='';document.getElementById('exhSched-search').value='';renderExhSchedule()"><i class="ti ti-x"></i> 필터 초기화</button>
+          <input id="exhSched-search" type="text" placeholder="검색 (전시회명, 도시, 산업…)" oninput="renderExhSchedule()" style="padding:5px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px;background:var(--card);color:var(--fg);width:200px">
+          <button class="btn sm" onclick="document.getElementById('exhSched-year').value='';document.getElementById('exhSched-region').value='';document.getElementById('exhSched-search').value='';renderExhSchedule()"><i class="ti ti-x"></i> 초기화</button>
+          <button class="btn sm" onclick="downloadExcel('exhibitionSchedule')"><i class="ti ti-file-spreadsheet"></i> 엑셀 다운로드</button>
+          <button class="btn sm primary" onclick="openModal('exhibitionSchedule')"><i class="ti ti-plus"></i> 항목 추가</button>
         </div>
-        <div id="exhSched-info" style="font-size:13.5px;color:var(--muted);padding:6px 18px;display:none"></div>
-        <div style="overflow-x:auto;-webkit-overflow-scrolling:touch">
-          <table class="tbl" id="exhSched-tbl">
-            <thead><tr>
-              <th style="width:44px;text-align:center">고려</th>
-              <th style="width:50px;text-align:center">지원</th>
-              <th style="width:48px;text-align:center">연도</th>
-              <th style="width:42px;text-align:center">월</th>
-              <th style="min-width:110px">상세일정</th>
-              <th style="width:52px;text-align:center">구분</th>
-              <th style="width:60px">국가</th>
-              <th style="width:60px">도시</th>
-              <th style="min-width:90px">장소</th>
-              <th style="min-width:70px">상세홀</th>
-              <th style="min-width:180px">전시회명</th>
-              <th style="min-width:100px">주최/주관</th>
-              <th style="min-width:100px">주요산업</th>
-              <th style="width:62px;text-align:right">참관객</th>
-              <th style="width:55px;text-align:right">기업수</th>
-              <th style="width:78px;text-align:right">조립부스</th>
-              <th style="width:78px;text-align:right">독립부스</th>
-              <th style="min-width:80px">조기혜택</th>
-              <th style="min-width:100px">비고</th>
-              <th style="width:36px;text-align:center">링크</th>
-              <th style="width:64px;text-align:center">액션</th>
-            </tr></thead>
-            <tbody id="exhSched-body"></tbody>
-          </table>
-        </div>
+      </div>
+      <div style="overflow-x:auto;-webkit-overflow-scrolling:touch">
+        <table class="tbl" id="exhSched-tbl" style="min-width:1600px">
+          <thead><tr>
+            <th style="min-width:50px">참가<br>고려</th>
+            <th style="min-width:50px">국가<br>지원</th>
+            <th style="min-width:50px">연도</th>
+            <th style="min-width:45px">월</th>
+            <th style="min-width:120px">상세일정</th>
+            <th style="min-width:55px">국내/<br>해외</th>
+            <th style="min-width:60px">국가</th>
+            <th style="min-width:70px">도시</th>
+            <th style="min-width:100px">장소</th>
+            <th style="min-width:80px">상세홀</th>
+            <th style="min-width:200px">전시회명</th>
+            <th style="min-width:100px">주최/주관</th>
+            <th style="min-width:120px">주요산업</th>
+            <th style="min-width:70px">예상<br>참관객</th>
+            <th style="min-width:60px">참가<br>기업수</th>
+            <th style="min-width:80px">조립부스비</th>
+            <th style="min-width:80px">독립부스비</th>
+            <th style="min-width:80px">조기혜택</th>
+            <th style="min-width:120px">비고</th>
+            <th style="min-width:50px">URL</th>
+            <th style="min-width:70px">액션</th>
+          </tr></thead>
+          <tbody id="exhSched-body"></tbody>
+        </table>
       </div>
     </div>
 
@@ -4774,35 +4752,32 @@ function renderExhSchedule(rows) {
   if (!body) return;
   if (!list.length) { body.innerHTML = '<tr><td colspan="21"><div class="empty"><i class="ti ti-calendar-off"></i><p>등록된 전시회 일정이 없습니다.</p></div></td></tr>'; return; }
 
-  const fmtNum = n => { const v = Number(n); return isNaN(v) ? '' : v.toLocaleString(); };
   body.innerHTML = list.map(r => {
-    const c = r['참가고려'] || '';
-    const cColor = c === '▲' ? '#ef4444' : c === '△' ? '#f59e0b' : c === '○' ? '#10b981' : 'var(--muted)';
-    const region = r['국내/해외'] || '';
-    const badgeCls = region === '국내' ? 'exh-badge-domestic' : 'exh-badge-overseas';
+    const consider = r['참가고려'] || '';
+    const considerColor = consider === '▲' ? '#ef4444' : consider === '△' ? '#f59e0b' : consider === '○' ? '#10b981' : 'var(--muted)';
     const url = r['URL'] || '';
     return `<tr>
-      <td class="exh-consider" style="color:${cColor}">${c}</td>
-      <td class="exh-center">${r['국가지원'] || ''}</td>
-      <td class="exh-center">${r['연도'] || ''}</td>
-      <td class="exh-center">${r['월'] || ''}</td>
-      <td>${r['상세일정'] || ''}</td>
-      <td class="exh-center">${region ? `<span class="exh-badge ${badgeCls}">${region}</span>` : ''}</td>
-      <td class="exh-center">${r['국가'] || ''}</td>
-      <td>${r['도시'] || ''}</td>
-      <td>${r['장소'] || ''}</td>
-      <td>${r['상세홀'] || ''}</td>
-      <td class="exh-name">${r['전시회명'] || ''}</td>
-      <td>${r['주최/주관'] || ''}</td>
-      <td style="white-space:pre-wrap">${r['주요산업'] || ''}</td>
-      <td class="exh-right">${fmtNum(r['예상참관객'])}</td>
-      <td class="exh-right">${fmtNum(r['참가기업수'])}</td>
-      <td class="exh-right">${fmtNum(r['조립부스비'])}</td>
-      <td class="exh-right">${fmtNum(r['독립부스비'])}</td>
-      <td class="exh-note">${r['조기혜택'] || ''}</td>
-      <td class="exh-note">${r['비고'] || ''}</td>
-      <td class="exh-center">${url ? `<a href="${url}" target="_blank" title="${url}"><i class="ti ti-external-link"></i></a>` : ''}</td>
-      <td class="exh-center" style="white-space:nowrap">
+      <td style="text-align:center;font-weight:700;color:${considerColor};font-size:15px">${consider}</td>
+      <td style="text-align:center;font-size:12px">${r['국가지원'] || ''}</td>
+      <td style="text-align:center">${r['연도'] || ''}</td>
+      <td style="text-align:center">${r['월'] || ''}</td>
+      <td style="font-size:12px;white-space:pre-wrap">${r['상세일정'] || ''}</td>
+      <td style="text-align:center"><span style="padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;background:${r['국내/해외']==='국내'?'#dbeafe':'#fef3c7'};color:${r['국내/해외']==='국내'?'#1e40af':'#92400e'}">${r['국내/해외'] || ''}</span></td>
+      <td style="text-align:center;font-size:12px">${r['국가'] || ''}</td>
+      <td style="font-size:12px">${r['도시'] || ''}</td>
+      <td style="font-size:12px">${r['장소'] || ''}</td>
+      <td style="font-size:12px">${r['상세홀'] || ''}</td>
+      <td style="font-weight:600;font-size:13px">${r['전시회명'] || ''}</td>
+      <td style="font-size:12px">${r['주최/주관'] || ''}</td>
+      <td style="font-size:12px;white-space:pre-wrap">${r['주요산업'] || ''}</td>
+      <td style="text-align:right;font-size:12px">${r['예상참관객'] ? Number(r['예상참관객']).toLocaleString() : ''}</td>
+      <td style="text-align:right;font-size:12px">${r['참가기업수'] ? Number(r['참가기업수']).toLocaleString() : ''}</td>
+      <td style="text-align:right;font-size:12px">${r['조립부스비'] ? Number(r['조립부스비']).toLocaleString() : ''}</td>
+      <td style="text-align:right;font-size:12px">${r['독립부스비'] ? Number(r['독립부스비']).toLocaleString() : ''}</td>
+      <td style="font-size:11px;white-space:pre-wrap">${r['조기혜택'] || ''}</td>
+      <td style="font-size:11px;white-space:pre-wrap;max-width:200px">${r['비고'] || ''}</td>
+      <td style="text-align:center">${url ? `<a href="${url}" target="_blank" title="${url}"><i class="ti ti-external-link" style="font-size:15px"></i></a>` : ''}</td>
+      <td style="text-align:center;white-space:nowrap">
         <button class="btn sm" onclick="openModal('exhibitionSchedule',${r._row})" title="수정"><i class="ti ti-pencil"></i></button>
         <button class="btn sm danger" onclick="deleteRow('exhibitionSchedule',${r._row})" title="삭제"><i class="ti ti-trash"></i></button>
       </td>
