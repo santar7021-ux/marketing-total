@@ -1297,7 +1297,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
       <div class="ais-empty">
         <i class="ti ti-search"></i>
         <span>검색어를 입력하세요</span>
-        <span style="font-size:12px">인증, 수상, 특허, 상표, 연혁, 소개 자료, 유튜브 영상, 프로그램 저작/등록, 디자인 시안, 마케팅 물품 전체 검색</span>
+        <span style="font-size:12px">인증, 수상, 특허, 상표, 연혁, 소개 자료, 영상 자료, 프로그램 저작/등록, 디자인 시안, 마케팅 물품 전체 검색</span>
       </div>
     </div>
     <!-- 선택 항목 다운로드 바 -->
@@ -1452,7 +1452,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
         </div>
         <div class="nav-sub">
           <div class="nav-sub-item" data-page="res-intro"   onclick="goSub('res-intro',this,'ni-res')"><i class="ti ti-files"></i> 소개 자료</div>
-          <div class="nav-sub-item" data-page="res-youtube" onclick="goSub('res-youtube',this,'ni-res')"><i class="ti ti-brand-youtube"></i> 유튜브 영상</div>
+          <div class="nav-sub-item" data-page="res-youtube" onclick="goSub('res-youtube',this,'ni-res')"><i class="ti ti-brand-youtube"></i> 영상 자료</div>
           <div class="nav-sub-item" data-page="res-history" onclick="goSub('res-history',this,'ni-res')"><i class="ti ti-timeline"></i> 연혁 관리</div>
           <div class="nav-sub-item" data-page="res-cert"    onclick="goSub('res-cert',this,'ni-res')"><i class="ti ti-certificate"></i> 인증 관리</div>
           <div class="nav-sub-item" data-page="res-award"   onclick="goSub('res-award',this,'ni-res')"><i class="ti ti-trophy"></i> 수상 관리</div>
@@ -1544,7 +1544,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
         <div onclick="navTo('ad-sns');closeMobileNav()" style="padding:11px 20px 11px 32px;color:#fff;font-size:14px;cursor:pointer"><i class="ti ti-brand-instagram" style="margin-right:8px"></i>SNS 콘텐츠 생성기</div>
         <div style="padding:8px 20px 4px;font-size:11px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:1px">자원 관리</div>
         <div onclick="navTo('res-intro');closeMobileNav()" style="padding:11px 20px 11px 32px;color:#fff;font-size:14px;cursor:pointer"><i class="ti ti-files" style="margin-right:8px"></i>소개 자료</div>
-        <div onclick="navTo('res-youtube');closeMobileNav()" style="padding:11px 20px 11px 32px;color:#fff;font-size:14px;cursor:pointer"><i class="ti ti-brand-youtube" style="margin-right:8px"></i>유튜브 영상</div>
+        <div onclick="navTo('res-youtube');closeMobileNav()" style="padding:11px 20px 11px 32px;color:#fff;font-size:14px;cursor:pointer"><i class="ti ti-brand-youtube" style="margin-right:8px"></i>영상 자료</div>
         <div onclick="navTo('res-history');closeMobileNav()" style="padding:11px 20px 11px 32px;color:#fff;font-size:14px;cursor:pointer"><i class="ti ti-timeline" style="margin-right:8px"></i>연혁 관리</div>
         <div onclick="navTo('res-cert');closeMobileNav()" style="padding:11px 20px 11px 32px;color:#fff;font-size:14px;cursor:pointer"><i class="ti ti-certificate" style="margin-right:8px"></i>인증 관리</div>
         <div onclick="navTo('res-award');closeMobileNav()" style="padding:11px 20px 11px 32px;color:#fff;font-size:14px;cursor:pointer"><i class="ti ti-trophy" style="margin-right:8px"></i>수상 관리</div>
@@ -1590,15 +1590,15 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
         <div id="rm-history-list"><div class="empty"><i class="ti ti-loader"></i><p>불러오는 중…</p></div></div>
       </div>
 
-      <!-- 최근 업로드 영상 -->
+      <!-- 최근 영상 자료 -->
       <div class="card" style="margin-top:16px">
         <div class="card-hd">
-          <h2><i class="ti ti-brand-youtube"></i> 최근 업로드 영상 <span style="font-size:13.5px;color:var(--muted);font-weight:400">(최근 5개)</span></h2>
+          <h2><i class="ti ti-brand-youtube"></i> 최근 영상 자료 <span style="font-size:13.5px;color:var(--muted);font-weight:400">(최근 5개)</span></h2>
           <a onclick="goSub('res-youtube',document.querySelector('[data-page=res-youtube]'),'ni-res')" class="btn sm" style="cursor:pointer">전체 보기</a>
         </div>
         <table class="tbl">
-          <thead><tr><th>게시일</th><th>솔루션명</th><th>제목</th><th>링크</th></tr></thead>
-          <tbody id="main-youtube-list"><tr><td colspan="4"><div class="empty"><i class="ti ti-loader"></i><p>불러오는 중…</p></div></td></tr></tbody>
+          <thead><tr><th>게시일</th><th>솔루션명</th><th>제목</th><th>링크</th><th>원본</th></tr></thead>
+          <tbody id="main-youtube-list"><tr><td colspan="5"><div class="empty"><i class="ti ti-loader"></i><p>불러오는 중…</p></div></td></tr></tbody>
         </table>
       </div>
 
@@ -1932,9 +1932,9 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
       </div>
     </div>
 
-    <!-- ══ 유튜브 영상 ══ -->
+    <!-- ══ 영상 자료 ══ -->
     <div id="pg-res-youtube" class="page">
-      <div class="page-hd"><h1>유튜브 영상</h1><p>(주)소프트힐스의 영상 자료를 제공합니다.</p></div>
+      <div class="page-hd"><h1>영상 자료</h1><p>(주)소프트힐스의 영상 자료를 제공합니다.</p></div>
       <div class="card card-scroll">
         <div class="card-hd">
           <h2><i class="ti ti-brand-youtube"></i> 영상 목록 <span id="count-youtube" style="font-size:13px;font-weight:400;color:var(--muted);margin-left:6px"></span></h2>
@@ -1954,7 +1954,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
         <div id="yf-info" style="font-size:13.5px;color:var(--muted);padding:6px 16px;display:none"></div>
         <div class="scroll-body">
           <table class="tbl">
-            <thead><tr><th>구분</th><th>게시일</th><th>솔루션명</th><th>제목 / 내용</th><th>링크</th><th></th></tr></thead>
+            <thead><tr><th>구분</th><th>게시일</th><th>솔루션명</th><th>제목 / 내용</th><th>링크</th><th>원본</th><th></th></tr></thead>
             <tbody id="youtube-list"></tbody>
           </table>
         </div>
@@ -3494,7 +3494,7 @@ function renderMainYoutube(rows) {
   const el = document.getElementById('main-youtube-list');
   if (!el) return;
   if (!rows || !rows.length) {
-    el.innerHTML = '<tr><td colspan="4"><div class="empty"><i class="ti ti-brand-youtube"></i><p>등록된 영상이 없습니다.</p></div></td></tr>';
+    el.innerHTML = '<tr><td colspan="5"><div class="empty"><i class="ti ti-brand-youtube"></i><p>등록된 영상이 없습니다.</p></div></td></tr>';
     return;
   }
   const sorted = [...rows].sort((a,b) => parseDateNum(b['게시일']) - parseDateNum(a['게시일']));
@@ -3504,6 +3504,7 @@ function renderMainYoutube(rows) {
     <td>${r['솔루션명'] ? `<span style="background:var(--accent-lt);color:var(--accent);padding:2px 8px;border-radius:100px;font-size:11px">${r['솔루션명']}</span>` : '—'}</td>
     <td>${r['제목'] || ''}</td>
     <td>${r['유튜브URL'] ? `<a href="${r['유튜브URL']}" target="_blank" class="btn sm"><i class="ti ti-external-link"></i> 보기</a>` : '—'}</td>
+    <td>${r['자료원본URL'] ? `<a href="${r['자료원본URL']}" target="_blank" class="btn sm"><i class="ti ti-external-link"></i> 원본</a>` : ''}</td>
   </tr>`).join('');
 }
 
@@ -4070,6 +4071,7 @@ function renderYoutubeRows(rows) {
       ${r['내용'] ? `<div style="font-size:12.5px;color:var(--muted);margin-top:3px">${r['내용']}</div>` : ''}
     </td>
     <td>${r['유튜브URL'] ? `<a href="${r['유튜브URL']}" target="_blank" class="btn sm" style="color:#C4302B"><i class="ti ti-brand-youtube"></i> 시청하기</a>` : '—'}</td>
+    <td>${r['자료원본URL'] ? `<a href="${r['자료원본URL']}" target="_blank" class="btn sm"><i class="ti ti-external-link"></i> 원본</a>` : ''}</td>
     <td style="text-align:right">
       <button class="btn sm edit-btn" data-type="youtube" data-key="${r._cacheKey}"><i class="ti ti-edit"></i></button>
       <button class="btn sm danger del-btn" data-type="youtube" data-row="${r._row}"><i class="ti ti-trash"></i></button>
@@ -4875,7 +4877,8 @@ const MODAL_FORMS = {
     <div class="form-row"><label>솔루션명</label><input type="text" id="f-solution" value="${d['솔루션명']||''}"></div>
     <div class="form-row"><label>제목</label><input type="text" id="f-title" value="${d['제목']||''}"></div>
     <div class="form-row"><label>내용</label><textarea id="f-content" placeholder="영상 설명 (선택)">${d['내용']||''}</textarea></div>
-    <div class="form-row"><label>유튜브 URL</label><input type="url" id="f-url" placeholder="https://youtu.be/..." value="${d['유튜브URL']||''}"></div>`,
+    <div class="form-row"><label>유튜브 URL</label><input type="url" id="f-url" placeholder="https://youtu.be/..." value="${d['유튜브URL']||''}"></div>
+    <div class="form-row"><label>자료 원본 URL</label><input type="url" id="f-source-url" placeholder="https://..." value="${d['자료원본URL']||''}"></div>`,
 
   press: (d) => `
     ${yearMonthDaySelect(d['게시일']||'')}
@@ -5004,7 +5007,7 @@ const EXCEL_COLS = {
   copyright: ['날짜','제목','내용','비고','공유폴더URL','이미지명'],
   history: ['날짜','구분','내용','내용(대외홍보)','내용2','첨부파일명','상태'],
   intro:   ['게시일','분류','제목','내용','비고','공유폴더URL','파일명','형식'],
-  youtube: ['게시일','구분','솔루션명','제목','유튜브URL'],
+  youtube: ['게시일','구분','솔루션명','제목','유튜브URL','자료원본URL'],
   press:   ['게시일','구분','발행처','언론사명','제목','내용','URL'],
   blog:    ['게시일','구분','솔루션명','제목','내용','URL'],
   goods:   ['구분','소구분','품목','제작일시','제작수량','사용수량','재고수량','단위','비고','이미지명'],
@@ -5187,7 +5190,7 @@ async function submitModal() {
     const fmt = attachFormats();
     data = { '게시일': getDateFromSelects(), '분류': v('f-category'), '제목': v('f-title'), '내용': v('f-content'), '비고': v('f-note'), '공유폴더URL': v('f-folderurl'), '파일ID': v('f-fileid'), '파일명': v('f-filename'), '형식': fmt };
   } else if (t === 'youtube') {
-    data = { '게시일': getDateFromSelects(), '구분': v('f-category'), '솔루션명': v('f-solution'), '제목': v('f-title'), '내용': v('f-content'), '유튜브URL': v('f-url') };
+    data = { '게시일': getDateFromSelects(), '구분': v('f-category'), '솔루션명': v('f-solution'), '제목': v('f-title'), '내용': v('f-content'), '유튜브URL': v('f-url'), '자료원본URL': v('f-source-url') };
   } else if (t === 'press') {
     data = { '게시일': getDateFromSelects(), '구분': v('f-category'), '발행처': v('f-solution'), '언론사명': v('f-press-company'), '제목': v('f-title'), '내용': v('f-content'), 'URL': v('f-url') };
   } else if (t === 'blog') {
@@ -6495,7 +6498,7 @@ function renderAisEmpty(ctx = 'modal') {
     <div class="ais-empty">
       <i class="ti ti-search"></i>
       <span>검색어를 입력하세요</span>
-      <span style="font-size:12px">인증·수상·특허·상표·연혁·소개 자료·유튜브 영상·프로그램 저작/등록 전체 검색</span>
+      <span style="font-size:12px">인증·수상·특허·상표·연혁·소개 자료·영상 자료·프로그램 저작/등록 전체 검색</span>
     </div>`;
   updateAisSelectBar(ctx);
 }
