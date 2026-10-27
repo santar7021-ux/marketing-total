@@ -4904,7 +4904,7 @@ function renderExhScheduleRows(rows) {
     const am = parseInt(String(a['월']||'0').replace(/[^0-9]/g,''));
     const bm = parseInt(String(b['월']||'0').replace(/[^0-9]/g,''));
     if (am !== bm) return (am - bm) * mDir;
-    return parseStartDay(a) - parseStartDay(b);
+    return (parseStartDay(a) - parseStartDay(b)) * yDir;
   });
 
   sorted.forEach((r, idx) => {
