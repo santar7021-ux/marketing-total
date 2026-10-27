@@ -3844,8 +3844,9 @@ function _renderIntroList(elId, rows, emptyMsg, type) {
     el.innerHTML = `<div class="empty"><i class="ti ti-files"></i><p>${emptyMsg}</p></div>`;
     return;
   }
-  // 게시일 최신순 정렬 (같은 게시일이면 _row 오름차순 유지)
-  const sorted = [...rows].sort((a,b) => {
+  // exhibition은 applyExhibitionFilter에서 일정 날짜 기준으로 이미 정렬됨 → 순서 유지
+  // 그 외 타입은 게시일 최신순 정렬 (같은 게시일이면 _row 오름차순 유지)
+  const sorted = type === 'exhibition' ? [...rows] : [...rows].sort((a,b) => {
     const dDiff = parseDateNum(b['게시일']) - parseDateNum(a['게시일']);
     return dDiff !== 0 ? dDiff : (a._row||0) - (b._row||0);
   });
@@ -3879,8 +3880,8 @@ function _renderIntroList(elId, rows, emptyMsg, type) {
         ${r['비고'] ? `<div class="post-note"><span>비고</span> ${r['비고']}</div>` : ''}
         ${files.length ? `<div class="post-files">${attachFilesHtml(files)}</div>` : ''}
         <div class="post-actions">
-          <button class="btn sm" onclick="moveIntroRow('${elId}',${idx},-1,'${type}')" ${isFirst?'disabled':''} title="위로"><i class="ti ti-arrow-up"></i></button>
-          <button class="btn sm" onclick="moveIntroRow('${elId}',${idx},+1,'${type}')" ${isLast?'disabled':''} title="아래로"><i class="ti ti-arrow-down"></i></button>
+          ${type !== 'exhibition' ? `<button class="btn sm" onclick="moveIntroRow('${elId}',${idx},-1,'${type}')" ${isFirst?'disabled':''} title="위로"><i class="ti ti-arrow-up"></i></button>
+          <button class="btn sm" onclick="moveIntroRow('${elId}',${idx},+1,'${type}')" ${isLast?'disabled':''} title="아래로"><i class="ti ti-arrow-down"></i></button>` : ''}
           <button class="btn sm edit-btn" data-type="${type}" data-key="${r._cacheKey}"><i class="ti ti-edit"></i> 수정</button>
           <button class="btn sm danger del-btn" data-type="${type}" data-row="${r._row}"><i class="ti ti-trash"></i> 삭제</button>
         </div>
@@ -3913,6 +3914,26 @@ function applyExhibitionFilter() {
     // 제목과 내용 중 어느 쪽에든 들어있으면 검색됨 (칸 하나로 둘 다 검색)
     if (q && !aisNorm(r['제목']).includes(q) && !aisNorm(r['내용']).includes(q)) return false;
     return true;
+  });
+
+  // 일정 날짜 기준 최신순 정렬 (게시일 → 일정 시작일 순)
+  function _parseExhDate(r) {
+    // 게시일: "2026.10" → 202610, 일정: "2026.10.06(화) ~ …" → 20261006
+    const post = String(r['게시일'] || '');
+    const pm = post.match(/(\d{4})\D*(\d{1,2})/);
+    const pNum = pm ? parseInt(pm[1]) * 100 + parseInt(pm[2]) : 0;
+    const sched = String(r['일정'] || '');
+    const sm = sched.match(/(\d{4})\D*(\d{1,2})\D*(\d{1,2})/);
+    const sNum = sm ? parseInt(sm[1]) * 10000 + parseInt(sm[2]) * 100 + parseInt(sm[3]) : 0;
+    return { post: pNum, sched: sNum };
+  }
+  filtered.sort((a, b) => {
+    const da = _parseExhDate(a), db = _parseExhDate(b);
+    // 1차: 게시일(연월) 내림차순
+    if (da.post !== db.post) return db.post - da.post;
+    // 2차: 일정 시작일 내림차순
+    if (da.sched !== db.sched) return db.sched - da.sched;
+    return 0;
   });
 
   const hasFilter = !!(from || to || q);
