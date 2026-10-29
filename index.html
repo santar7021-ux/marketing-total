@@ -1725,6 +1725,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
               <tr>
                 <th style="width:80px">구분</th>
                 <th>내용</th>
+                <th style="width:110px">마감일(예정)</th>
                 <th style="width:180px">비고</th>
                 <th style="width:60px">첨부</th>
                 <th style="width:70px">액션</th>
@@ -5150,19 +5151,24 @@ function renderMktSchedRows() {
   const body = document.getElementById('mktSched-body');
   if (body) {
     if (!list.length) {
-      body.innerHTML = '<tr><td colspan="5"><div class="empty"><i class="ti ti-calendar-off"></i><p>등록된 일정이 없습니다.</p></div></td></tr>';
+      body.innerHTML = '<tr><td colspan="6"><div class="empty"><i class="ti ti-calendar-off"></i><p>등록된 일정이 없습니다.</p></div></td></tr>';
     } else {
       body.innerHTML = list.map(r => {
         const cat = r['구분'] || '';
         const color = MKT_CAT_COLORS[cat] || '#94a3b8';
         const attachUrl = r['첨부URL'] || '';
+        const deadline = r['마감일'] || '';
+        const showDeadline = ['장기','진행','처리'].includes(cat);
         const isCustom = !MKT_CATS_ORDER.includes(cat) && cat;
         const catOptions = MKT_CATS_ORDER.map(c => `<option value="${c}" ${c===cat?'selected':''}>${c}</option>`).join('')
           + (isCustom ? `<option value="${cat}" selected>${cat}</option>` : '')
           + `<option value="__custom__">직접 입력</option>`;
+        // 마감일 포맷: YYYY-MM-DD → YYYY.MM.DD
+        const dlDisplay = deadline ? deadline.replace(/-/g, '.') : '';
         return `<tr>
           <td style="text-align:center"><select onchange="changeMktCat(${r._row},this.value)" style="padding:3px 6px;border:1px solid var(--border);border-radius:5px;font-size:12px;background:var(--card);color:${color};font-weight:600;cursor:pointer">${catOptions}</select></td>
           <td style="white-space:pre-wrap;text-align:left">${r['내용'] || '—'}</td>
+          <td style="text-align:center;font-size:12px;color:var(--muted)">${showDeadline && dlDisplay ? dlDisplay : ''}</td>
           <td style="font-size:12px;color:var(--muted);white-space:pre-wrap">${r['비고'] || ''}</td>
           <td style="text-align:center">${attachUrl ? `<a href="${attachUrl}" target="_blank" title="${attachUrl}"><i class="ti ti-paperclip" style="font-size:16px"></i></a>` : ''}</td>
           <td style="text-align:center">
@@ -5199,9 +5205,13 @@ function renderMktSchedRows() {
           const content = (r['내용'] || '—').replace(/\n/g, '<br>');
           const note = r['비고'] || '';
           const attachUrl = r['첨부URL'] || '';
+          const deadline = r['마감일'] || '';
+          const showDl = ['장기','진행','처리'].includes(cat) && deadline;
+          const dlDisplay = deadline ? deadline.replace(/-/g, '.') : '';
           return `<div class="ms-card">
             <div class="ms-card-body">
               <div class="ms-card-content">${content}</div>
+              ${showDl ? `<div class="ms-card-note" style="color:var(--accent)"><i class="ti ti-calendar-due" style="font-size:11px;opacity:.7"></i> 마감 ${dlDisplay}</div>` : ''}
               ${note ? `<div class="ms-card-note"><i class="ti ti-note" style="font-size:11px;opacity:.6"></i> ${note}</div>` : ''}
               ${attachUrl ? `<a href="${attachUrl}" target="_blank" class="ms-card-attach"><i class="ti ti-paperclip"></i> 첨부파일</a>` : ''}
             </div>
@@ -5461,6 +5471,7 @@ const MODAL_FORMS = {
     </select></div>
     <div class="form-row" id="mkt-custom-cat-row" style="display:${!['매일','매주','매월','장기','진행','처리',''].includes(d['구분'])?'block':'none'}"><label>구분 직접 입력</label><input type="text" id="f-mkt-cat-custom" placeholder="구분명을 입력하세요" value="${!['매일','매주','매월','장기','진행','처리'].includes(d['구분']) ? (d['구분']||'') : ''}"></div>
     <div class="form-row"><label>내용</label><textarea id="f-content" placeholder="일정 내용을 입력하세요">${d['내용']||''}</textarea></div>
+    <div class="form-row" id="mkt-deadline-row" style="display:${['장기','진행','처리'].includes(d['구분'])?'block':'none'}"><label>마감일(예정)</label><input type="date" id="f-mkt-deadline" value="${d['마감일']||''}"></div>
     <div class="form-row"><label>비고</label><input type="text" id="f-note" placeholder="참고 사항" value="${d['비고']||''}"></div>
     <div class="form-row"><label>첨부 URL</label><input type="url" id="f-attach-url" placeholder="https://..." value="${d['첨부URL']||''}"></div>`,
 
@@ -5674,6 +5685,8 @@ function openModal(type, data = {}) {
       if (sel) sel.addEventListener('change', () => {
         const row = document.getElementById('mkt-custom-cat-row');
         if (row) row.style.display = sel.value === '__custom__' ? 'block' : 'none';
+        const dlRow = document.getElementById('mkt-deadline-row');
+        if (dlRow) dlRow.style.display = ['장기','진행','처리'].includes(sel.value) ? 'block' : 'none';
       });
     }
   }, 0);
@@ -5817,7 +5830,8 @@ async function submitModal() {
   } else if (t === 'mktSchedule') {
     const mktCatVal = v('f-mkt-cat') === '__custom__' ? v('f-mkt-cat-custom').trim() : v('f-mkt-cat');
     if (!mktCatVal) { alert('구분을 입력해주세요.'); if (saveBtn) saveBtn.disabled = false; return; }
-    data = { '구분': mktCatVal, '내용': v('f-content'), '비고': v('f-note'), '첨부URL': v('f-attach-url') };
+    const mktDeadline = ['장기','진행','처리'].includes(mktCatVal) ? v('f-mkt-deadline') : '';
+    data = { '구분': mktCatVal, '내용': v('f-content'), '마감일': mktDeadline, '비고': v('f-note'), '첨부URL': v('f-attach-url') };
   }
 
   const sheetName = SHEET_MAP[t];
