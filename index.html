@@ -5165,6 +5165,8 @@ function renderMktSchedRows() {
           + `<option value="__custom__">직접 입력</option>`;
         // 마감일 포맷: YYYY-MM-DD → YYYY.MM.DD
         const dlDisplay = deadline ? deadline.replace(/-/g, '.') : '';
+        const cacheKey = 'mktSched_' + r._row;
+        rowCache[cacheKey] = r;
         return `<tr>
           <td style="text-align:center"><select onchange="changeMktCat(${r._row},this.value)" style="padding:3px 6px;border:1px solid var(--border);border-radius:5px;font-size:12px;background:var(--card);color:${color};font-weight:600;cursor:pointer">${catOptions}</select></td>
           <td style="white-space:pre-wrap;text-align:left">${r['내용'] || '—'}</td>
@@ -5172,7 +5174,7 @@ function renderMktSchedRows() {
           <td style="font-size:12px;color:var(--muted);white-space:pre-wrap">${r['비고'] || ''}</td>
           <td style="text-align:center">${attachUrl ? `<a href="${attachUrl}" target="_blank" title="${attachUrl}"><i class="ti ti-paperclip" style="font-size:16px"></i></a>` : ''}</td>
           <td style="text-align:center">
-            <button class="btn sm" onclick="openModal('mktSchedule',${r._row})" title="수정"><i class="ti ti-pencil"></i></button>
+            <button class="btn sm" onclick="openModalCached('mktSchedule','${cacheKey}')" title="수정"><i class="ti ti-pencil"></i></button>
             <button class="btn sm danger" onclick="deleteRow('mktSchedule',${r._row})" title="삭제"><i class="ti ti-trash"></i></button>
           </td>
         </tr>`;
@@ -5208,6 +5210,8 @@ function renderMktSchedRows() {
           const deadline = r['마감일'] || '';
           const showDl = ['장기','진행','처리'].includes(cat) && deadline;
           const dlDisplay = deadline ? deadline.replace(/-/g, '.') : '';
+          const mCacheKey = 'mktSched_' + r._row;
+          rowCache[mCacheKey] = r;
           return `<div class="ms-card">
             <div class="ms-card-body">
               <div class="ms-card-content">${content}</div>
@@ -5216,7 +5220,7 @@ function renderMktSchedRows() {
               ${attachUrl ? `<a href="${attachUrl}" target="_blank" class="ms-card-attach"><i class="ti ti-paperclip"></i> 첨부파일</a>` : ''}
             </div>
             <div class="ms-card-actions">
-              <button class="btn sm" onclick="openModal('mktSchedule',${r._row})" title="수정"><i class="ti ti-pencil"></i></button>
+              <button class="btn sm" onclick="openModalCached('mktSchedule','${mCacheKey}')" title="수정"><i class="ti ti-pencil"></i></button>
               <button class="btn sm danger" onclick="deleteRow('mktSchedule',${r._row})" title="삭제"><i class="ti ti-trash"></i></button>
             </div>
           </div>`;
@@ -5669,7 +5673,7 @@ function openModalFixedCat(type, fixedCategory) {
 function openModal(type, data = {}) {
   currentModal = type;
   editRow = data._row || null;
-  document.getElementById('modal-title').textContent = (editRow ? '항목 수정' : '항목 추가') + ' — ' + ({ cert:'인증', award:'수상', patent:'특허', brand:'상표', copyright:'프로그램 저작/등록', history:'연혁', intro:'소개자료', youtube:'유튜브', press:'언론보도 및 칼럼', blog:'블로그', goods:'마케팅 물품', designDraft:'디자인 시안', support:'지원사업', competitor:'경쟁사 조사', industry:'산업 동향 조사', exhibition:'전시회 자료', exhibitionSchedule:'전시회 일정' }[type] || type);
+  document.getElementById('modal-title').textContent = (editRow ? '항목 수정' : '항목 추가') + ' — ' + ({ cert:'인증', award:'수상', patent:'특허', brand:'상표', copyright:'프로그램 저작/등록', history:'연혁', intro:'소개자료', youtube:'유튜브', press:'언론보도 및 칼럼', blog:'블로그', goods:'마케팅 물품', designDraft:'디자인 시안', support:'지원사업', competitor:'경쟁사 조사', industry:'산업 동향 조사', exhibition:'전시회 자료', exhibitionSchedule:'전시회 일정', mktSchedule:'마케팅 일정 관리' }[type] || type);
   document.getElementById('modal-body').innerHTML = MODAL_FORMS[type](data);
   if (ATTACH_TYPES.includes(type)) { attachExisting = parseAttachFromRow(type, data); attachNew = []; }
   document.getElementById('modal-bg').classList.add('open');
