@@ -971,6 +971,8 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
 .mkt-log-entry:first-child { border-top: none; }
 .mkt-log-entry-date { color: var(--accent); font-weight: 600; flex-shrink: 0; white-space: nowrap; min-width: 80px; }
 .mkt-log-entry-text { flex: 1; color: var(--fg); line-height: 1.45; word-break: break-word; }
+.mkt-log-entry-edit { flex-shrink: 0; cursor: pointer; color: var(--muted); opacity: .5; font-size: 14px; }
+.mkt-log-entry-edit:hover { opacity: 1; color: var(--accent); }
 .mkt-log-entry-del { flex-shrink: 0; cursor: pointer; color: var(--muted); opacity: .5; font-size: 14px; }
 .mkt-log-entry-del:hover { opacity: 1; color: #e74c3c; }
 .mkt-log-empty { text-align: center; color: var(--muted); font-size: 12px; padding: 12px 0; }
@@ -5195,7 +5197,43 @@ function _renderMktLogModal(entries) {
   html += '</div></div></div>';
   return html;
 }
+function _renderLogRow(e, i) {
+  const dDisp = e.date ? e.date.replace(/-/g, '.') : '';
+  return `<div class="mkt-log-entry" data-idx="${i}">
+    <span class="mkt-log-entry-date">${dDisp}</span>
+    <span class="mkt-log-entry-text">${e.text}</span>
+    <span class="mkt-log-entry-edit" onclick="_editMktLogEntry(${i})" title="수정"><i class="ti ti-pencil"></i></span>
+    <span class="mkt-log-entry-del" onclick="_delMktLogEntry(${i})" title="삭제"><i class="ti ti-x"></i></span>
+  </div>`;
+}
 let _mktLogEntries = [];
+function _editMktLogEntry(idx) {
+  const entry = _mktLogEntries[idx];
+  if (!entry) return;
+  const listEl = document.getElementById('mkt-log-list');
+  if (!listEl) return;
+  const rows = listEl.querySelectorAll('.mkt-log-entry');
+  const row = rows[idx];
+  if (!row) return;
+  row.innerHTML = `
+    <input type="date" class="mkt-log-edit-date" value="${entry.date}" style="flex:0 0 130px;padding:4px 6px;border:1px solid var(--accent);border-radius:5px;font-size:12px;background:var(--card);color:var(--fg)">
+    <input type="text" class="mkt-log-edit-text" value="${entry.text.replace(/"/g,'&quot;')}" style="flex:1;padding:4px 8px;border:1px solid var(--accent);border-radius:5px;font-size:12px;background:var(--card);color:var(--fg)" onkeydown="if(event.key==='Enter'){event.preventDefault();_saveEditMktLogEntry(${idx});}">
+    <span class="mkt-log-entry-edit" onclick="_saveEditMktLogEntry(${idx})" title="저장" style="color:var(--accent)"><i class="ti ti-check"></i></span>
+    <span class="mkt-log-entry-del" onclick="_refreshMktLogList()" title="취소"><i class="ti ti-x"></i></span>`;
+  row.querySelector('.mkt-log-edit-text').focus();
+}
+function _saveEditMktLogEntry(idx) {
+  const listEl = document.getElementById('mkt-log-list');
+  if (!listEl) return;
+  const row = listEl.querySelectorAll('.mkt-log-entry')[idx];
+  if (!row) return;
+  const newDate = row.querySelector('.mkt-log-edit-date').value;
+  const newText = row.querySelector('.mkt-log-edit-text').value.trim();
+  if (!newText) return;
+  _mktLogEntries[idx] = { date: newDate, text: newText };
+  _mktLogEntries.sort((a, b) => b.date.localeCompare(a.date));
+  _refreshMktLogList();
+}
 function _addMktLogEntry() {
   const dateEl = document.getElementById('f-log-date');
   const textEl = document.getElementById('f-log-text');
@@ -5220,14 +5258,7 @@ function _refreshMktLogList() {
     listEl.innerHTML = '<div class="mkt-log-empty">아직 기록이 없습니다.</div>';
     return;
   }
-  listEl.innerHTML = _mktLogEntries.map((e, i) => {
-    const dDisp = e.date ? e.date.replace(/-/g, '.') : '';
-    return `<div class="mkt-log-entry" data-idx="${i}">
-      <span class="mkt-log-entry-date">${dDisp}</span>
-      <span class="mkt-log-entry-text">${e.text}</span>
-      <span class="mkt-log-entry-del" onclick="_delMktLogEntry(${i})" title="삭제"><i class="ti ti-x"></i></span>
-    </div>`;
-  }).join('');
+  listEl.innerHTML = _mktLogEntries.map((e, i) => _renderLogRow(e, i)).join('');
 }
 function _mktLogCount(raw) {
   if (!raw) return 0;
