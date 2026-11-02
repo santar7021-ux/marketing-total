@@ -5322,7 +5322,7 @@ function renderMktSchedRows() {
           <td style="text-align:center">${attachUrl ? `<a href="${attachUrl}" target="_blank" title="${attachUrl}"><i class="ti ti-paperclip" style="font-size:16px"></i></a>` : ''}</td>
           <td style="text-align:center">
             <button class="btn sm" onclick="openModalCached('mktSchedule','${cacheKey}')" title="수정"><i class="ti ti-pencil"></i></button>
-            <button class="btn sm danger" onclick="deleteRow('mktSchedule',${r._row})" title="삭제"><i class="ti ti-trash"></i></button>
+            <button class="btn sm danger" onclick="deleteItem('mktSchedule',${r._row})" title="삭제"><i class="ti ti-trash"></i></button>
           </td>
         </tr>`;
       }).join('');
@@ -5378,7 +5378,7 @@ function renderMktSchedRows() {
             </div>
             <div class="ms-card-actions">
               <button class="btn sm" onclick="openModalCached('mktSchedule','${mCacheKey}')" title="수정"><i class="ti ti-pencil"></i></button>
-              <button class="btn sm danger" onclick="deleteRow('mktSchedule',${r._row})" title="삭제"><i class="ti ti-trash"></i></button>
+              <button class="btn sm danger" onclick="deleteItem('mktSchedule',${r._row})" title="삭제"><i class="ti ti-trash"></i></button>
             </div>
           </div>`;
         }).join('');
