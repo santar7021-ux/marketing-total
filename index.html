@@ -956,6 +956,27 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
 .form-row textarea { min-height: 80px; resize: vertical; }
 .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 18px; }
 
+/* ── 진행 회고록 ── */
+.mkt-log-section { margin-top: 4px; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+.mkt-log-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: var(--bg); cursor: pointer; user-select: none; }
+.mkt-log-header h4 { margin: 0; font-size: 13.5px; font-weight: 600; display: flex; align-items: center; gap: 6px; }
+.mkt-log-header .badge { font-size: 11px; background: var(--accent); color: #fff; border-radius: 10px; padding: 1px 7px; font-weight: 600; }
+.mkt-log-body { padding: 12px 14px; background: var(--card); }
+.mkt-log-add { display: flex; gap: 8px; align-items: flex-end; margin-bottom: 10px; }
+.mkt-log-add input[type=date] { flex: 0 0 150px; padding: 6px 8px; border: 1px solid var(--border); border-radius: 6px; font-size: 12.5px; background: var(--card); color: var(--fg); }
+.mkt-log-add input[type=text] { flex: 1; padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 12.5px; background: var(--card); color: var(--fg); }
+.mkt-log-add button { flex-shrink: 0; }
+.mkt-log-list { max-height: 200px; overflow-y: auto; }
+.mkt-log-entry { display: flex; gap: 8px; padding: 7px 0; border-top: 1px solid var(--border); align-items: flex-start; font-size: 12.5px; }
+.mkt-log-entry:first-child { border-top: none; }
+.mkt-log-entry-date { color: var(--accent); font-weight: 600; flex-shrink: 0; white-space: nowrap; min-width: 80px; }
+.mkt-log-entry-text { flex: 1; color: var(--fg); line-height: 1.45; word-break: break-word; }
+.mkt-log-entry-del { flex-shrink: 0; cursor: pointer; color: var(--muted); opacity: .5; font-size: 14px; }
+.mkt-log-entry-del:hover { opacity: 1; color: #e74c3c; }
+.mkt-log-empty { text-align: center; color: var(--muted); font-size: 12px; padding: 12px 0; }
+.mkt-log-badge { display: inline-flex; align-items: center; gap: 3px; font-size: 11px; color: var(--accent); cursor: pointer; margin-left: 6px; vertical-align: middle; }
+.mkt-log-badge:hover { text-decoration: underline; }
+
 /* ── 빈 상태 ── */
 .empty { text-align: center; padding: 48px 24px; color: var(--muted); }
 .empty i { font-size: 40px; display: block; margin-bottom: 10px; }
@@ -1242,6 +1263,12 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
     display: flex; flex-direction: column; gap: 4px; flex-shrink: 0;
   }
   .ms-card-actions .btn.sm { padding: 6px 8px; font-size: 13px; }
+  .ms-card-log { margin-top: 8px; }
+  .ms-card-log-toggle { font-size: 11.5px; color: var(--accent); cursor: pointer; display: inline-flex; align-items: center; gap: 3px; }
+  .ms-card-log-list { margin-top: 6px; padding-left: 0; }
+  .ms-card-log-item { font-size: 11.5px; color: var(--muted); line-height: 1.5; padding: 3px 0; border-top: 1px solid var(--border); display: flex; gap: 6px; }
+  .ms-card-log-item:first-child { border-top: none; }
+  .ms-card-log-date { color: var(--accent); font-weight: 600; flex-shrink: 0; white-space: nowrap; }
 
   #mktSched-lock { max-width: 100% !important; margin: 30px 0 !important; padding: 28px 20px !important; }
   #mktSched-lock h3 { font-size: 15px; }
@@ -5135,6 +5162,90 @@ function verifyMktSchedPw() {
   }
 }
 
+// ── 진행 회고록 파싱/빌드 ──
+function _parseMktLog(raw) {
+  if (!raw) return [];
+  return String(raw).split('|').filter(Boolean).map(entry => {
+    const idx = entry.indexOf('::');
+    if (idx === -1) return { date: '', text: entry.trim() };
+    return { date: entry.substring(0, idx).trim(), text: entry.substring(idx + 2).trim() };
+  }).sort((a, b) => b.date.localeCompare(a.date));
+}
+function _buildMktLog(entries) {
+  return entries.filter(e => e.text).map(e => `${e.date}::${e.text}`).join('|');
+}
+function _renderMktLogModal(entries) {
+  const today = new Date().toISOString().slice(0, 10);
+  let html = `<div class="mkt-log-section">
+    <div class="mkt-log-header" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'':'none';this.querySelector('.ti').className=this.nextElementSibling.style.display==='none'?'ti ti-chevron-right':'ti ti-chevron-down'">
+      <h4><i class="ti ti-chevron-down"></i> 진행 회고록 <span class="badge">${entries.length}</span></h4>
+    </div>
+    <div class="mkt-log-body">
+      <div class="mkt-log-add">
+        <input type="date" id="f-log-date" value="${today}">
+        <input type="text" id="f-log-text" placeholder="진행 내용을 입력하세요" onkeydown="if(event.key==='Enter'){event.preventDefault();_addMktLogEntry();}">
+        <button class="btn sm primary" type="button" onclick="_addMktLogEntry()"><i class="ti ti-plus"></i></button>
+      </div>
+      <div class="mkt-log-list" id="mkt-log-list">`;
+  if (!entries.length) {
+    html += '<div class="mkt-log-empty">아직 기록이 없습니다.</div>';
+  } else {
+    html += entries.map((e, i) => {
+      const dDisp = e.date ? e.date.replace(/-/g, '.') : '';
+      return `<div class="mkt-log-entry" data-idx="${i}">
+        <span class="mkt-log-entry-date">${dDisp}</span>
+        <span class="mkt-log-entry-text">${e.text}</span>
+        <span class="mkt-log-entry-del" onclick="_delMktLogEntry(${i})" title="삭제"><i class="ti ti-x"></i></span>
+      </div>`;
+    }).join('');
+  }
+  html += '</div></div></div>';
+  return html;
+}
+let _mktLogEntries = [];
+function _addMktLogEntry() {
+  const dateEl = document.getElementById('f-log-date');
+  const textEl = document.getElementById('f-log-text');
+  if (!textEl || !textEl.value.trim()) return;
+  const d = dateEl ? dateEl.value : new Date().toISOString().slice(0, 10);
+  _mktLogEntries.unshift({ date: d, text: textEl.value.trim() });
+  _mktLogEntries.sort((a, b) => b.date.localeCompare(a.date));
+  _refreshMktLogList();
+  textEl.value = '';
+  textEl.focus();
+}
+function _delMktLogEntry(idx) {
+  _mktLogEntries.splice(idx, 1);
+  _refreshMktLogList();
+}
+function _refreshMktLogList() {
+  const listEl = document.getElementById('mkt-log-list');
+  if (!listEl) return;
+  const badge = document.querySelector('.mkt-log-header .badge');
+  if (badge) badge.textContent = _mktLogEntries.length;
+  if (!_mktLogEntries.length) {
+    listEl.innerHTML = '<div class="mkt-log-empty">아직 기록이 없습니다.</div>';
+    return;
+  }
+  listEl.innerHTML = _mktLogEntries.map((e, i) => {
+    const dDisp = e.date ? e.date.replace(/-/g, '.') : '';
+    return `<div class="mkt-log-entry" data-idx="${i}">
+      <span class="mkt-log-entry-date">${dDisp}</span>
+      <span class="mkt-log-entry-text">${e.text}</span>
+      <span class="mkt-log-entry-del" onclick="_delMktLogEntry(${i})" title="삭제"><i class="ti ti-x"></i></span>
+    </div>`;
+  }).join('');
+}
+function _mktLogCount(raw) {
+  if (!raw) return 0;
+  return String(raw).split('|').filter(Boolean).length;
+}
+function _mktLogLatest(raw) {
+  const entries = _parseMktLog(raw);
+  if (!entries.length) return null;
+  return entries[0];
+}
+
 // 마감일 파싱: ISO datetime / YYYY-MM-DD / YYYY.MM.DD 등 → { display: 'YYYY.MM.DD', input: 'YYYY-MM-DD' }
 function _parseMktDeadline(raw) {
   if (!raw) return { display: '', input: '' };
@@ -5181,7 +5292,7 @@ function renderMktSchedRows() {
         rowCache[cacheKey] = r;
         return `<tr>
           <td style="text-align:center"><select onchange="changeMktCat(${r._row},this.value)" style="padding:3px 6px;border:1px solid var(--border);border-radius:5px;font-size:12px;background:var(--card);color:${color};font-weight:600;cursor:pointer">${catOptions}</select></td>
-          <td style="white-space:pre-wrap;text-align:left">${r['내용'] || '—'}</td>
+          <td style="white-space:pre-wrap;text-align:left">${r['내용'] || '—'}${_mktLogCount(r['진행기록']) ? `<span class="mkt-log-badge" onclick="openModalCached('mktSchedule','${cacheKey}')" title="진행 회고록 보기"><i class="ti ti-notes" style="font-size:13px"></i> ${_mktLogCount(r['진행기록'])}건</span>` : ''}</td>
           <td style="text-align:center;font-size:12px;color:var(--muted)">${showDeadline && dl.display ? dl.display : ''}</td>
           <td style="font-size:12px;color:var(--muted);white-space:pre-wrap">${r['비고'] || ''}</td>
           <td style="text-align:center">${attachUrl ? `<a href="${attachUrl}" target="_blank" title="${attachUrl}"><i class="ti ti-paperclip" style="font-size:16px"></i></a>` : ''}</td>
@@ -5229,6 +5340,17 @@ function renderMktSchedRows() {
               ${showDl ? `<div class="ms-card-note" style="color:var(--accent)"><i class="ti ti-calendar-due" style="font-size:11px;opacity:.7"></i> 마감 ${dl.display}</div>` : ''}
               ${note ? `<div class="ms-card-note"><i class="ti ti-note" style="font-size:11px;opacity:.6"></i> ${note}</div>` : ''}
               ${attachUrl ? `<a href="${attachUrl}" target="_blank" class="ms-card-attach"><i class="ti ti-paperclip"></i> 첨부파일</a>` : ''}
+              ${(() => {
+                const logCount = _mktLogCount(r['진행기록']);
+                if (!logCount) return '';
+                const latest = _mktLogLatest(r['진행기록']);
+                const logEntries = _parseMktLog(r['진행기록']);
+                const latestDisp = latest ? `<span class="ms-card-log-date">${latest.date.replace(/-/g,'.')}</span> ${latest.text}` : '';
+                return `<div class="ms-card-log">
+                  <div class="ms-card-log-toggle" onclick="const l=this.nextElementSibling;l.style.display=l.style.display==='none'?'':'none';this.querySelector('.ti').className=l.style.display==='none'?'ti ti-chevron-right':'ti ti-chevron-down'"><i class="ti ti-chevron-right"></i> 회고록 ${logCount}건</div>
+                  <div class="ms-card-log-list" style="display:none">${logEntries.map(e => `<div class="ms-card-log-item"><span class="ms-card-log-date">${e.date.replace(/-/g,'.')}</span><span>${e.text}</span></div>`).join('')}</div>
+                </div>`;
+              })()}
             </div>
             <div class="ms-card-actions">
               <button class="btn sm" onclick="openModalCached('mktSchedule','${mCacheKey}')" title="수정"><i class="ti ti-pencil"></i></button>
@@ -5488,7 +5610,8 @@ const MODAL_FORMS = {
     <div class="form-row"><label>내용</label><textarea id="f-content" placeholder="일정 내용을 입력하세요">${d['내용']||''}</textarea></div>
     <div class="form-row" id="mkt-deadline-row" style="display:${['장기','진행','처리'].includes(d['구분'])?'block':'none'}"><label>마감일(예정)</label><input type="date" id="f-mkt-deadline" value="${(typeof _parseMktDeadline === 'function' ? _parseMktDeadline(d['마감일']).input : '') || d['마감일'] || ''}"></div>
     <div class="form-row"><label>비고</label><input type="text" id="f-note" placeholder="참고 사항" value="${d['비고']||''}"></div>
-    <div class="form-row"><label>첨부 URL</label><input type="url" id="f-attach-url" placeholder="https://..." value="${d['첨부URL']||''}"></div>`,
+    <div class="form-row"><label>첨부 URL</label><input type="url" id="f-attach-url" placeholder="https://..." value="${d['첨부URL']||''}"></div>
+    <div class="form-row" id="mkt-log-wrap">${_renderMktLogModal(_parseMktLog(d['진행기록']))}</div>`,
 
   youtube: (d) => `
     ${yearMonthDaySelect(d['게시일']||'')}
@@ -5696,6 +5819,7 @@ function openModal(type, data = {}) {
     else { initDropzone(); }
     // 마케팅 일정: 직접 입력 토글
     if (type === 'mktSchedule') {
+      _mktLogEntries = _parseMktLog(data['진행기록']);
       const sel = document.getElementById('f-mkt-cat');
       if (sel) sel.addEventListener('change', () => {
         const row = document.getElementById('mkt-custom-cat-row');
@@ -5846,7 +5970,7 @@ async function submitModal() {
     const mktCatVal = v('f-mkt-cat') === '__custom__' ? v('f-mkt-cat-custom').trim() : v('f-mkt-cat');
     if (!mktCatVal) { alert('구분을 입력해주세요.'); if (saveBtn) saveBtn.disabled = false; return; }
     const mktDeadline = ['장기','진행','처리'].includes(mktCatVal) ? v('f-mkt-deadline') : '';
-    data = { '구분': mktCatVal, '내용': v('f-content'), '마감일': mktDeadline, '비고': v('f-note'), '첨부URL': v('f-attach-url') };
+    data = { '구분': mktCatVal, '내용': v('f-content'), '마감일': mktDeadline, '비고': v('f-note'), '첨부URL': v('f-attach-url'), '진행기록': _buildMktLog(_mktLogEntries) };
   }
 
   const sheetName = SHEET_MAP[t];
