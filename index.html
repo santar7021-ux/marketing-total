@@ -5190,14 +5190,7 @@ function _renderMktLogModal(entries) {
   if (!entries.length) {
     html += '<div class="mkt-log-empty">아직 기록이 없습니다.</div>';
   } else {
-    html += entries.map((e, i) => {
-      const dDisp = e.date ? e.date.replace(/-/g, '.') : '';
-      return `<div class="mkt-log-entry" data-idx="${i}">
-        <span class="mkt-log-entry-date">${dDisp}</span>
-        <span class="mkt-log-entry-text">${e.text}</span>
-        <span class="mkt-log-entry-del" onclick="_delMktLogEntry(${i})" title="삭제"><i class="ti ti-x"></i></span>
-      </div>`;
-    }).join('');
+    html += entries.map((e, i) => _renderLogRow(e, i)).join('');
   }
   html += '</div></div></div>';
   return html;
