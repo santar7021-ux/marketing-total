@@ -720,6 +720,9 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
 }
 .history-filter-bar select:focus,
 .history-filter-bar input[type=text]:focus { border-color: var(--accent); }
+.esf-dday-btn { background: var(--bg); border: 1px solid var(--border-md); color: var(--muted); font-weight: 600; font-size: 12.5px; padding: 5px 12px; border-radius: 100px; cursor: pointer; transition: all .15s; }
+.esf-dday-btn:hover { border-color: var(--accent); color: var(--accent); }
+.esf-dday-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
 
 .tbl { width: 100%; border-collapse: collapse; font-size: 16.2px; }
 .tbl-goods { table-layout: fixed; min-width: 760px; }
@@ -2395,6 +2398,8 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
             <option value="">산업 전체</option>
           </select>
           <input type="text" id="esf-keyword" placeholder="전시회명 · 장소 · 비고 검색" oninput="applyExhScheduleFilter()">
+          <button class="btn sm esf-dday-btn" id="esf-d120" onclick="toggleEsDday(120)">D-120</button>
+          <button class="btn sm esf-dday-btn" id="esf-d30" onclick="toggleEsDday(30)">D-30</button>
           <button class="btn sm" onclick="resetExhScheduleFilter()"><i class="ti ti-x"></i> 필터 초기화</button>
         </div>
         <div id="esf-info" style="font-size:13.5px;color:var(--muted);padding:6px 16px;display:none"></div>
@@ -4171,9 +4176,12 @@ function cancelGoodsUsageEdit() {
 }
 
 async function saveGoodsUsageEdit(usageRow) {
+  const u = (DATA.goodsUsage || []).find(x => x._row === usageRow);
+  if (!u) { banner('원본 데이터를 찾을 수 없습니다.', 'error'); return; }
   const qty = document.getElementById('gue-qty-' + usageRow).value;
   if (!qty || Number(qty) <= 0) { banner('사용 수량을 정확히 입력해주세요.', 'error'); return; }
   const data = {
+    '재고행번호': u['재고행번호'],
     '사용일자': document.getElementById('gue-date-' + usageRow).value,
     '사용수량': qty,
     '사용처': document.getElementById('gue-place-' + usageRow).value,
@@ -4960,6 +4968,34 @@ function renderExhSchedule(rows) {
   applyExhScheduleFilter();
 }
 
+let _esDdayFilter = 0; // 0=off, 120=D-120, 30=D-30
+
+function toggleEsDday(days) {
+  _esDdayFilter = _esDdayFilter === days ? 0 : days;
+  document.getElementById('esf-d120').classList.toggle('active', _esDdayFilter === 120);
+  document.getElementById('esf-d30').classList.toggle('active', _esDdayFilter === 30);
+  applyExhScheduleFilter();
+}
+
+function _esParseStartDate(r) {
+  const yr = parseInt(String(r['연도']||'').replace(/[^0-9]/g,''));
+  if (!yr) return null;
+  const mo = parseInt(String(r['월']||'').replace(/[^0-9]/g,''));
+  if (!mo) return null;
+  const detail = String(r['상세일정']||'').trim();
+  if (!detail) return null;
+  // ISO range: 2026-03-15~2026-03-18
+  let m = detail.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (m) return new Date(parseInt(m[1]), parseInt(m[2])-1, parseInt(m[3]));
+  // M.D or M.D~ format
+  m = detail.match(/^(\d{1,2})\.(\d{1,2})/);
+  if (m) return new Date(yr, parseInt(m[1])-1, parseInt(m[2]));
+  // just a day number
+  m = detail.match(/^(\d{1,2})$/);
+  if (m) return new Date(yr, mo-1, parseInt(m[1]));
+  return null;
+}
+
 function applyExhScheduleFilter() {
   const consider = document.getElementById('esf-consider')?.value || '';
   const gov      = document.getElementById('esf-gov')?.value || '';
@@ -4995,21 +5031,36 @@ function applyExhScheduleFilter() {
     return true;
   });
 
+  // D-day 필터 적용 (상세일정 없는 항목은 항상 포함)
+  let ddayFiltered = filtered;
+  if (_esDdayFilter > 0) {
+    const today = new Date(); today.setHours(0,0,0,0);
+    ddayFiltered = filtered.filter(r => {
+      const startDate = _esParseStartDate(r);
+      if (!startDate) return true; // 날짜 없으면 항상 포함
+      const diff = Math.ceil((startDate - today) / 86400000);
+      return diff >= 0 && diff <= _esDdayFilter;
+    });
+  }
+
   const info = document.getElementById('esf-info');
-  const hasFilter = consider || gov || domestic || year || month || industry || keyword;
+  const hasFilter = consider || gov || domestic || year || month || industry || keyword || _esDdayFilter;
   if (info) {
     if (hasFilter) {
       info.style.display = 'block';
-      info.textContent = `필터 적용 중 — ${filtered.length}건 / 전체 ${all.length}건`;
+      const ddayLabel = _esDdayFilter ? ` · D-${_esDdayFilter}` : '';
+      info.textContent = `필터 적용 중${ddayLabel} — ${ddayFiltered.length}건 / 전체 ${all.length}건`;
     } else { info.style.display = 'none'; }
   }
-  renderExhScheduleRows(filtered);
+  renderExhScheduleRows(ddayFiltered);
 }
 
 function resetExhScheduleFilter() {
   ['esf-consider','esf-gov','esf-domestic','esf-year','esf-month','esf-industry','esf-keyword'].forEach(id => {
     const el = document.getElementById(id); if (el) el.value = '';
   });
+  _esDdayFilter = 0;
+  document.querySelectorAll('.esf-dday-btn').forEach(b => b.classList.remove('active'));
   const info = document.getElementById('esf-info');
   if (info) info.style.display = 'none';
   renderExhScheduleRows(_exhScheduleAllRows);
