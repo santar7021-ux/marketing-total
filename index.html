@@ -6891,9 +6891,15 @@ window.addEventListener('DOMContentLoaded', async () => {
   gateTickClock();
   setInterval(gateTickClock, 1000);
 
-  // 이미 이번 브라우저 세션에서 로그인했다면 로그인/인증 단계는 건너뛰고 바로 검색 화면부터 시작
+  // 이미 이번 브라우저 세션에서 로그인했다면 로그인/인증 단계는 건너뛰기
   if (sessionStorage.getItem('sh_logged_in') === '1') {
-    setGatePhase('search');
+    // 대시보드 페이지를 보다가 F5를 눌렀으면 게이트를 건너뛰고 바로 복원
+    let _savedPage; try { _savedPage = localStorage.getItem('sh_last_page'); } catch(e) {}
+    if (_savedPage) {
+      enterDashboard();
+    } else {
+      setGatePhase('search');
+    }
   } else {
     setGatePhase('login');
   }
