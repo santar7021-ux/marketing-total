@@ -5047,8 +5047,8 @@ function applyExhScheduleFilter() {
       if (!startDate) return true; // 날짜 없으면 항상 포함
       const diff = Math.ceil((startDate - today) / 86400000);
       if (_esDdayFilter === 30) return diff >= 0 && diff <= 30;
-      if (_esDdayFilter === 90) return diff >= 31 && diff <= 90;
-      return diff >= 0 && diff <= _esDdayFilter;
+      if (_esDdayFilter === 90) return diff >= 90;
+      return true;
     });
   }
 
