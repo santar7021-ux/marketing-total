@@ -61,6 +61,9 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
    로그인 / 검색 게이트 (AI 지구 HUD 디자인)
    ============================================================ */
 #app-shell { display: none; }
+/* F5 새로고침 시 게이트 깜빡임 방지: JS에서 즉시 토글 */
+#app-shell.instant-show { display: flex !important; }
+#login-gate.instant-hide { display: none !important; }
 .gate-fade-out { animation: gateFadeOut .26s ease forwards; }
 @keyframes gateFadeOut { from { opacity: 1; } to { opacity: 0; transform: scale(.98); } }
 .gate-fade-in { animation: gateFadeIn .45s ease both; }
@@ -1293,6 +1296,23 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
 </style>
 </head>
 <body>
+<script>
+// F5 새로고침 시 게이트 깜빡임 방지: DOM 파싱 전에 즉시 토글
+(function(){
+  try {
+    var loggedIn = sessionStorage.getItem('sh_logged_in') === '1';
+    var savedPage = localStorage.getItem('sh_last_page');
+    if (loggedIn && savedPage) {
+      document.addEventListener('DOMContentLoaded', function() {
+        var gate = document.getElementById('login-gate');
+        var shell = document.getElementById('app-shell');
+        if (gate) gate.classList.add('instant-hide');
+        if (shell) shell.classList.add('instant-show');
+      });
+    }
+  } catch(e){}
+})();
+</script>
 
 <!-- ── 로그인 게이트: 대시보드 진입 전 비밀번호 확인 ── -->
 <div id="login-gate" class="gate">
@@ -1596,7 +1616,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
     </div>
 
     <div style="padding: 10px 12px; border-top: 1px solid var(--border); margin-top: auto; display:flex; flex-direction:column; gap:6px;">
-      <button class="search-trigger-bottom" onclick="go('main',document.querySelector('[data-page=main]'))" title="메인으로 돌아가기" style="margin-bottom:0">
+      <button class="search-trigger-bottom" onclick="returnToIntro()" title="인트로 화면으로 돌아가기" style="margin-bottom:0">
         <i class="ti ti-arrow-back-up"></i>
         <span>INTRO</span>
       </button>
@@ -6829,14 +6849,32 @@ function transitionGateScreens(fromEl, toEl, toDisplay) {
   }, 260);
 }
 
-function enterDashboard() {
+function enterDashboard(skipAnimation) {
   if (window.gateFx) { window.gateFx.burst = 1; window.gateFx.boost = 1; }
   const gate  = document.getElementById('login-gate');
   const shell = document.getElementById('app-shell');
-  // '#app-shell{display:none}'는 id 선택자라 '.shell{display:flex}'보다 우선순위가 높아서,
-  // 인라인 스타일을 그냥 비우면(''로 설정) 여전히 숨김 상태로 남아있었습니다. 명시적으로 flex를 지정해야 함.
-  transitionGateScreens(gate, shell, 'flex');
+  if (skipAnimation) {
+    // F5 복원: instant 클래스 정리 후 인라인 스타일로 확정
+    gate.classList.remove('instant-hide');
+    shell.classList.remove('instant-show');
+    gate.style.display = 'none';
+    shell.style.display = 'flex';
+  } else {
+    // '#app-shell{display:none}'는 id 선택자라 '.shell{display:flex}'보다 우선순위가 높아서,
+    // 인라인 스타일을 그냥 비우면(''로 설정) 여전히 숨김 상태로 남아있었습니다. 명시적으로 flex를 지정해야 함.
+    transitionGateScreens(gate, shell, 'flex');
+  }
   startResearchAutoPoll();
+}
+
+function returnToIntro() {
+  // 대시보드 → 게이트(검색 화면)로 돌아가기 (로그인 유지)
+  const gate  = document.getElementById('login-gate');
+  const shell = document.getElementById('app-shell');
+  setGatePhase('search');
+  transitionGateScreens(shell, gate, '');
+  try { localStorage.removeItem('sh_last_page'); } catch(e) {}
+  if (window.gateFx) window.gateFx.boost = .3;
 }
 
 function gateLogout() {
@@ -6893,10 +6931,10 @@ window.addEventListener('DOMContentLoaded', async () => {
 
   // 이미 이번 브라우저 세션에서 로그인했다면 로그인/인증 단계는 건너뛰기
   if (sessionStorage.getItem('sh_logged_in') === '1') {
-    // 대시보드 페이지를 보다가 F5를 눌렀으면 게이트를 건너뛰고 바로 복원
+    // 대시보드 페이지를 보다가 F5를 눌렀으면 게이트를 건너뛰고 바로 복원 (애니메이션 없이)
     let _savedPage; try { _savedPage = localStorage.getItem('sh_last_page'); } catch(e) {}
     if (_savedPage) {
-      enterDashboard();
+      enterDashboard(true);
     } else {
       setGatePhase('search');
     }
