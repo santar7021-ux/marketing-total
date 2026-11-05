@@ -1312,6 +1312,14 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
 .tab-item.selected .tab-check { color:rgba(59,130,246,1); }
 .tab-bar.shift-mode .tab-item:not(:first-child):hover { background:rgba(59,130,246,.06); border-color:rgba(59,130,246,.25); }
 .tab-bar.shift-mode .tab-item:not(:first-child):hover .tab-label { color:rgba(59,130,246,.7); }
+.tab-group-label { font-size:11px; font-weight:600; padding:4px 8px 2px; cursor:default; border-bottom:2px solid; white-space:nowrap; flex-shrink:0; user-select:none; letter-spacing:.3px; }
+.tab-ctx-menu { position:fixed; z-index:99999; background:var(--bg,#fff); border:1px solid var(--border,#ddd); border-radius:8px; box-shadow:0 4px 16px rgba(0,0,0,.15); padding:4px 0; min-width:170px; font-size:13px; }
+.tab-ctx-item { display:flex; align-items:center; gap:8px; padding:7px 14px; cursor:pointer; color:var(--fg); transition:background .1s; }
+.tab-ctx-item:hover { background:var(--bg-alt,#f5f5f5); }
+.tab-ctx-item.danger { color:#dc3c3c; }
+.tab-ctx-item.danger:hover { background:rgba(220,60,60,.06); }
+.tab-ctx-item i { font-size:15px; width:16px; text-align:center; }
+.tab-ctx-sep { height:1px; background:var(--border,#e5e5e5); margin:4px 8px; }
 @media(max-width:719px) { .tab-bar { display:none; } }
 </style>
 </head>
@@ -3252,8 +3260,11 @@ function onTabClick(pageId, e) {
   _navigateToTab(pageId);
 }
 
+let _tabGroups = {}; // { groupName: [pageId, ...] }
+let _tabGroupColors = ['#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6','#ec4899','#06b6d4','#84cc16'];
+let _tabGroupColorIdx = 0;
+
 function showTabCloseConfirm(names, onConfirm) {
-  // 탭 삭제 확인 팝업
   const bg = document.getElementById('modal-bg');
   const box = document.getElementById('modal-box');
   const listHtml = names.map(function(n) { return '<li style="padding:2px 0">' + n + '</li>'; }).join('');
@@ -3269,26 +3280,248 @@ function showTabCloseConfirm(names, onConfirm) {
   document.getElementById('tab-close-confirm-btn').onclick = function() { closeModal(); onConfirm(); };
 }
 
+/* ── 탭 우클릭 컨텍스트 메뉴 ── */
+let _tabCtxMenu = null;
+function hideTabCtxMenu() { if (_tabCtxMenu) { _tabCtxMenu.remove(); _tabCtxMenu = null; } }
+document.addEventListener('click', hideTabCtxMenu);
+document.addEventListener('contextmenu', function(e) {
+  // 탭 컨텍스트 메뉴 바깥 우클릭 시 닫기
+  if (_tabCtxMenu && !_tabCtxMenu.contains(e.target) && !e.target.closest('.tab-item')) hideTabCtxMenu();
+});
+
+function onTabContext(pageId, e) {
+  e.preventDefault(); e.stopPropagation();
+  hideTabCtxMenu();
+  if (pageId === 'main') return;
+  // 선택된 탭이 없으면 우클릭한 탭만 선택
+  if (_selectedTabs.size === 0) { _selectedTabs.add(pageId); renderTabBar(); }
+  else if (!_selectedTabs.has(pageId)) { _selectedTabs.add(pageId); renderTabBar(); }
+
+  const selCount = _selectedTabs.size;
+  const selIds = [..._selectedTabs];
+  const groupOfTab = getTabGroup(pageId);
+
+  const menu = document.createElement('div');
+  menu.className = 'tab-ctx-menu';
+  // 위치 계산
+  menu.style.left = Math.min(e.clientX, window.innerWidth - 180) + 'px';
+  menu.style.top = Math.min(e.clientY, window.innerHeight - 120) + 'px';
+
+  let items = '';
+  // 그룹 만들기
+  items += '<div class="tab-ctx-item" data-action="group"><i class="ti ti-folder-plus"></i>그룹에 추가 (' + selCount + ')</div>';
+  // 이미 그룹에 있으면 그룹 해제
+  if (groupOfTab) {
+    items += '<div class="tab-ctx-item" data-action="ungroup"><i class="ti ti-folder-minus"></i>그룹 해제</div>';
+  }
+  items += '<div class="tab-ctx-sep"></div>';
+  // 닫기
+  items += '<div class="tab-ctx-item danger" data-action="close"><i class="ti ti-x"></i>선택한 탭 닫기 (' + selCount + ')</div>';
+  // 선택 해제
+  items += '<div class="tab-ctx-item" data-action="deselect"><i class="ti ti-deselect"></i>선택 해제</div>';
+
+  menu.innerHTML = items;
+  document.body.appendChild(menu);
+  _tabCtxMenu = menu;
+
+  menu.addEventListener('click', function(ev) {
+    const item = ev.target.closest('.tab-ctx-item');
+    if (!item) return;
+    const action = item.dataset.action;
+    hideTabCtxMenu();
+    if (action === 'close') {
+      const names = selIds.map(function(id) { return TAB_LABELS[id] || id; });
+      if (selCount > 1) {
+        showTabCloseConfirm(names, function() { _doCloseTabs(selIds); });
+      } else {
+        _doCloseTabs(selIds);
+      }
+    } else if (action === 'group') {
+      showGroupNamePrompt(selIds);
+    } else if (action === 'ungroup') {
+      removeFromGroups(selIds);
+      _selectedTabs.clear();
+      renderTabBar();
+    } else if (action === 'deselect') {
+      _selectedTabs.clear();
+      renderTabBar();
+    }
+  });
+}
+
+function getTabGroup(tabId) {
+  for (var g in _tabGroups) {
+    if (_tabGroups[g].tabs.includes(tabId)) return g;
+  }
+  return null;
+}
+
+function removeFromGroups(tabIds) {
+  for (var g in _tabGroups) {
+    _tabGroups[g].tabs = _tabGroups[g].tabs.filter(function(t) { return tabIds.indexOf(t) === -1; });
+    if (_tabGroups[g].tabs.length === 0) delete _tabGroups[g];
+  }
+  saveTabGroups();
+}
+
+function showGroupNamePrompt(tabIds) {
+  const bg = document.getElementById('modal-bg');
+  const box = document.getElementById('modal-box');
+  // 기존 그룹 목록 버튼 생성
+  const existingGroups = Object.keys(_tabGroups);
+  let existingHtml = '';
+  if (existingGroups.length) {
+    existingHtml = '<div style="margin-bottom:12px"><p style="margin:0 0 6px;font-size:12px;color:var(--muted)">기존 그룹에 추가:</p><div style="display:flex;flex-wrap:wrap;gap:6px">' +
+      existingGroups.map(function(g) {
+        return '<button class="btn sm" onclick="addToExistingGroup(\'' + g.replace(/'/g,"\\'") + '\')" style="border-left:3px solid ' + _tabGroups[g].color + '">' + g + '</button>';
+      }).join('') + '</div></div>';
+  }
+  box.innerHTML = '<div class="modal-hd"><h3 style="margin:0;font-size:16px"><i class="ti ti-folder-plus" style="color:var(--accent);margin-right:6px"></i>탭 그룹</h3><button onclick="closeModal()" class="modal-x">×</button></div>' +
+    '<div class="modal-body" style="padding:16px 20px">' +
+    existingHtml +
+    '<p style="margin:0 0 8px;font-size:13px;color:var(--muted)">새 그룹 이름:</p>' +
+    '<input id="tab-group-name-input" type="text" placeholder="그룹 이름 입력" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:6px;font-size:14px;background:var(--bg);color:var(--fg);box-sizing:border-box;margin-bottom:14px" />' +
+    '<div style="display:flex;gap:8px;justify-content:flex-end">' +
+    '<button onclick="closeModal()" class="btn sm" style="min-width:64px">취소</button>' +
+    '<button id="tab-group-create-btn" class="btn sm accent" style="min-width:64px">만들기</button>' +
+    '</div></div>';
+  bg.style.display = 'flex';
+  window._pendingGroupTabs = tabIds;
+  var inp = document.getElementById('tab-group-name-input');
+  setTimeout(function() { inp.focus(); }, 100);
+  inp.addEventListener('keydown', function(ev) { if (ev.key === 'Enter') document.getElementById('tab-group-create-btn').click(); });
+  document.getElementById('tab-group-create-btn').onclick = function() {
+    var name = inp.value.trim();
+    if (!name) { inp.focus(); return; }
+    createTabGroup(name, window._pendingGroupTabs);
+    closeModal();
+  };
+}
+
+function addToExistingGroup(groupName) {
+  if (!window._pendingGroupTabs) return;
+  var tabIds = window._pendingGroupTabs;
+  // 다른 그룹에서 먼저 제거
+  removeFromGroups(tabIds);
+  tabIds.forEach(function(id) {
+    if (!_tabGroups[groupName].tabs.includes(id)) _tabGroups[groupName].tabs.push(id);
+  });
+  // 탭 순서 재배치: 그룹 탭끼리 모이도록
+  reorderTabsByGroups();
+  saveTabGroups();
+  _selectedTabs.clear();
+  renderTabBar();
+  closeModal();
+}
+
+function createTabGroup(name, tabIds) {
+  // 다른 그룹에서 먼저 제거
+  removeFromGroups(tabIds);
+  var color = _tabGroupColors[_tabGroupColorIdx % _tabGroupColors.length];
+  _tabGroupColorIdx++;
+  _tabGroups[name] = { tabs: tabIds.slice(), color: color };
+  // 탭 순서 재배치
+  reorderTabsByGroups();
+  saveTabGroups();
+  _selectedTabs.clear();
+  renderTabBar();
+}
+
+function reorderTabsByGroups() {
+  // main은 항상 첫번째, 나머지는 그룹별로 모아서 재배치
+  var ordered = ['main'];
+  var placed = new Set(['main']);
+  // 그룹 탭 먼저
+  for (var g in _tabGroups) {
+    _tabGroups[g].tabs.forEach(function(id) {
+      if (_openTabs.includes(id) && !placed.has(id)) { ordered.push(id); placed.add(id); }
+    });
+  }
+  // 그룹에 안 속한 탭
+  _openTabs.forEach(function(id) {
+    if (!placed.has(id)) ordered.push(id);
+  });
+  _openTabs = ordered;
+  saveOpenTabs();
+}
+
+function saveTabGroups() {
+  try { localStorage.setItem('sh_tab_groups', JSON.stringify(_tabGroups)); } catch(e) {}
+}
+
+function loadTabGroups() {
+  try {
+    var raw = localStorage.getItem('sh_tab_groups');
+    if (raw) { _tabGroups = JSON.parse(raw) || {}; }
+  } catch(e) { _tabGroups = {}; }
+}
+
 function renderTabBar() {
   const bar = document.getElementById('tab-bar');
   if (!bar) return;
   const hasSelection = _selectedTabs.size > 0;
+  let lastGroup = null;
   bar.innerHTML = _openTabs.map(function(id) {
     const label = TAB_LABELS[id] || id;
     const isActive = id === _activeTab;
     const isSelected = _selectedTabs.has(id);
     const closable = id !== 'main';
+    const group = getTabGroup(id);
+    const groupColor = group ? _tabGroups[group].color : null;
     let cls = 'tab-item';
     if (isActive) cls += ' active';
     if (isSelected) cls += ' selected';
-    return '<div class="' + cls + '" onclick="onTabClick(\'' + id + '\', event)" title="' + label + (closable ? '\nShift+클릭: 선택' : '') + '">' +
+    if (group) cls += ' grouped';
+    // 그룹 시작 라벨 삽입
+    let prefix = '';
+    if (group && group !== lastGroup) {
+      prefix = '<div class="tab-group-label" style="border-bottom-color:' + groupColor + ';color:' + groupColor + '" oncontextmenu="onGroupContext(\'' + group.replace(/'/g,"\\'") + '\', event)">' + group + '</div>';
+    }
+    lastGroup = group;
+    const borderStyle = groupColor ? ' border-bottom:2px solid ' + groupColor + ';' : '';
+    return prefix + '<div class="' + cls + '" onclick="onTabClick(\'' + id + '\', event)" oncontextmenu="onTabContext(\'' + id + '\', event)" title="' + label + (closable ? '\nShift+클릭: 선택 | 우클릭: 메뉴' : '') + '" style="' + borderStyle + '">' +
       (closable && hasSelection ? '<span class="tab-check">' + (isSelected ? '<i class="ti ti-checkbox"></i>' : '<i class="ti ti-square"></i>') + '</span>' : '') +
       '<span class="tab-label">' + label + '</span>' +
-      (closable ? '<span class="tab-close" onclick="closeTab(\'' + id + '\', event)" title="' + (isSelected && _selectedTabs.size > 1 ? '선택한 탭 모두 닫기' : '탭 닫기') + '">×</span>' : '') +
+      (closable ? '<span class="tab-close" onclick="closeTab(\'' + id + '\', event)" title="탭 닫기">×</span>' : '') +
     '</div>';
   }).join('');
   const activeEl = bar.querySelector('.tab-item.active');
   if (activeEl) activeEl.scrollIntoView({ behavior:'smooth', block:'nearest', inline:'nearest' });
+}
+
+function onGroupContext(groupName, e) {
+  e.preventDefault(); e.stopPropagation();
+  hideTabCtxMenu();
+  var group = _tabGroups[groupName];
+  if (!group) return;
+  var menu = document.createElement('div');
+  menu.className = 'tab-ctx-menu';
+  menu.style.left = Math.min(e.clientX, window.innerWidth - 180) + 'px';
+  menu.style.top = Math.min(e.clientY, window.innerHeight - 100) + 'px';
+  menu.innerHTML = '<div class="tab-ctx-item" data-action="ungroup-all"><i class="ti ti-folder-minus"></i>그룹 해제</div>' +
+    '<div class="tab-ctx-sep"></div>' +
+    '<div class="tab-ctx-item danger" data-action="close-group"><i class="ti ti-x"></i>그룹 탭 모두 닫기</div>';
+  document.body.appendChild(menu);
+  _tabCtxMenu = menu;
+  menu.addEventListener('click', function(ev) {
+    var item = ev.target.closest('.tab-ctx-item');
+    if (!item) return;
+    hideTabCtxMenu();
+    if (item.dataset.action === 'ungroup-all') {
+      delete _tabGroups[groupName];
+      saveTabGroups();
+      _selectedTabs.clear();
+      renderTabBar();
+    } else if (item.dataset.action === 'close-group') {
+      var tabs = group.tabs.slice();
+      var names = tabs.map(function(id) { return TAB_LABELS[id] || id; });
+      showTabCloseConfirm(names, function() {
+        delete _tabGroups[groupName];
+        saveTabGroups();
+        _doCloseTabs(tabs);
+      });
+    }
+  });
 }
 
 function saveOpenTabs() {
@@ -7036,7 +7269,8 @@ function returnToIntro() {
   transitionGateScreens(shell, gate, '');
   try { localStorage.removeItem('sh_last_page'); } catch(e) {}
   try { localStorage.removeItem('sh_open_tabs'); } catch(e) {}
-  _openTabs = ['main']; _activeTab = 'main'; renderTabBar();
+  try { localStorage.removeItem('sh_tab_groups'); } catch(e) {}
+  _openTabs = ['main']; _activeTab = 'main'; _selectedTabs.clear(); _tabGroups = {}; renderTabBar();
   if (window.gateFx) window.gateFx.boost = .3;
 }
 
@@ -7094,6 +7328,7 @@ window.addEventListener('DOMContentLoaded', async () => {
 
   // 탭 바 복원
   loadOpenTabs();
+  loadTabGroups();
 
   // 이미 이번 브라우저 세션에서 로그인했다면 로그인/인증 단계는 건너뛰기
   if (sessionStorage.getItem('sh_logged_in') === '1') {
