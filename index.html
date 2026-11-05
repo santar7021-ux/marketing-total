@@ -1293,6 +1293,21 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
   .metric-val { font-size: 18px; }
   .content { padding: 12px 10px; }
 }
+
+/* ── 탭 바 (크롬 스타일) ── */
+.tab-bar { display:flex; align-items:flex-end; gap:2px; padding:6px 12px 0; background:var(--bg-alt,#f0f1f3); border-bottom:1px solid var(--border); overflow-x:auto; scrollbar-width:none; flex-shrink:0; min-height:38px; }
+.tab-bar::-webkit-scrollbar { display:none; }
+.tab-bar:empty { display:none; }
+.tab-item { display:flex; align-items:center; gap:4px; max-width:160px; min-width:60px; height:32px; padding:0 8px 0 12px; background:var(--bg-alt,#e8e9eb); border:1px solid var(--border); border-bottom:none; border-radius:8px 8px 0 0; cursor:pointer; font-size:12.5px; color:var(--muted); white-space:nowrap; transition:all .15s; position:relative; user-select:none; flex-shrink:0; }
+.tab-item:hover { background:var(--bg); color:var(--fg); }
+.tab-item.active { background:var(--bg); color:var(--fg); font-weight:600; border-color:var(--border); margin-bottom:-1px; padding-bottom:1px; z-index:1; }
+.tab-label { overflow:hidden; text-overflow:ellipsis; flex:1; min-width:0; }
+.tab-close { display:none; width:18px; height:18px; border-radius:50%; font-size:14px; line-height:18px; text-align:center; color:var(--muted); flex-shrink:0; transition:all .1s; }
+.tab-item:hover .tab-close { display:flex; align-items:center; justify-content:center; }
+.tab-close:hover { background:rgba(0,0,0,.12); color:var(--fg); }
+.tab-bar.shift-mode .tab-item:not(:first-child):hover { background:rgba(220,60,60,.08); border-color:rgba(220,60,60,.25); }
+.tab-bar.shift-mode .tab-item:not(:first-child):hover .tab-label { color:rgba(220,60,60,.7); }
+@media(max-width:719px) { .tab-bar { display:none; } }
 </style>
 </head>
 <body>
@@ -1685,6 +1700,7 @@ body { background: var(--bg); color: var(--text); font-size: 17.5px; line-height
     <div id="mobile-nav-overlay" onclick="closeMobileNav()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:199"></div>
     <div id="banner-backdrop"></div>
     <div id="banner"></div>
+    <div id="tab-bar" class="tab-bar"></div>
 
     <!-- ══ 메인 ══ -->
     <div id="pg-main" class="page active">
@@ -3151,6 +3167,93 @@ let currentModal = null;
 let editRow = null;
 const rowCache = {}; // 수정 시 데이터 안전 전달용 캐시
 
+// ── 탭 바 (크롬 스타일) ────────────────────────────────
+const TAB_LABELS = {
+  'main':'메인','mktSchedule':'마케팅 일정','budget':'예산 현황',
+  'ad-homepage':'유입 분석','ad-media':'광고 관리','ad-sns':'SNS 생성기',
+  'res-intro':'소개 자료','res-youtube':'영상 자료','res-history':'연혁 관리',
+  'res-cert':'인증 관리','res-award':'수상 관리','res-patent':'특허 관리',
+  'res-brand':'상표 관리','res-copyright':'저작/등록','res-support':'지원사업',
+  'content-press':'언론보도','content-blog':'블로그','content-design':'디자인 시안',
+  'research-competitor':'경쟁사 조사','research-industry':'산업 동향',
+  'research-exhibition':'전시회 자료','research-schedule':'전시회 일정',
+  'goods-stock':'물품 재고','changelog':'변경 이력','settings':'설정'
+};
+let _openTabs = ['main'];
+let _activeTab = 'main';
+
+function addTab(pageId) {
+  if (!_openTabs.includes(pageId)) { _openTabs.push(pageId); saveOpenTabs(); }
+  _activeTab = pageId;
+  renderTabBar();
+}
+
+function closeTab(pageId, e) {
+  if (e) { e.stopPropagation(); e.preventDefault(); }
+  if (pageId === 'main') return;
+  const idx = _openTabs.indexOf(pageId);
+  if (idx === -1) return;
+  _openTabs.splice(idx, 1);
+  saveOpenTabs();
+  if (_activeTab === pageId) {
+    const newIdx = Math.min(idx, _openTabs.length - 1);
+    const newPage = _openTabs[newIdx];
+    const target = document.querySelector('[data-page="' + newPage + '"]');
+    if (newPage === 'mktSchedule') { goMktSched(target); }
+    else {
+      const navItem = target ? target.closest('.nav-item') : null;
+      if (navItem) goSub(newPage, target, navItem.id);
+      else go(newPage, target);
+    }
+  } else { renderTabBar(); }
+}
+
+function onTabClick(pageId, e) {
+  if (e.shiftKey) { closeTab(pageId, e); return; }
+  if (_activeTab === pageId) return;
+  const target = document.querySelector('[data-page="' + pageId + '"]');
+  if (pageId === 'mktSchedule') { goMktSched(target); }
+  else {
+    const navItem = target ? target.closest('.nav-item') : null;
+    if (navItem) goSub(pageId, target, navItem.id);
+    else go(pageId, target);
+  }
+}
+
+function renderTabBar() {
+  const bar = document.getElementById('tab-bar');
+  if (!bar) return;
+  bar.innerHTML = _openTabs.map(function(id) {
+    const label = TAB_LABELS[id] || id;
+    const isActive = id === _activeTab;
+    const closable = id !== 'main';
+    return '<div class="tab-item' + (isActive ? ' active' : '') + '" onclick="onTabClick(\'' + id + '\', event)" title="' + label + (closable ? '\nShift+클릭으로 닫기' : '') + '">' +
+      '<span class="tab-label">' + label + '</span>' +
+      (closable ? '<span class="tab-close" onclick="closeTab(\'' + id + '\', event)" title="탭 닫기">×</span>' : '') +
+    '</div>';
+  }).join('');
+  const activeEl = bar.querySelector('.tab-item.active');
+  if (activeEl) activeEl.scrollIntoView({ behavior:'smooth', block:'nearest', inline:'nearest' });
+}
+
+function saveOpenTabs() {
+  try { localStorage.setItem('sh_open_tabs', JSON.stringify(_openTabs)); } catch(e) {}
+}
+
+function loadOpenTabs() {
+  try {
+    const raw = localStorage.getItem('sh_open_tabs');
+    if (raw) {
+      const tabs = JSON.parse(raw);
+      if (Array.isArray(tabs) && tabs.length) {
+        _openTabs = tabs.includes('main') ? tabs : ['main'].concat(tabs);
+        return;
+      }
+    }
+  } catch(e) {}
+  _openTabs = ['main'];
+}
+
 // ── Google Drive 폴더 ID ────────────────────────────────
 const GDRIVE_FOLDER_ID = '1QxgWVyyRES2V3HjjZoqB7EuE4trPYZad';
 
@@ -3162,6 +3265,7 @@ function go(pageId, el) {
   if (el) el.classList.add('active');
   try { history.replaceState(null, '', '#' + pageId); } catch (e) {}
   try { localStorage.setItem('sh_last_page', pageId); } catch (e) {}
+  addTab(pageId);
 }
 
 function toggle(navId, defaultPage) {
@@ -3191,6 +3295,7 @@ function goSub(pageId, el, navId) {
   }
   try { history.replaceState(null, '', '#' + pageId); } catch (e) {}
   try { localStorage.setItem('sh_last_page', pageId); } catch (e) {}
+  addTab(pageId);
 
   renderPage(pageId);
 }
@@ -5268,6 +5373,7 @@ function goMktSched(el) {
   document.querySelectorAll('.nav-item.open').forEach(i => i.classList.remove('open'));
   try { history.replaceState(null, '', '#mktSchedule'); } catch(e) {}
   try { localStorage.setItem('sh_last_page', 'mktSchedule'); } catch(e) {}
+  addTab('mktSchedule');
 
   if (_mktSchedUnlocked) {
     renderMktSchedRows();
@@ -6874,6 +6980,8 @@ function returnToIntro() {
   setGatePhase('search');
   transitionGateScreens(shell, gate, '');
   try { localStorage.removeItem('sh_last_page'); } catch(e) {}
+  try { localStorage.removeItem('sh_open_tabs'); } catch(e) {}
+  _openTabs = ['main']; _activeTab = 'main'; renderTabBar();
   if (window.gateFx) window.gateFx.boost = .3;
 }
 
@@ -6929,6 +7037,9 @@ window.addEventListener('DOMContentLoaded', async () => {
   gateTickClock();
   setInterval(gateTickClock, 1000);
 
+  // 탭 바 복원
+  loadOpenTabs();
+
   // 이미 이번 브라우저 세션에서 로그인했다면 로그인/인증 단계는 건너뛰기
   if (sessionStorage.getItem('sh_logged_in') === '1') {
     // 대시보드 페이지를 보다가 F5를 눌렀으면 게이트를 건너뛰고 바로 복원 (애니메이션 없이)
@@ -6953,11 +7064,15 @@ window.addEventListener('DOMContentLoaded', async () => {
     DATA = cached;
     renderAllData(cached);
     restoreLastPage();
+    renderTabBar();
   }
   // 최신 데이터로 조용히(또는 캐시가 없었으면 화면에 로딩 표시) 갱신
   await refreshAll(!!cached);
-  if (!cached) restoreLastPage();
+  if (!cached) { restoreLastPage(); renderTabBar(); }
 
+  // Shift 키 시각 표시 (탭 닫기 모드)
+  document.addEventListener('keydown', e => { if (e.key === 'Shift') { const b = document.getElementById('tab-bar'); if (b) b.classList.add('shift-mode'); } });
+  document.addEventListener('keyup', e => { if (e.key === 'Shift') { const b = document.getElementById('tab-bar'); if (b) b.classList.remove('shift-mode'); } });
 
   // ESC 모달 닫기
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
