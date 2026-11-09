@@ -4549,9 +4549,9 @@ async function submitGoodsUsage() {
   const res = await apiPost({ action: 'useGoods', row: _guCurrentRow, data });
   if (res && res.success) {
     closeGoodsUsageModal();
-    await refreshSheet('goods');
     const r = await apiFetch({ action: 'goodsUsage' }, true);
     DATA.goodsUsage = r || [];
+    await refreshSheet('goods');  // refreshSheet 안에서 saveCachedData 호출됨
   }
 }
 
@@ -6486,7 +6486,11 @@ async function refreshSheet(type) {
     case 'press':     renderContentTable('press', rows); break;
     case 'blog':      renderContentTable('blog', rows); break;
     case 'designDraft': renderDesignDraft(rows); break;
-    case 'goods':     renderGoods(rows); break;
+    case 'goods':
+      renderGoods(rows);
+      // 물품 재고 변경 시 사용내역도 함께 갱신 (재고수량 계산에 사용내역 필요)
+      apiFetch({ action: 'goodsUsage' }, true).then(function(u) { if (u) { DATA.goodsUsage = u; renderGoods(DATA.goods); } });
+      break;
     case 'support':   renderBoard('support', rows); break;
     case 'competitor': renderContentTable('competitor', rows); break;
     case 'industry':   renderContentTable('industry', rows); break;
@@ -6500,6 +6504,8 @@ async function refreshSheet(type) {
     if (m) { DATA.metrics = m; renderMetrics(m); }
   }
   queueApplyMobileCards();
+  // 변경된 DATA를 로컬 캐시에 반영 → 새로고침/재방문 시에도 최신 상태 유지
+  saveCachedData(DATA);
 }
 
 // ── 경쟁사/산업 동향 조사: Claude CLI가 공유 드라이브 엑셀을 업데이트하면
@@ -7266,6 +7272,23 @@ window.addEventListener('DOMContentLoaded', async () => {
   if (!cached) { restoreLastPage(); renderTabBar(); }
 
   // (Shift+클릭으로 탭 선택, 우클릭으로 컨텍스트 메뉴)
+
+  // 브라우저 탭 다시 활성화 시 서버에서 최신 데이터 자동 갱신
+  // (모바일에서 수정한 내용이 PC에서 바로 반영되도록)
+  let _lastSyncTime = Date.now();
+  document.addEventListener('visibilitychange', function() {
+    if (document.visibilityState === 'visible' && Date.now() - _lastSyncTime > 30000) {
+      _lastSyncTime = Date.now();
+      refreshAll(true);
+    }
+  });
+  // focus 이벤트도 같이 — iframe 내부(GAS 웹앱)에서는 visibilitychange가 안 올 수 있음
+  window.addEventListener('focus', function() {
+    if (Date.now() - _lastSyncTime > 30000) {
+      _lastSyncTime = Date.now();
+      refreshAll(true);
+    }
+  });
 
   // ESC 모달 닫기
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
