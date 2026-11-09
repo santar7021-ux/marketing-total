@@ -5831,11 +5831,13 @@ async function changeMktCat(rowNum, newCat) {
 function fmtDate(val) {
   if (!val) return '';
   const s = String(val).trim();
-  // ISO datetime: 2026-11-01T15:00:00.000Z
-  let m = s.match(/^(\d{4})[-.](\d{1,2})[-.](\d{1,2})T/);
-  if (m) return m[1] + '.' + m[2].padStart(2, '0') + '.' + m[3].padStart(2, '0');
+  // ISO datetime: 2026-11-01T15:00:00.000Z → 로컬 시간대(KST) 기준으로 변환
+  if (/^\d{4}[-.]?\d{1,2}[-.]?\d{1,2}T/.test(s)) {
+    const d = new Date(s);
+    if (!isNaN(d)) return d.getFullYear() + '.' + String(d.getMonth() + 1).padStart(2, '0') + '.' + String(d.getDate()).padStart(2, '0');
+  }
   // YYYY-MM-DD
-  m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  let m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
   if (m) return m[1] + '.' + m[2].padStart(2, '0') + '.' + m[3].padStart(2, '0');
   // YYYY.MM or YYYY.MM.DD
   m = s.match(/^(\d{4})\.(\d{1,2})(?:\.(\d{1,2}))?/);
@@ -5848,6 +5850,11 @@ function fmtDate(val) {
 function fmtDateInput(val) {
   if (!val) return '';
   const s = String(val).trim();
+  // ISO datetime → 로컬 시간대 기준 YYYY-MM-DD
+  if (/^\d{4}[-.]?\d{1,2}[-.]?\d{1,2}T/.test(s)) {
+    const d = new Date(s);
+    if (!isNaN(d)) return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
   let m = s.match(/^(\d{4})[-.](\d{1,2})[-.](\d{1,2})/);
   if (m) return m[1] + '-' + m[2].padStart(2, '0') + '-' + m[3].padStart(2, '0');
   return s;
@@ -5857,7 +5864,12 @@ function fmtDateInput(val) {
 function parseDateNum(str) {
   if (!str) return 0;
   let s = String(str);
-  // ISO 날짜 처리 ("2025-06-15T..." 또는 "2025-06-15")
+  // ISO datetime ("2025-06-15T15:00:00.000Z") → 로컬 시간대 기준으로 변환
+  if (/^\d{4}[-./]\d{1,2}[-./]\d{1,2}T/.test(s)) {
+    const d = new Date(s);
+    if (!isNaN(d)) return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
+  }
+  // ISO 날짜 ("2025-06-15" 또는 "2025.06.15")
   const isoMatch = s.match(/^(\d{4})[-./](\d{1,2})(?:[-./](\d{1,2}))?/);
   if (isoMatch) {
     return parseInt(isoMatch[1]) * 10000 + parseInt(isoMatch[2]) * 100 + (parseInt(isoMatch[3]) || 0);
